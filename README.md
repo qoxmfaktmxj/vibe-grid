@@ -21,6 +21,21 @@ VibeGrid is a standalone internal grid product workspace for replacing IBSheet-s
 - `packages/clipboard`: copy/paste parsing and rectangular apply
 - `packages/testing`: reusable bench and fixture helpers
 
+## Start Here
+
+Before changing code, read these files first:
+
+1. `AGENTS.md`
+2. `docs/adr/0001-product-scope.md`
+3. `docs/development/vibe-grid-development-guide.md`
+4. the latest relevant slice docs in `docs/roadmap/`
+
+Current active references:
+
+- `docs/roadmap/slice-8-range-selection-design.md`
+- `docs/roadmap/slice-8-status.md`
+- `docs/roadmap/slice-9-productized-grid-ux-design.md`
+
 ## Local commands
 
 ```bash
@@ -42,6 +57,14 @@ npm run lint
 npm run build
 npm run ci
 ```
+
+For fresh browser validation, prefer:
+
+```powershell
+$env:CI='1'; npm run test:e2e
+```
+
+UI and interaction changes must include browser validation with Playwright before push.
 
 ## Deployment shape
 
