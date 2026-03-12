@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -72,68 +72,74 @@ export function VibeGrid<Row extends RowRecord>({
   editSession,
   onEditSessionChange,
   onCellEditCommit,
-  emptyMessage = "조회된 데이터가 없습니다.",
+  emptyMessage = "조회할 데이터가 없습니다.",
   height = 420,
 }: VibeGridProps<Row>) {
   const inputId = useId();
   const resolvedSelectionState =
     selectionState ?? createSelectionState({ activeRowId: rows[0]?.meta.rowKey });
-  const rowMetaByKey = new Map(
-    rows.map((managedRow) => [managedRow.meta.rowKey, managedRow.meta]),
+  const rowMetaByKey = useMemo(
+    () =>
+      new Map(rows.map((managedRow) => [managedRow.meta.rowKey, managedRow.meta])),
+    [rows],
   );
-  const businessColumns: ColumnDef<Row>[] = [
-    {
-      id: "__rowNumber",
-      header: "No",
-      cell: ({ row }) => row.index + 1,
-      size: 72,
-      minSize: 72,
-      maxSize: 72,
-      enableSorting: false,
-      meta: {
-        columnKey: "__rowNumber",
-        internal: true,
-      } satisfies InternalColumnMeta,
-    },
-    {
-      id: "__rowState",
-      header: "상태",
-      cell: ({ row }) => {
-        const state = rowMetaByKey.get(row.id)?.state ?? "N";
-        const palette = rowStateColor[state];
-
-        return (
-          <span
-            style={{
-              display: "inline-flex",
-              minWidth: 54,
-              justifyContent: "center",
-              padding: "6px 10px",
-              borderRadius: 999,
-              background: palette.background,
-              color: palette.color,
-              fontSize: 12,
-              fontWeight: 700,
-            }}
-          >
-            {rowStateLabel[state]}
-          </span>
-        );
+  const tableData = useMemo(() => rows.map((managedRow) => managedRow.row), [rows]);
+  const businessColumns = useMemo<ColumnDef<Row>[]>(
+    () => [
+      {
+        id: "__rowNumber",
+        header: "No",
+        cell: ({ row }) => row.index + 1,
+        size: 72,
+        minSize: 72,
+        maxSize: 72,
+        enableSorting: false,
+        meta: {
+          columnKey: "__rowNumber",
+          internal: true,
+        } satisfies InternalColumnMeta,
       },
-      size: 110,
-      minSize: 110,
-      maxSize: 110,
-      enableSorting: false,
-      meta: {
-        columnKey: "__rowState",
-        internal: true,
-      } satisfies InternalColumnMeta,
-    },
-    ...createTanStackColumns(columns),
-  ];
+      {
+        id: "__rowState",
+        header: "상태",
+        cell: ({ row }) => {
+          const state = rowMetaByKey.get(row.id)?.state ?? "N";
+          const palette = rowStateColor[state];
+
+          return (
+            <span
+              style={{
+                display: "inline-flex",
+                minWidth: 54,
+                justifyContent: "center",
+                padding: "6px 10px",
+                borderRadius: 999,
+                background: palette.background,
+                color: palette.color,
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+            >
+              {rowStateLabel[state]}
+            </span>
+          );
+        },
+        size: 110,
+        minSize: 110,
+        maxSize: 110,
+        enableSorting: false,
+        meta: {
+          columnKey: "__rowState",
+          internal: true,
+        } satisfies InternalColumnMeta,
+      },
+      ...createTanStackColumns(columns),
+    ],
+    [columns, rowMetaByKey],
+  );
 
   const table = useReactTable({
-    data: rows.map((managedRow) => managedRow.row),
+    data: tableData,
     columns: businessColumns,
     getRowId: (_row, index) => rows[index]?.meta.rowKey ?? `${gridId}-${index}`,
     getCoreRowModel: getCoreRowModel(),
