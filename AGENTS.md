@@ -28,6 +28,17 @@ Minimum roadmap references:
 
 ## Validation Rules
 
+Playwright validation means **real browser interaction verification**.
+
+In this repository, Playwright is not just a unit-style check. It is used to verify real browser behavior such as:
+
+- click
+- focus
+- keyboard input
+- paste
+- drag
+- sticky and pinned rendering reactions
+
 Browser validation is mandatory for UI and interaction work.
 
 Required:
@@ -43,6 +54,7 @@ Recommended before push:
 If you changed selection, paste, editing, header behavior, filtering, or styling:
 
 - run Playwright browser validation before pushing
+- interpret this as real browser click and event verification, not just static render confirmation
 - prefer a fresh server run with `CI=1` so old local dev processes do not hide regressions
 
 ## Working Style

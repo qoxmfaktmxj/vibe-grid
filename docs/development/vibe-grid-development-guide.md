@@ -41,6 +41,17 @@ Questions to answer:
 
 ### 3. Browser validation is mandatory
 
+In this repository, Playwright validation means **real browser click and event verification**.
+
+This includes verifying actual browser behavior such as:
+
+- click
+- focus movement
+- keyboard input
+- paste
+- drag
+- sticky and pinned reactions
+
 If the work touches any of these, browser testing is required:
 
 - selection
@@ -82,6 +93,8 @@ Recommended for:
 - paste or clipboard edge cases
 - header menu positioning
 - filter row alignment
+
+This is intended as real browser interaction checking, not just confirming that a page rendered.
 
 If using Playwright CLI, snapshot before interacting and re-snapshot after significant UI changes.
 

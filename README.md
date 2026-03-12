@@ -66,6 +66,15 @@ $env:CI='1'; npm run test:e2e
 
 UI and interaction changes must include browser validation with Playwright before push.
 
+Here, Playwright validation means real browser click and event verification, including behavior like:
+
+- click
+- focus
+- keyboard input
+- paste
+- drag
+- sticky/pinned interaction
+
 ## Deployment shape
 
 - Git repository target: `minseok91/vibe-grid`
