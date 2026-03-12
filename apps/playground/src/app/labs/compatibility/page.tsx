@@ -1,9 +1,9 @@
 const checklist = [
-  "행 선택이 기본 동작처럼 느껴지는가",
-  "복사 / 삭제 토글 / 저장 액션명이 legacy와 자연스럽게 이어지는가",
-  "붙여넣기와 엑셀 업로드가 같은 규칙으로 동작하는가",
-  "frozen / sticky / wide-table 시나리오가 깨지지 않는가",
-  "validation 오류와 save bundle이 충돌 없이 함께 보이는가",
+  "행 선택 기본 UX가 IBSheet 사용자 기대와 자연스럽게 맞는가",
+  "복사 / 삭제 토글 / 저장 액션명이 legacy 감각을 유지하는가",
+  "붙여넣기와 엑셀 업로드가 같은 검증 규칙을 타는가",
+  "frozen / sticky / wide-table 시나리오가 레이어 충돌 없이 동작하는가",
+  "validation 오류와 save bundle이 동시에 보일 때도 해석이 쉬운가",
 ];
 
 export default function CompatibilityLabPage() {
@@ -21,10 +21,17 @@ export default function CompatibilityLabPage() {
         }}
       >
         <h2 style={{ margin: 0, fontSize: 38 }}>Compatibility Lab</h2>
-        <p style={{ marginTop: 16, maxWidth: 860, lineHeight: 1.8, color: "rgba(255,255,255,0.82)" }}>
-          이 화면은 IBSheet 운영 UX와 현재 VibeGrid 동작을 비교하는 기준선입니다.
-          아직 자동 비교 화면까지는 아니지만, 무엇을 맞춰야 하는지 먼저 고정해두는
-          용도로 넣어뒀습니다.
+        <p
+          style={{
+            marginTop: 16,
+            maxWidth: 860,
+            lineHeight: 1.8,
+            color: "rgba(255,255,255,0.82)",
+          }}
+        >
+          이 화면은 IBSheet 운영 UX와 현재 VibeGrid 동작을 비교하는 기준 레이어입니다.
+          지금은 실전화 전 단계라서 체크리스트와 acceptance 기준을 먼저 고정하는 용도로
+          유지하고 있고, 실질적인 비교 시나리오는 다음 슬라이스에서 보강할 예정입니다.
         </p>
       </section>
 

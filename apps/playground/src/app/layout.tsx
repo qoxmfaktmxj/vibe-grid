@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "VibeGrid Playground",
-  description: "Manual validation surface for the standalone VibeGrid product.",
+  description: "업무형 공통 Grid 제품을 검증하는 테스트 허브",
 };
 
 export default function RootLayout({
@@ -35,7 +35,14 @@ export default function RootLayout({
               boxShadow: "0 12px 40px rgba(15, 23, 42, 0.08)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 16,
+                flexWrap: "wrap",
+              }}
+            >
               <div>
                 <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>
                   VibeGrid Test Hub
@@ -43,9 +50,9 @@ export default function RootLayout({
                 <h1 style={{ margin: "8px 0 0", fontSize: 28 }}>한 포트 검증 허브</h1>
               </div>
               <div style={{ color: "#475569", lineHeight: 1.7, maxWidth: 620 }}>
-                업무형 grid 테스트는 한 앱 안에서 이동하는 게 가장 편합니다.
+                업무형 grid 테스트는 한 포트 안에서 이동하는 편이 가장 효율적입니다.
                 지금부터는 `Grid Lab`, `Bench`, `Compatibility`를 이 허브 안에서
-                이동하며 확인하면 됩니다.
+                오가며 확인하면 됩니다.
               </div>
             </div>
             <AppNav />

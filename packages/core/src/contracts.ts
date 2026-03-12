@@ -20,6 +20,30 @@ export type GridFilter = {
   value: unknown;
 };
 
+export type GridSortRule = {
+  id: string;
+  desc: boolean;
+};
+
+export type GridQuery = {
+  pageIndex: number;
+  pageSize: number;
+  sorting: GridSortRule[];
+  filters: GridFilter[];
+};
+
+export type GridPageSnapshot = {
+  pageIndex: number;
+  pageSize: number;
+  totalCount: number;
+  pageCount: number;
+};
+
+export type GridServerResult<Row> = GridPageSnapshot & {
+  rows: Row[];
+  query: GridQuery;
+};
+
 export type GridActiveCell = {
   rowKey: string;
   columnKey: string;
@@ -31,12 +55,51 @@ export type GridSelectionState = {
   activeCell?: GridActiveCell;
 };
 
-export type GridQuery = {
-  pageIndex: number;
-  pageSize: number;
-  sorting: Array<{ id: string; desc: boolean }>;
-  filters: GridFilter[];
+export type GridColumnVisibilityState = Record<string, boolean>;
+
+export type GridColumnSizingState = Record<string, number>;
+
+export type GridColumnPinningState = {
+  left: string[];
+  right: string[];
 };
+
+export type GridColumnState = {
+  order: string[];
+  visibility: GridColumnVisibilityState;
+  sizing: GridColumnSizingState;
+  pinning: GridColumnPinningState;
+};
+
+export type GridEditorOption = {
+  label: string;
+  value: string;
+};
+
+export type GridEditorSpec<Row> =
+  | {
+      type?: "text";
+      placeholder?: string;
+    }
+  | {
+      type: "number";
+      min?: number;
+      max?: number;
+      step?: number;
+      placeholder?: string;
+    }
+  | {
+      type: "textarea";
+      rows?: number;
+      placeholder?: string;
+    }
+  | {
+      type: "select";
+      options:
+        | GridEditorOption[]
+        | ((row: Row) => GridEditorOption[]);
+      placeholder?: string;
+    };
 
 export type GridValidator<Row> = (
   value: unknown,
@@ -64,6 +127,7 @@ export type VibeGridColumn<Row> = {
   accessor?: (row: Row) => unknown;
   parse?: GridInputParser<Row>;
   validate?: GridValidator<Row>[];
+  editor?: GridEditorSpec<Row>;
 };
 
 export type SaveBundle<Row> = {
@@ -121,7 +185,9 @@ export type GridCommandContext<Row extends Record<string, unknown>> = {
   query?: GridQuery;
 };
 
-export type GridCommand<Row extends Record<string, unknown> = Record<string, unknown>> = {
+export type GridCommand<
+  Row extends Record<string, unknown> = Record<string, unknown>,
+> = {
   id: GridCommandId;
   legacyCode?: string;
   labelKey: string;

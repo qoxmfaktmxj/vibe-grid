@@ -1,6 +1,13 @@
 "use client";
 
-import { startTransition, useId, useState } from "react";
+import {
+  startTransition,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+  type ChangeEvent,
+} from "react";
 import {
   buildRectangularPastePlan,
   createClipboardSchema,
@@ -13,6 +20,7 @@ import {
   clearSelection,
   countValidationIssues,
   createDefaultCommandRegistry,
+  createGridColumnState,
   createInsertedRow,
   createLoadedRow,
   createSelectionState,
@@ -20,17 +28,35 @@ import {
   getRowStateCounts,
   hasValidationIssues,
   markRowsSaved,
+  moveGridColumn,
   pruneSelectionState,
+  sanitizeGridColumnState,
+  setGridColumnPinning,
+  setGridColumnVisibility,
+  setGridColumnWidth,
   toggleRowDeleted,
-  updateEditSessionDraft,
   validateManagedRows,
+  type GridColumnState,
   type GridEditSession,
+  type GridFilter,
+  type GridPageSnapshot,
+  type GridQuery,
   type GridSelectionState,
+  type GridServerResult,
   type ManagedGridRow,
   type SaveBundle,
-  type VibeGridColumn,
 } from "@vibe-grid/core";
 import { VibeGrid } from "@vibe-grid/react";
+import {
+  buildGridLabServerResult,
+  buildGridQuerySearchParams,
+  createBlankRow,
+  defaultGridQuery,
+  firstEditableColumnKey,
+  playgroundColumns,
+  type PlaygroundRow,
+  useYnOptions,
+} from "../features/grid-lab/model";
 import {
   createExcelTemplateBufferLazy,
   exportRowsToExcelBufferLazy,
@@ -38,159 +64,27 @@ import {
   type GridExcelImportPreview,
 } from "./excel-client";
 
-type PlaygroundRow = {
-  sampleCode: string;
-  sampleName: string;
-  department: string;
-  jobTitle: string;
-  useYn: "Y" | "N";
-  sortOrder: number;
-  note: string;
+type FilterDraft = {
+  keyword: string;
+  useYn: "" | "Y" | "N";
 };
-
-const firstEditableColumnKey: keyof PlaygroundRow = "sampleCode";
-
-const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
-  {
-    key: "sampleCode",
-    header: "샘플코드",
-    width: 150,
-    editable: true,
-    required: true,
-    validate: [
-      (value) =>
-        String(value ?? "").trim().length >= 3
-          ? null
-          : "샘플코드는 3자 이상이어야 합니다.",
-    ],
-  },
-  {
-    key: "sampleName",
-    header: "샘플명",
-    width: 180,
-    editable: true,
-    required: true,
-  },
-  {
-    key: "department",
-    header: "부서",
-    width: 160,
-    editable: true,
-    required: true,
-  },
-  {
-    key: "jobTitle",
-    header: "직급",
-    width: 120,
-    editable: true,
-    required: true,
-  },
-  {
-    key: "useYn",
-    header: "사용여부",
-    width: 120,
-    editable: true,
-    required: true,
-    parse: (value) => (value.trim().toUpperCase() === "N" ? "N" : "Y"),
-    validate: [
-      (value) =>
-        value === "Y" || value === "N"
-          ? null
-          : "사용여부는 Y 또는 N이어야 합니다.",
-    ],
-  },
-  {
-    key: "sortOrder",
-    header: "정렬순서",
-    width: 120,
-    editable: true,
-    required: true,
-    parse: (value) => Number(value.trim() || "0"),
-    validate: [
-      (value) =>
-        Number.isFinite(Number(value)) && Number(value) >= 0
-          ? null
-          : "정렬순서는 0 이상 숫자여야 합니다.",
-    ],
-  },
-  {
-    key: "note",
-    header: "비고",
-    width: 240,
-    editable: true,
-  },
-];
 
 const clipboardSchema = createClipboardSchema(playgroundColumns, {
   useYn: (value) => (value.trim().toUpperCase() === "N" ? "N" : "Y"),
   sortOrder: (value) => Number(value.trim() || "0"),
 });
 
-const playgroundSeedRows: PlaygroundRow[] = [
-  {
-    sampleCode: "HR-001",
-    sampleName: "인사기본",
-    department: "인사운영팀",
-    jobTitle: "매니저",
-    useYn: "Y",
-    sortOrder: 1,
-    note: "기본 인사 마스터 예시",
-  },
-  {
-    sampleCode: "HR-002",
-    sampleName: "평가운영",
-    department: "평가보상팀",
-    jobTitle: "책임",
-    useYn: "Y",
-    sortOrder: 2,
-    note: "평가 데이터 검증용",
-  },
-  {
-    sampleCode: "HR-003",
-    sampleName: "급여정산",
-    department: "급여팀",
-    jobTitle: "선임",
-    useYn: "Y",
-    sortOrder: 3,
-    note: "저장 payload 테스트",
-  },
-  {
-    sampleCode: "HR-004",
-    sampleName: "조직개편",
-    department: "HRBP",
-    jobTitle: "파트장",
-    useYn: "N",
-    sortOrder: 4,
-    note: "삭제 체크 시나리오",
-  },
-];
+const initialServerResult = buildGridLabServerResult(defaultGridQuery);
 
-function createSeedRows() {
+function createLoadedRows(rows: PlaygroundRow[]) {
   return validateManagedRows(
-    playgroundSeedRows.map((row, index) =>
-      createLoadedRow(`row-${index + 1}`, row),
-    ),
+    rows.map((row) => createLoadedRow(row.sampleCode, row)),
     playgroundColumns,
   );
 }
 
-function createBlankRow(sequence: number): PlaygroundRow {
-  return {
-    sampleCode: `NEW-${String(sequence).padStart(3, "0")}`,
-    sampleName: "신규 항목",
-    department: "미정",
-    jobTitle: "사원",
-    useYn: "Y",
-    sortOrder: sequence,
-    note: "입력 후 저장 전 상태",
-  };
-}
-
-function createDefaultSelection(
-  rows: ManagedGridRow<PlaygroundRow>[],
-): GridSelectionState {
+function createDefaultSelection(rows: ManagedGridRow<PlaygroundRow>[]) {
   const firstRow = rows[0];
-
   if (!firstRow) {
     return clearSelection();
   }
@@ -216,6 +110,28 @@ function normalizeSelection(
   return nextSelection.activeRowId ? nextSelection : createDefaultSelection(rows);
 }
 
+function createFilters(draft: FilterDraft): GridFilter[] {
+  const filters: GridFilter[] = [];
+
+  if (draft.keyword.trim()) {
+    filters.push({
+      field: "keyword",
+      op: "contains",
+      value: draft.keyword.trim(),
+    });
+  }
+
+  if (draft.useYn) {
+    filters.push({
+      field: "useYn",
+      op: "eq",
+      value: draft.useYn,
+    });
+  }
+
+  return filters;
+}
+
 function triggerDownload(filename: string, buffer: ArrayBuffer) {
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -229,11 +145,11 @@ function triggerDownload(filename: string, buffer: ArrayBuffer) {
   URL.revokeObjectURL(url);
 }
 
-const initialRows = createSeedRows();
+const initialRows = createLoadedRows(initialServerResult.rows);
 
 export function PlaygroundWorkbench() {
   const importInputId = useId();
-  const [rows, setRows] = useState<ManagedGridRow<PlaygroundRow>[]>(initialRows);
+  const [rows, setRows] = useState(initialRows);
   const [selectionState, setSelectionState] = useState<GridSelectionState>(
     createDefaultSelection(initialRows),
   );
@@ -242,10 +158,25 @@ export function PlaygroundWorkbench() {
     useState<SaveBundle<PlaygroundRow> | null>(null);
   const [pasteText, setPasteText] = useState("");
   const [statusMessage, setStatusMessage] = useState(
-    "그리드에서 시작 셀을 선택한 뒤, 붙여넣기나 엑셀 업로드를 시험해 보세요.",
+    "Grid Lab에서 조회, 입력, 저장, 엑셀, 붙여넣기, 컬럼 상태를 함께 검증할 수 있습니다.",
   );
   const [importPreview, setImportPreview] =
     useState<GridExcelImportPreview<PlaygroundRow> | null>(null);
+  const [query, setQuery] = useState<GridQuery>(initialServerResult.query);
+  const [pageSnapshot, setPageSnapshot] = useState<GridPageSnapshot>({
+    pageIndex: initialServerResult.pageIndex,
+    pageSize: initialServerResult.pageSize,
+    totalCount: initialServerResult.totalCount,
+    pageCount: initialServerResult.pageCount,
+  });
+  const [filterDraft, setFilterDraft] = useState<FilterDraft>({
+    keyword: "",
+    useYn: "",
+  });
+  const [isFetching, setIsFetching] = useState(false);
+  const [columnState, setColumnState] = useState<GridColumnState>(() =>
+    createGridColumnState(playgroundColumns),
+  );
 
   const commands = createDefaultCommandRegistry("ko-KR");
   const activeRowKey = selectionState.activeRowId;
@@ -254,6 +185,38 @@ export function PlaygroundWorkbench() {
     rows.find((row) => row.meta.rowKey === getPrimarySelectedRowId(selectionState));
   const stateCounts = getRowStateCounts(rows);
   const validationIssueCount = countValidationIssues(rows);
+  const prettyQuery = useMemo(() => JSON.stringify(query, null, 2), [query]);
+  const prettySaveBundle = useMemo(
+    () => JSON.stringify(lastSaveBundle, null, 2),
+    [lastSaveBundle],
+  );
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("vibe-grid:playground:columns");
+      if (!raw) {
+        return;
+      }
+
+      setColumnState(
+        sanitizeGridColumnState(playgroundColumns, JSON.parse(raw) as GridColumnState),
+      );
+    } catch {
+      // ignore invalid local prefs in the lab
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      "vibe-grid:playground:columns",
+      JSON.stringify(columnState),
+    );
+  }, [columnState]);
+
+  useEffect(() => {
+    void loadRows(initialServerResult.query, "초기 서버 조회");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function commitRows(
     nextRows: ManagedGridRow<PlaygroundRow>[],
@@ -264,6 +227,47 @@ export function PlaygroundWorkbench() {
       setRows(validatedRows);
       setSelectionState(nextSelection);
     });
+  }
+
+  async function loadRows(nextQuery: GridQuery, reason: string) {
+    setIsFetching(true);
+
+    try {
+      const searchParams = buildGridQuerySearchParams(nextQuery);
+      const response = await fetch(`/api/grid-lab/rows?${searchParams.toString()}`, {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const result = (await response.json()) as GridServerResult<PlaygroundRow>;
+      const nextRows = createLoadedRows(result.rows);
+
+      setEditSession(null);
+      setLastSaveBundle(null);
+      setImportPreview(null);
+      setQuery(result.query);
+      setPageSnapshot({
+        pageIndex: result.pageIndex,
+        pageSize: result.pageSize,
+        totalCount: result.totalCount,
+        pageCount: result.pageCount,
+      });
+      commitRows(nextRows, createDefaultSelection(nextRows));
+      setStatusMessage(
+        `${reason}: 서버에서 ${result.rows.length}건을 불러왔습니다. 전체 ${result.totalCount}건, ${result.pageIndex + 1}/${result.pageCount} 페이지입니다.`,
+      );
+    } catch (error) {
+      setStatusMessage(
+        `서버 조회에 실패했습니다. ${
+          error instanceof Error ? error.message : "알 수 없는 오류"
+        }`,
+      );
+    } finally {
+      setIsFetching(false);
+    }
   }
 
   function applyTabularText(text: string, sourceLabel: string) {
@@ -277,16 +281,13 @@ export function PlaygroundWorkbench() {
 
     if (plan.appliedCellCount === 0) {
       const firstReason = plan.skippedCells[0]?.reason;
-      const message =
+      setStatusMessage(
         firstReason === "missingAnchorColumn"
           ? "먼저 그리드에서 시작 셀을 선택해 주세요."
           : firstReason === "missingAnchorRow"
-            ? "선택된 행이 없어서 데이터를 적용할 수 없습니다."
-            : firstReason === "emptyMatrix"
-              ? "적용할 데이터가 비어 있습니다."
-              : "적용 가능한 데이터가 없습니다.";
-
-      setStatusMessage(message);
+            ? "선택된 행이 없어 데이터를 적용할 수 없습니다."
+            : "적용 가능한 데이터가 없습니다.",
+      );
       return;
     }
 
@@ -307,21 +308,11 @@ export function PlaygroundWorkbench() {
         { source: "paste" },
       ),
     );
-    const mergedRows = [...nextRows, ...appendedRows];
 
-    commitRows(mergedRows);
+    commitRows([...nextRows, ...appendedRows]);
     setStatusMessage(
       `${sourceLabel}: ${plan.appliedCellCount}개 셀 반영, 신규 ${plan.appendedRows.length}행 추가, 건너뜀 ${plan.skippedCells.length}건`,
     );
-  }
-
-  function handleSearch() {
-    const nextRows = createSeedRows();
-    setLastSaveBundle(null);
-    setImportPreview(null);
-    setEditSession(null);
-    commitRows(nextRows, createDefaultSelection(nextRows));
-    setStatusMessage("샘플 데이터로 초기화했습니다.");
   }
 
   function handleInsert() {
@@ -350,6 +341,7 @@ export function PlaygroundWorkbench() {
         },
       }),
     );
+    setStatusMessage("신규 행을 추가했습니다. 현재 페이지의 로컬 작업 상태입니다.");
   }
 
   function handleCopyRow() {
@@ -357,6 +349,7 @@ export function PlaygroundWorkbench() {
     const sourceRow = rows.find((row) => row.meta.rowKey === sourceRowKey);
 
     if (!sourceRow) {
+      setStatusMessage("복사할 행을 먼저 선택해 주세요.");
       return;
     }
 
@@ -396,12 +389,14 @@ export function PlaygroundWorkbench() {
         },
       }),
     );
+    setStatusMessage("선택한 행을 복사했습니다.");
   }
 
   function handleToggleDelete() {
     const targetRowIds = [...selectionState.selectedRowIds];
 
     if (targetRowIds.length === 0) {
+      setStatusMessage("삭제 토글할 행을 먼저 선택해 주세요.");
       return;
     }
 
@@ -416,6 +411,7 @@ export function PlaygroundWorkbench() {
 
     setEditSession(null);
     commitRows(nextRows);
+    setStatusMessage(`${targetRowIds.length}개 행의 삭제 토글 상태를 바꿨습니다.`);
   }
 
   function handleSave() {
@@ -431,7 +427,7 @@ export function PlaygroundWorkbench() {
     setEditSession(null);
     commitRows(nextRows, createDefaultSelection(nextRows));
     setStatusMessage(
-      `저장 번들을 생성했습니다. 입력 ${bundle.inserted.length}건, 수정 ${bundle.updated.length}건, 삭제 ${bundle.deleted.length}건`,
+      `저장 번들을 만들었습니다. 입력 ${bundle.inserted.length}건, 수정 ${bundle.updated.length}건, 삭제 ${bundle.deleted.length}건`,
     );
   }
 
@@ -483,6 +479,17 @@ export function PlaygroundWorkbench() {
     commitRows(nextRows);
   }
 
+  async function handleSearch() {
+    await loadRows(
+      {
+        ...query,
+        pageIndex: 0,
+        filters: createFilters(filterDraft),
+      },
+      "조건 조회",
+    );
+  }
+
   async function handleExportExcel() {
     const buffer = await exportRowsToExcelBufferLazy({
       sheetName: "VibeGridRows",
@@ -516,19 +523,16 @@ export function PlaygroundWorkbench() {
     try {
       const nextText = await navigator.clipboard.readText();
       setPasteText(nextText);
-      setStatusMessage("클립보드 내용을 불러왔습니다. 적용 버튼으로 반영하세요.");
+      setStatusMessage("클립보드 내용을 가져왔습니다. 적용 버튼으로 반영해 주세요.");
     } catch {
       setStatusMessage(
-        "브라우저 클립보드 권한이 없어서 자동으로 읽지 못했습니다. 아래 영역에 직접 붙여넣어 주세요.",
+        "클립보드 권한이 없어 자동으로 읽지 못했습니다. 아래 영역에 직접 붙여넣어 주세요.",
       );
     }
   }
 
-  async function handleExcelFileChange(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) {
+  async function handleExcelFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
     if (!file) {
       return;
     }
@@ -544,7 +548,7 @@ export function PlaygroundWorkbench() {
     setStatusMessage(
       preview.ok
         ? `엑셀 미리보기 완료: ${preview.rows.length}행을 읽었습니다.`
-        : `엑셀 헤더 불일치: 누락 ${preview.missingHeaders.join(", ") || "-"}, 알 수 없음 ${preview.unknownHeaders.join(", ") || "-"}`,
+        : `엑셀 헤더 불일치: 누락 ${preview.missingHeaders.join(", ") || "-"}, 알 수 없는 헤더 ${preview.unknownHeaders.join(", ") || "-"}`,
     );
 
     event.target.value = "";
@@ -566,6 +570,38 @@ export function PlaygroundWorkbench() {
 
     applyTabularText(importPreview.text, "엑셀 업로드");
     setImportPreview(null);
+  }
+
+  async function handlePageMove(nextPageIndex: number) {
+    await loadRows(
+      {
+        ...query,
+        pageIndex: Math.max(0, Math.min(pageSnapshot.pageCount - 1, nextPageIndex)),
+      },
+      "페이지 이동",
+    );
+  }
+
+  async function handlePageSizeChange(pageSize: number) {
+    await loadRows(
+      {
+        ...query,
+        pageIndex: 0,
+        pageSize,
+      },
+      "페이지 크기 변경",
+    );
+  }
+
+  async function handleSortingChange(nextSorting: GridQuery["sorting"]) {
+    await loadRows(
+      {
+        ...query,
+        pageIndex: 0,
+        sorting: nextSorting,
+      },
+      "서버 정렬 변경",
+    );
   }
 
   const commandHandlers: Partial<
@@ -591,54 +627,19 @@ export function PlaygroundWorkbench() {
         style={{ display: "none" }}
       />
 
-      <section
-        style={{
-          border: "1px solid #d9e4f1",
-          borderRadius: 28,
-          padding: 28,
-          background:
-            "linear-gradient(135deg, rgba(15,23,42,0.98), rgba(15,118,110,0.94))",
-          color: "#fff",
-          boxShadow: "0 20px 60px rgba(15, 23, 42, 0.14)",
-        }}
-      >
-        <div
-          style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}
-        >
-          <span
-            style={{
-              padding: "6px 12px",
-              borderRadius: 999,
-              background: "rgba(255,255,255,0.12)",
-              fontSize: 12,
-            }}
-          >
-            Playground
-          </span>
-          <span
-            style={{
-              padding: "6px 12px",
-              borderRadius: 999,
-              background: "rgba(16,185,129,0.18)",
-              fontSize: 12,
-            }}
-          >
-            Validation + Excel
-          </span>
+      <section style={heroSectionStyle}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+          <span style={heroChipStyle("rgba(255,255,255,0.12)")}>Grid Lab</span>
+          <span style={heroChipStyle("rgba(16,185,129,0.18)")}>Server Query</span>
+          <span style={heroChipStyle("rgba(56,189,248,0.18)")}>Column State</span>
         </div>
         <h1 style={{ margin: 0, fontSize: 42, lineHeight: 1.1 }}>
-          VibeGrid 업무형 그리드 랩
+          업무형 Grid 제품 실험실
         </h1>
-        <p
-          style={{
-            marginTop: 16,
-            maxWidth: 860,
-            lineHeight: 1.8,
-            color: "rgba(255,255,255,0.82)",
-          }}
-        >
-          행 선택, active cell 앵커, inline edit session, 검증 오류, 엑셀
-          import/export, 붙여넣기, diff 저장 payload를 한 화면에서 검증합니다.
+        <p style={heroDescriptionStyle}>
+          조회, 입력, 복사, 삭제 토글, 엑셀, 붙여넣기뿐 아니라 컬럼 보이기/숨기기,
+          순서 이동, 폭 조절, pinning, server filter/sort/page까지 한 화면에서 같이
+          검증합니다.
         </p>
       </section>
 
@@ -652,15 +653,7 @@ export function PlaygroundWorkbench() {
               type="button"
               disabled={!action}
               onClick={() => action?.()}
-              style={{
-                border: "1px solid #cbd5e1",
-                borderRadius: 14,
-                background: action ? "#fff" : "#f8fafc",
-                color: action ? "#0f172a" : "#94a3b8",
-                padding: "12px 16px",
-                fontWeight: 700,
-                cursor: action ? "pointer" : "not-allowed",
-              }}
+              style={action ? primaryGhostButtonStyle : disabledButtonStyle}
             >
               {command.label}
             </button>
@@ -668,76 +661,43 @@ export function PlaygroundWorkbench() {
         })}
       </section>
 
-      <section
-        style={{
-          border: "1px solid #d9e4f1",
-          borderRadius: 22,
-          background: "#fff",
-          padding: 18,
-          color: "#334155",
-          lineHeight: 1.7,
-        }}
-      >
-        {statusMessage}
-      </section>
+      <section style={statusPanelStyle}>{statusMessage}</section>
 
-      <section
-        style={{
-          display: "grid",
-          gap: 24,
-          gridTemplateColumns: "minmax(0, 1.85fr) minmax(360px, 1fr)",
-          alignItems: "start",
-        }}
-      >
-        <div style={{ display: "grid", gap: 16 }}>
-          <div
-            style={{
-              display: "grid",
-              gap: 12,
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-            }}
-          >
-            {[
-              { label: "정상", value: stateCounts.N, tone: "#dbeafe", color: "#1d4ed8" },
-              { label: "입력", value: stateCounts.I, tone: "#dcfce7", color: "#047857" },
-              { label: "수정", value: stateCounts.U, tone: "#ffedd5", color: "#c2410c" },
-              { label: "삭제", value: stateCounts.D, tone: "#fee2e2", color: "#b91c1c" },
-              {
-                label: "검증 오류",
-                value: validationIssueCount,
-                tone: "#fef3c7",
-                color: "#b45309",
-              },
-            ].map((item) => (
-              <article
-                key={item.label}
-                style={{
-                  border: "1px solid #d9e4f1",
-                  borderRadius: 20,
-                  padding: 18,
-                  background: "#fff",
-                }}
-              >
-                <div style={{ color: "#64748b", fontSize: 13 }}>{item.label}</div>
-                <strong
-                  style={{
-                    display: "inline-flex",
-                    marginTop: 10,
-                    padding: "6px 12px",
-                    borderRadius: 999,
-                    background: item.tone,
-                    color: item.color,
-                    fontSize: 20,
-                  }}
-                >
-                  {item.value}
-                </strong>
-              </article>
-            ))}
-          </div>
+      <section style={layoutGridStyle}>
+        <div style={{ display: "grid", gap: 18 }}>
+          <section style={cardStyle}>
+            <div style={metricGridStyle}>
+              <MetricCard label="현재 페이지" value={`${rows.length}행`} tone="teal" />
+              <MetricCard
+                label="전체 건수"
+                value={`${pageSnapshot.totalCount}건`}
+                tone="blue"
+              />
+              <MetricCard
+                label="행 상태"
+                value={`N ${stateCounts.N} / I ${stateCounts.I} / U ${stateCounts.U} / D ${stateCounts.D}`}
+                tone="slate"
+              />
+              <MetricCard
+                label="검증 이슈"
+                value={`${validationIssueCount}건`}
+                tone={validationIssueCount > 0 ? "amber" : "teal"}
+              />
+              <MetricCard
+                label="서버 쿼리"
+                value={`필터 ${query.filters.length} / 정렬 ${query.sorting.length}`}
+                tone="slate"
+              />
+              <MetricCard
+                label="로딩 상태"
+                value={isFetching ? "조회 중" : "준비됨"}
+                tone={isFetching ? "amber" : "teal"}
+              />
+            </div>
+          </section>
 
           <VibeGrid
-            gridId="playground-business-grid"
+            gridId="playground-grid"
             rows={rows}
             columns={playgroundColumns}
             selectionState={selectionState}
@@ -745,345 +705,630 @@ export function PlaygroundWorkbench() {
             editSession={editSession}
             onEditSessionChange={setEditSession}
             onCellEditCommit={handleCellEditCommit}
+            columnState={columnState}
+            onColumnStateChange={setColumnState}
+            sorting={query.sorting}
+            onSortingChange={handleSortingChange}
+            height={620}
           />
+
+          <section style={cardStyle}>
+            <div style={sectionHeaderStyle}>
+              <div>
+                <strong style={{ fontSize: 18, color: "#0f172a" }}>
+                  서버 페이지네이션
+                </strong>
+                <div style={{ marginTop: 6, color: "#64748b" }}>
+                  {pageSnapshot.pageIndex + 1} / {pageSnapshot.pageCount} 페이지
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <select
+                  value={pageSnapshot.pageSize}
+                  onChange={(event) =>
+                    void handlePageSizeChange(Number(event.target.value))
+                  }
+                  style={compactInputStyle}
+                >
+                  {[10, 12, 20, 30].map((size) => (
+                    <option key={size} value={size}>
+                      {size}행
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => void handlePageMove(pageSnapshot.pageIndex - 1)}
+                  disabled={pageSnapshot.pageIndex === 0 || isFetching}
+                  style={secondaryButtonStyle}
+                >
+                  이전
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handlePageMove(pageSnapshot.pageIndex + 1)}
+                  disabled={
+                    pageSnapshot.pageIndex >= pageSnapshot.pageCount - 1 || isFetching
+                  }
+                  style={secondaryButtonStyle}
+                >
+                  다음
+                </button>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <div style={{ display: "grid", gap: 16 }}>
-          <section style={panelStyle}>
-            <h2 style={sectionTitleStyle}>선택 컨텍스트</h2>
-            <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
-              <ContextRow label="활성 행" value={selectionState.activeRowId ?? "-"} />
-              <ContextRow
-                label="선택 행 목록"
-                value={[...selectionState.selectedRowIds].join(", ") || "-"}
-              />
-              <ContextRow
-                label="붙여넣기 앵커"
-                value={
-                  selectionState.activeCell
-                    ? `${selectionState.activeCell.rowKey} / ${selectionState.activeCell.columnKey}`
-                    : "-"
+        <aside style={{ display: "grid", gap: 18 }}>
+          <section style={cardStyle}>
+            <div style={sectionHeaderStyle}>
+              <h2 style={sectionTitleStyle}>서버 Query / Filter / Sort / Page</h2>
+              <span style={badgeStyle("#e0f2fe", "#0369a1")}>실동작</span>
+            </div>
+            <label style={fieldLabelStyle}>
+              키워드
+              <input
+                value={filterDraft.keyword}
+                onChange={(event) =>
+                  setFilterDraft((previous) => ({
+                    ...previous,
+                    keyword: event.target.value,
+                  }))
                 }
+                placeholder="샘플코드/샘플명/부서/비고"
+                style={fullInputStyle}
               />
-              <ContextRow
-                label="편집 세션"
-                value={
-                  editSession
-                    ? `${editSession.rowKey} / ${editSession.columnKey}`
-                    : "-"
+            </label>
+            <label style={fieldLabelStyle}>
+              사용여부
+              <select
+                value={filterDraft.useYn}
+                onChange={(event) =>
+                  setFilterDraft((previous) => ({
+                    ...previous,
+                    useYn: event.target.value as FilterDraft["useYn"],
+                  }))
                 }
-              />
+                style={fullInputStyle}
+              >
+                <option value="">전체</option>
+                {useYnOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => void handleSearch()}
+                disabled={isFetching}
+                style={primaryButtonStyle}
+              >
+                서버 조회
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterDraft({ keyword: "", useYn: "" });
+                  void loadRows(defaultGridQuery, "조건 초기화");
+                }}
+                style={secondaryButtonStyle}
+              >
+                조건 초기화
+              </button>
+            </div>
+            <pre style={preStyle}>{prettyQuery}</pre>
+          </section>
+
+          <section style={cardStyle}>
+            <div style={sectionHeaderStyle}>
+              <h2 style={sectionTitleStyle}>컬럼 기능 4종</h2>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <span style={badgeStyle("#ecfeff", "#0f766e")}>Visibility</span>
+                <span style={badgeStyle("#eff6ff", "#1d4ed8")}>Sizing</span>
+                <span style={badgeStyle("#fff7ed", "#c2410c")}>Ordering</span>
+                <span style={badgeStyle("#f5f3ff", "#6d28d9")}>Pinning</span>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={() => setColumnState(createGridColumnState(playgroundColumns))}
+                style={secondaryButtonStyle}
+              >
+                컬럼 초기화
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+              {playgroundColumns.map((column) => {
+                const pinValue = columnState.pinning.left.includes(column.key)
+                  ? "left"
+                  : columnState.pinning.right.includes(column.key)
+                    ? "right"
+                    : "none";
+
+                return (
+                  <div
+                    key={column.key}
+                    style={{
+                      display: "grid",
+                      gap: 10,
+                      borderRadius: 18,
+                      border: "1px solid #e2e8f0",
+                      padding: 14,
+                      background: "#f8fafc",
+                    }}
+                  >
+                    <div style={sectionHeaderStyle}>
+                      <strong style={{ color: "#0f172a" }}>{column.header}</strong>
+                      <label
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                          fontSize: 13,
+                          color: "#334155",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={columnState.visibility[column.key] !== false}
+                          onChange={(event) =>
+                            setColumnState((previous) =>
+                              setGridColumnVisibility(
+                                previous,
+                                column.key,
+                                event.target.checked,
+                              ),
+                            )
+                          }
+                        />
+                        보이기
+                      </label>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gap: 10,
+                        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setColumnState((previous) =>
+                            moveGridColumn(previous, column.key, "left"),
+                          )
+                        }
+                        style={secondaryButtonStyle}
+                      >
+                        왼쪽 이동
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setColumnState((previous) =>
+                            moveGridColumn(previous, column.key, "right"),
+                          )
+                        }
+                        style={secondaryButtonStyle}
+                      >
+                        오른쪽 이동
+                      </button>
+                      <select
+                        value={pinValue}
+                        onChange={(event) =>
+                          setColumnState((previous) =>
+                            setGridColumnPinning(
+                              previous,
+                              column.key,
+                              event.target.value === "none"
+                                ? false
+                                : (event.target.value as "left" | "right"),
+                            ),
+                          )
+                        }
+                        style={compactInputStyle}
+                      >
+                        <option value="none">고정 없음</option>
+                        <option value="left">왼쪽 고정</option>
+                        <option value="right">오른쪽 고정</option>
+                      </select>
+                    </div>
+
+                    <label style={fieldLabelStyle}>
+                      폭
+                      <input
+                        type="range"
+                        min={80}
+                        max={420}
+                        value={columnState.sizing[column.key] ?? column.width ?? 140}
+                        onChange={(event) =>
+                          setColumnState((previous) =>
+                            setGridColumnWidth(
+                              previous,
+                              column.key,
+                              Number(event.target.value),
+                            ),
+                          )
+                        }
+                      />
+                      <span style={{ fontSize: 12, color: "#64748b" }}>
+                        {columnState.sizing[column.key] ?? column.width ?? 140}px
+                      </span>
+                    </label>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
-          <section style={panelStyle}>
-            <h2 style={sectionTitleStyle}>선택 행 편집</h2>
-            <p style={sectionBodyStyle}>
-              우측 폼 편집과 그리드 더블클릭 편집이 같은 row-state/validation 규칙을
-              사용합니다.
-            </p>
-
+          <section style={cardStyle}>
+            <div style={sectionHeaderStyle}>
+              <h2 style={sectionTitleStyle}>선택 행 편집기</h2>
+              <span style={badgeStyle("#ecfdf5", "#047857")}>Editor Set 준비</span>
+            </div>
             {!activeRow ? (
-              <div style={emptyCardStyle}>선택된 행이 없습니다.</div>
+              <div style={{ color: "#64748b", lineHeight: 1.7 }}>
+                편집할 행을 먼저 선택해 주세요.
+              </div>
             ) : (
-              <div style={{ display: "grid", gap: 14, marginTop: 18 }}>
-                <FieldLabel label="샘플코드">
-                  <input
-                    value={activeRow.row.sampleCode}
-                    disabled={activeRow.meta.state === "D"}
-                    onFocus={() =>
-                      setEditSession(
-                        beginEditSession({
-                          rowKey: activeRow.meta.rowKey,
-                          columnKey: "sampleCode",
-                          value: activeRow.row.sampleCode,
-                        }),
-                      )
-                    }
-                    onChange={(event) => {
-                      setEditSession((current) =>
-                        current
-                          ? updateEditSessionDraft(current, event.target.value)
-                          : current,
-                      );
-                      handleFieldChange("sampleCode", event.target.value);
-                    }}
-                    style={inputStyle}
-                  />
-                </FieldLabel>
-                <FieldLabel label="샘플명">
-                  <input
-                    value={activeRow.row.sampleName}
-                    disabled={activeRow.meta.state === "D"}
-                    onChange={(event) =>
-                      handleFieldChange("sampleName", event.target.value)
-                    }
-                    style={inputStyle}
-                  />
-                </FieldLabel>
-                <FieldLabel label="부서">
-                  <input
-                    value={activeRow.row.department}
-                    disabled={activeRow.meta.state === "D"}
-                    onChange={(event) =>
-                      handleFieldChange("department", event.target.value)
-                    }
-                    style={inputStyle}
-                  />
-                </FieldLabel>
-                <div
-                  style={{
-                    display: "grid",
-                    gap: 14,
-                    gridTemplateColumns: "1fr 1fr",
-                  }}
-                >
-                  <FieldLabel label="직급">
-                    <input
-                      value={activeRow.row.jobTitle}
-                      disabled={activeRow.meta.state === "D"}
-                      onChange={(event) =>
-                        handleFieldChange("jobTitle", event.target.value)
-                      }
-                      style={inputStyle}
-                    />
-                  </FieldLabel>
-                  <FieldLabel label="사용여부">
-                    <select
-                      value={activeRow.row.useYn}
-                      disabled={activeRow.meta.state === "D"}
-                      onChange={(event) =>
-                        handleFieldChange("useYn", event.target.value as "Y" | "N")
-                      }
-                      style={inputStyle}
-                    >
-                      <option value="Y">사용</option>
-                      <option value="N">미사용</option>
-                    </select>
-                  </FieldLabel>
-                </div>
-                <FieldLabel label="정렬순서">
-                  <input
-                    type="number"
-                    value={activeRow.row.sortOrder}
-                    disabled={activeRow.meta.state === "D"}
-                    onChange={(event) =>
-                      handleFieldChange(
-                        "sortOrder",
-                        Number(event.target.value || "0"),
-                      )
-                    }
-                    style={inputStyle}
-                  />
-                </FieldLabel>
-                <FieldLabel label="비고">
-                  <textarea
-                    value={activeRow.row.note}
-                    disabled={activeRow.meta.state === "D"}
-                    onChange={(event) => handleFieldChange("note", event.target.value)}
-                    style={{ ...inputStyle, minHeight: 108, resize: "vertical" }}
-                  />
-                </FieldLabel>
-                {Object.entries(activeRow.meta.validationErrors ?? {}).length > 0 ? (
-                  <div style={warningCardStyle}>
-                    {Object.entries(activeRow.meta.validationErrors ?? {}).map(
-                      ([field, issues]) => (
-                        <div key={field}>
-                          <strong>{field}</strong>: {(issues ?? []).join(", ")}
-                        </div>
-                      ),
-                    )}
-                  </div>
-                ) : null}
+              <div style={{ display: "grid", gap: 14 }}>
+                {playgroundColumns.map((column) => (
+                  <label key={column.key} style={fieldLabelStyle}>
+                    {column.header}
+                    {renderSideEditor({
+                      column,
+                      row: activeRow.row,
+                      onChange: (rawValue) =>
+                        handleFieldChange(
+                          column.key as keyof PlaygroundRow,
+                          normalizeEditorValue(column, rawValue, activeRow.row),
+                        ),
+                    })}
+                  </label>
+                ))}
               </div>
             )}
           </section>
 
-          <section style={panelStyle}>
-            <h2 style={sectionTitleStyle}>클립보드 붙여넣기</h2>
-            <p style={sectionBodyStyle}>
-              active cell을 기준으로 직사각형 붙여넣기를 수행합니다. 범위를 넘기면
-              신규 행이 추가됩니다.
-            </p>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
-              <button type="button" onClick={handleReadClipboard} style={secondaryButtonStyle}>
+          <section style={cardStyle}>
+            <div style={sectionHeaderStyle}>
+              <h2 style={sectionTitleStyle}>붙여넣기 / 엑셀</h2>
+              <span style={badgeStyle("#fef3c7", "#92400e")}>Header Validate</span>
+            </div>
+
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => void handleReadClipboard()}
+                style={secondaryButtonStyle}
+              >
                 클립보드 읽기
               </button>
-              <button type="button" onClick={handleApplyPaste} style={primaryButtonStyle}>
+              <button
+                type="button"
+                onClick={handleApplyPaste}
+                style={primaryButtonStyle}
+              >
                 붙여넣기 적용
               </button>
+              <button
+                type="button"
+                onClick={handleApplyImportPreview}
+                disabled={!importPreview}
+                style={secondaryButtonStyle}
+              >
+                업로드 적용
+              </button>
             </div>
+
             <textarea
               value={pasteText}
               onChange={(event) => setPasteText(event.target.value)}
-              placeholder={"HR-100\t신규인사\t인사운영팀\t선임\tY\t10\t엑셀 복붙 테스트"}
+              rows={8}
+              placeholder="엑셀이나 웹에서 복사한 TSV 데이터를 붙여넣어 주세요."
               style={{
-                ...inputStyle,
-                marginTop: 16,
-                minHeight: 140,
+                width: "100%",
+                border: "1px solid #cbd5e1",
+                borderRadius: 16,
+                padding: "12px 14px",
                 resize: "vertical",
-                fontFamily: "Consolas, 'Courier New', monospace",
-                fontSize: 13,
+                font: "inherit",
+                lineHeight: 1.6,
               }}
             />
-          </section>
 
-          <section style={panelStyle}>
-            <h2 style={sectionTitleStyle}>엑셀 Import / Export</h2>
-            <p style={sectionBodyStyle}>
-              템플릿 다운로드, 현재 행 export, import preview를 모두 같은 그리드
-              계약 위에서 검증합니다. import 적용은 clipboard와 같은 mutation
-              pipeline을 탑니다.
-            </p>
             {importPreview ? (
-              <div style={infoCardStyle}>
-                <div>미리보기 행 수: {importPreview.rows.length}</div>
+              <div
+                style={{
+                  borderRadius: 16,
+                  padding: 14,
+                  background: importPreview.ok ? "#ecfdf5" : "#fef2f2",
+                  color: importPreview.ok ? "#065f46" : "#991b1b",
+                  lineHeight: 1.7,
+                }}
+              >
                 <div>헤더: {importPreview.headers.join(", ") || "-"}</div>
                 <div>누락 헤더: {importPreview.missingHeaders.join(", ") || "-"}</div>
-                <div>알 수 없는 헤더: {importPreview.unknownHeaders.join(", ") || "-"}</div>
-                <button
-                  type="button"
-                  onClick={handleApplyImportPreview}
-                  disabled={!importPreview.ok}
-                  style={{
-                    ...primaryButtonStyle,
-                    marginTop: 12,
-                    opacity: importPreview.ok ? 1 : 0.6,
-                  }}
-                >
-                  업로드 적용
-                </button>
+                <div>
+                  알 수 없는 헤더: {importPreview.unknownHeaders.join(", ") || "-"}
+                </div>
+                <div>미리보기 행수: {importPreview.rows.length}</div>
               </div>
-            ) : (
-              <div style={emptyCardStyle}>불러온 엑셀 미리보기가 없습니다.</div>
-            )}
+            ) : null}
           </section>
 
-          <section style={panelStyle}>
-            <h2 style={sectionTitleStyle}>저장 번들 미리보기</h2>
-            <p style={sectionBodyStyle}>
-              저장 payload는 inserted / updated / deleted diff로 유지됩니다.
-            </p>
-            <pre style={codeBlockStyle}>
-              {JSON.stringify(lastSaveBundle ?? buildSaveBundle(rows), null, 2)}
+          <section style={cardStyle}>
+            <div style={sectionHeaderStyle}>
+              <h2 style={sectionTitleStyle}>저장 번들 미리보기</h2>
+              <span style={badgeStyle("#e2e8f0", "#334155")}>Diff Bundle</span>
+            </div>
+            <pre style={preStyle}>
+              {lastSaveBundle ? prettySaveBundle : "아직 저장 번들이 생성되지 않았습니다."}
             </pre>
           </section>
-        </div>
+        </aside>
       </section>
     </section>
   );
 }
 
-function ContextRow(props: { label: string; value: string }) {
-  return (
-    <div
-      style={{
-        display: "grid",
-        gap: 6,
-        borderRadius: 16,
-        background: "#f8fafc",
-        padding: 14,
-      }}
-    >
-      <strong style={{ fontSize: 12, color: "#64748b" }}>{props.label}</strong>
-      <span style={{ color: "#0f172a", fontWeight: 700 }}>{props.value}</span>
-    </div>
-  );
-}
-
-function FieldLabel(props: {
-  label: string;
-  children: React.ReactNode;
+function renderSideEditor(input: {
+  column: (typeof playgroundColumns)[number];
+  row: PlaygroundRow;
+  onChange: (value: string) => void;
 }) {
+  const { column, row, onChange } = input;
+  const rawValue = row[column.key as keyof PlaygroundRow];
+  const displayValue = String(rawValue ?? "");
+  const editor = column.editor ?? { type: "text" as const };
+
+  if (editor.type === "select") {
+    const options =
+      typeof editor.options === "function" ? editor.options(row) : editor.options;
+
+    return (
+      <select
+        value={displayValue}
+        onChange={(event) => onChange(event.target.value)}
+        style={fullInputStyle}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  if (editor.type === "textarea") {
+    return (
+      <textarea
+        value={displayValue}
+        rows={editor.rows ?? 4}
+        placeholder={editor.placeholder}
+        onChange={(event) => onChange(event.target.value)}
+        style={{
+          ...fullInputStyle,
+          resize: "vertical",
+          minHeight: 96,
+        }}
+      />
+    );
+  }
+
+  if (editor.type === "number") {
+    return (
+      <input
+        type="number"
+        min={editor.min}
+        max={editor.max}
+        step={editor.step}
+        value={displayValue}
+        placeholder={editor.placeholder}
+        onChange={(event) => onChange(event.target.value)}
+        style={fullInputStyle}
+      />
+    );
+  }
+
   return (
-    <label style={{ display: "grid", gap: 8 }}>
-      <span style={{ fontSize: 13, fontWeight: 700 }}>{props.label}</span>
-      {props.children}
-    </label>
+    <input
+      value={displayValue}
+      placeholder={editor.placeholder}
+      onChange={(event) => onChange(event.target.value)}
+      style={fullInputStyle}
+    />
   );
 }
 
-const panelStyle = {
+function normalizeEditorValue(
+  column: (typeof playgroundColumns)[number],
+  rawValue: string,
+  row: PlaygroundRow,
+) {
+  return column.parse
+    ? (column.parse(rawValue, row) as PlaygroundRow[keyof PlaygroundRow])
+    : (rawValue as PlaygroundRow[keyof PlaygroundRow]);
+}
+
+function MetricCard(input: {
+  label: string;
+  value: string;
+  tone: "teal" | "blue" | "amber" | "slate";
+}) {
+  const palette = {
+    teal: { background: "#ecfeff", color: "#0f766e" },
+    blue: { background: "#eff6ff", color: "#1d4ed8" },
+    amber: { background: "#fff7ed", color: "#c2410c" },
+    slate: { background: "#f8fafc", color: "#334155" },
+  }[input.tone];
+
+  return (
+    <article style={{ borderRadius: 18, padding: 16, ...palette }}>
+      <div style={{ fontSize: 12, fontWeight: 800 }}>{input.label}</div>
+      <div style={{ marginTop: 8, fontSize: 18, fontWeight: 800 }}>{input.value}</div>
+    </article>
+  );
+}
+
+const heroSectionStyle = {
+  border: "1px solid #d9e4f1",
+  borderRadius: 28,
+  padding: 28,
+  background:
+    "linear-gradient(135deg, rgba(15,23,42,0.98), rgba(15,118,110,0.94))",
+  color: "#fff",
+  boxShadow: "0 20px 60px rgba(15, 23, 42, 0.14)",
+} as const;
+
+const heroDescriptionStyle = {
+  marginTop: 16,
+  maxWidth: 920,
+  lineHeight: 1.8,
+  color: "rgba(255,255,255,0.82)",
+} as const;
+
+const heroChipStyle = (background: string) =>
+  ({
+    padding: "6px 12px",
+    borderRadius: 999,
+    background,
+    fontSize: 12,
+  }) as const;
+
+const statusPanelStyle = {
+  border: "1px solid #d9e4f1",
+  borderRadius: 22,
+  background: "#fff",
+  padding: 18,
+  color: "#334155",
+  lineHeight: 1.7,
+} as const;
+
+const layoutGridStyle = {
+  display: "grid",
+  gap: 20,
+  gridTemplateColumns: "minmax(0, 1.75fr) minmax(340px, 0.95fr)",
+  alignItems: "start",
+} as const;
+
+const cardStyle = {
   border: "1px solid #d9e4f1",
   borderRadius: 24,
   padding: 20,
   background: "#fff",
+  boxShadow: "0 14px 40px rgba(15, 23, 42, 0.08)",
+} as const;
+
+const metricGridStyle = {
+  display: "grid",
+  gap: 12,
+  gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+} as const;
+
+const sectionHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  alignItems: "center",
+  flexWrap: "wrap",
+  marginBottom: 16,
 } as const;
 
 const sectionTitleStyle = {
   margin: 0,
   fontSize: 20,
+  color: "#0f172a",
 } as const;
 
-const sectionBodyStyle = {
-  marginTop: 10,
-  color: "#64748b",
-  lineHeight: 1.7,
+const badgeStyle = (background: string, color: string) =>
+  ({
+    borderRadius: 999,
+    padding: "6px 10px",
+    background,
+    color,
+    fontSize: 12,
+    fontWeight: 800,
+  }) as const;
+
+const fieldLabelStyle = {
+  display: "grid",
+  gap: 8,
+  fontSize: 13,
+  fontWeight: 700,
+  color: "#334155",
 } as const;
 
-const inputStyle = {
+const fullInputStyle = {
   width: "100%",
   border: "1px solid #cbd5e1",
   borderRadius: 14,
-  padding: "12px 14px",
-  background: "#fff",
-  color: "#0f172a",
+  padding: "10px 12px",
   font: "inherit",
-} as const;
-
-const emptyCardStyle = {
-  marginTop: 16,
-  borderRadius: 18,
-  background: "#f8fafc",
-  padding: 18,
-  color: "#64748b",
-} as const;
-
-const warningCardStyle = {
-  borderRadius: 18,
-  background: "#fff7ed",
-  padding: 16,
-  color: "#9a3412",
-  lineHeight: 1.7,
-} as const;
-
-const infoCardStyle = {
-  marginTop: 16,
-  borderRadius: 18,
-  background: "#f8fafc",
-  padding: 16,
-  color: "#475569",
-  lineHeight: 1.8,
-} as const;
-
-const codeBlockStyle = {
-  marginTop: 16,
-  borderRadius: 18,
-  padding: 18,
-  background: "#0f172a",
-  color: "#e2e8f0",
-  whiteSpace: "pre-wrap",
-  fontSize: 12,
-  lineHeight: 1.6,
-  overflow: "auto",
-} as const;
-
-const secondaryButtonStyle = {
-  border: "1px solid #cbd5e1",
-  borderRadius: 14,
   background: "#fff",
-  color: "#0f172a",
-  padding: "10px 14px",
-  fontWeight: 700,
-  cursor: "pointer",
+} as const;
+
+const compactInputStyle = {
+  border: "1px solid #cbd5e1",
+  borderRadius: 12,
+  padding: "10px 12px",
+  font: "inherit",
+  background: "#fff",
 } as const;
 
 const primaryButtonStyle = {
   border: "1px solid #0f766e",
-  borderRadius: 14,
+  borderRadius: 12,
+  padding: "10px 14px",
   background: "#0f766e",
   color: "#fff",
-  padding: "10px 14px",
   fontWeight: 700,
   cursor: "pointer",
+} as const;
+
+const secondaryButtonStyle = {
+  border: "1px solid #cbd5e1",
+  borderRadius: 12,
+  padding: "10px 14px",
+  background: "#fff",
+  color: "#0f172a",
+  fontWeight: 700,
+  cursor: "pointer",
+} as const;
+
+const primaryGhostButtonStyle = {
+  border: "1px solid #cbd5e1",
+  borderRadius: 14,
+  background: "#fff",
+  color: "#0f172a",
+  padding: "12px 16px",
+  fontWeight: 700,
+  cursor: "pointer",
+} as const;
+
+const disabledButtonStyle = {
+  ...primaryGhostButtonStyle,
+  background: "#f8fafc",
+  color: "#94a3b8",
+  cursor: "not-allowed",
+} as const;
+
+const preStyle = {
+  margin: 0,
+  padding: 14,
+  borderRadius: 16,
+  background: "#0f172a",
+  color: "#e2e8f0",
+  fontSize: 12,
+  lineHeight: 1.7,
+  overflowX: "auto",
 } as const;

@@ -6,18 +6,28 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  type Column,
   type ColumnDef,
+  type ColumnOrderState,
+  type ColumnPinningState,
+  type ColumnSizingState,
+  type SortingState,
+  type Updater,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import {
   activateRow,
   beginEditSession,
   createSelectionState,
   isEditingCell,
+  sanitizeGridColumnState,
   setActiveCell,
   toggleRowSelection,
   updateEditSessionDraft,
+  type GridColumnState,
   type GridEditSession,
   type GridSelectionState,
+  type GridSortRule,
   type ManagedGridRow,
   type RowState,
   type VibeGridColumn,
@@ -45,6 +55,10 @@ export type VibeGridProps<Row extends RowRecord> = {
     columnKey: string;
     draftValue: string;
   }) => void;
+  columnState?: GridColumnState;
+  onColumnStateChange?: (state: GridColumnState) => void;
+  sorting?: GridSortRule[];
+  onSortingChange?: (sorting: GridSortRule[]) => void;
   emptyMessage?: string;
   height?: number;
 };
@@ -63,6 +77,12 @@ const rowStateColor: Record<RowState, { background: string; color: string }> = {
   D: { background: "#fef2f2", color: "#b91c1c" },
 };
 
+function resolveUpdater<Value>(updater: Updater<Value>, current: Value): Value {
+  return typeof updater === "function"
+    ? (updater as (previous: Value) => Value)(current)
+    : updater;
+}
+
 export function VibeGrid<Row extends RowRecord>({
   gridId,
   rows,
@@ -72,18 +92,26 @@ export function VibeGrid<Row extends RowRecord>({
   editSession,
   onEditSessionChange,
   onCellEditCommit,
-  emptyMessage = "조회할 데이터가 없습니다.",
+  columnState,
+  onColumnStateChange,
+  sorting,
+  onSortingChange,
+  emptyMessage = "조회된 데이터가 없습니다.",
   height = 420,
 }: VibeGridProps<Row>) {
   const inputId = useId();
   const resolvedSelectionState =
     selectionState ?? createSelectionState({ activeRowId: rows[0]?.meta.rowKey });
+  const resolvedColumnState = useMemo(
+    () => sanitizeGridColumnState(columns, columnState),
+    [columnState, columns],
+  );
   const rowMetaByKey = useMemo(
-    () =>
-      new Map(rows.map((managedRow) => [managedRow.meta.rowKey, managedRow.meta])),
+    () => new Map(rows.map((managedRow) => [managedRow.meta.rowKey, managedRow.meta])),
     [rows],
   );
   const tableData = useMemo(() => rows.map((managedRow) => managedRow.row), [rows]);
+
   const businessColumns = useMemo<ColumnDef<Row>[]>(
     () => [
       {
@@ -94,6 +122,7 @@ export function VibeGrid<Row extends RowRecord>({
         minSize: 72,
         maxSize: 72,
         enableSorting: false,
+        enableResizing: false,
         meta: {
           columnKey: "__rowNumber",
           internal: true,
@@ -128,6 +157,7 @@ export function VibeGrid<Row extends RowRecord>({
         minSize: 110,
         maxSize: 110,
         enableSorting: false,
+        enableResizing: false,
         meta: {
           columnKey: "__rowState",
           internal: true,
@@ -138,11 +168,123 @@ export function VibeGrid<Row extends RowRecord>({
     [columns, rowMetaByKey],
   );
 
+  const visibilityState = useMemo<VisibilityState>(() => {
+    const visibility: VisibilityState = {};
+    for (const column of columns) {
+      visibility[column.key] = resolvedColumnState.visibility[column.key] !== false;
+    }
+    return visibility;
+  }, [columns, resolvedColumnState.visibility]);
+
+  const columnOrderState = useMemo<ColumnOrderState>(
+    () => ["__rowNumber", "__rowState", ...resolvedColumnState.order],
+    [resolvedColumnState.order],
+  );
+
+  const columnPinningState = useMemo<ColumnPinningState>(
+    () => ({
+      left: ["__rowNumber", "__rowState", ...resolvedColumnState.pinning.left],
+      right: [...resolvedColumnState.pinning.right],
+    }),
+    [resolvedColumnState.pinning.left, resolvedColumnState.pinning.right],
+  );
+
+  const columnSizingState = useMemo<ColumnSizingState>(
+    () => resolvedColumnState.sizing,
+    [resolvedColumnState.sizing],
+  );
+
+  const sortingState = useMemo<SortingState>(
+    () => sorting?.map((item) => ({ id: item.id, desc: item.desc })) ?? [],
+    [sorting],
+  );
+
   const table = useReactTable({
     data: tableData,
     columns: businessColumns,
     getRowId: (_row, index) => rows[index]?.meta.rowKey ?? `${gridId}-${index}`,
     getCoreRowModel: getCoreRowModel(),
+    manualSorting: true,
+    columnResizeMode: "onChange",
+    enableColumnPinning: true,
+    enableColumnResizing: true,
+    enableMultiSort: false,
+    state: {
+      columnVisibility: visibilityState,
+      columnOrder: columnOrderState,
+      columnPinning: columnPinningState,
+      columnSizing: columnSizingState,
+      sorting: sortingState,
+    },
+    onColumnVisibilityChange: (updater) => {
+      if (!onColumnStateChange) {
+        return;
+      }
+
+      const nextVisibility = resolveUpdater(updater, visibilityState);
+      onColumnStateChange(
+        sanitizeGridColumnState(columns, {
+          ...resolvedColumnState,
+          visibility: Object.fromEntries(
+            columns.map((column) => [column.key, nextVisibility[column.key] !== false]),
+          ),
+        }),
+      );
+    },
+    onColumnOrderChange: (updater) => {
+      if (!onColumnStateChange) {
+        return;
+      }
+
+      const nextOrder = resolveUpdater(updater, columnOrderState).filter(
+        (columnKey) => !columnKey.startsWith("__"),
+      );
+      onColumnStateChange(
+        sanitizeGridColumnState(columns, {
+          ...resolvedColumnState,
+          order: nextOrder,
+        }),
+      );
+    },
+    onColumnPinningChange: (updater) => {
+      if (!onColumnStateChange) {
+        return;
+      }
+
+      const nextPinning = resolveUpdater(updater, columnPinningState);
+      onColumnStateChange(
+        sanitizeGridColumnState(columns, {
+          ...resolvedColumnState,
+          pinning: {
+            left: (nextPinning.left ?? []).filter((key) => !key.startsWith("__")),
+            right: (nextPinning.right ?? []).filter((key) => !key.startsWith("__")),
+          },
+        }),
+      );
+    },
+    onColumnSizingChange: (updater) => {
+      if (!onColumnStateChange) {
+        return;
+      }
+
+      const nextSizing = resolveUpdater(updater, columnSizingState);
+      onColumnStateChange(
+        sanitizeGridColumnState(columns, {
+          ...resolvedColumnState,
+          sizing: Object.fromEntries(
+            Object.entries(nextSizing).filter(([columnKey]) => !columnKey.startsWith("__")),
+          ),
+        }),
+      );
+    },
+    onSortingChange: (updater) => {
+      if (!onSortingChange) {
+        return;
+      }
+
+      const nextSorting = resolveUpdater(updater, sortingState);
+      onSortingChange(nextSorting.map((item) => ({ id: item.id, desc: item.desc })));
+    },
   });
 
   return (
@@ -158,38 +300,124 @@ export function VibeGrid<Row extends RowRecord>({
       <div style={{ overflow: "auto", maxHeight: height }}>
         <table
           style={{
-            width: "100%",
-            minWidth: 980,
+            width: Math.max(table.getTotalSize(), 980),
+            minWidth: "100%",
             borderCollapse: "separate",
             borderSpacing: 0,
+            tableLayout: "fixed",
           }}
         >
-          <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
+          <thead style={{ position: "sticky", top: 0, zIndex: 4 }}>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    style={{
-                      background: "#f8fafc",
-                      borderBottom: "1px solid #d9e4f1",
-                      color: "#0f172a",
-                      fontSize: 13,
-                      fontWeight: 800,
-                      padding: "14px 16px",
-                      textAlign: "left",
-                      width: header.getSize(),
-                      minWidth: header.getSize(),
-                    }}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
+                {headerGroup.headers.map((header) => {
+                  const headerColumn = header.column;
+                  const headerMeta = headerColumn.columnDef.meta as
+                    | InternalColumnMeta
+                    | undefined;
+                  const pinned = headerColumn.getIsPinned();
+                  const background = "#f8fafc";
+                  const stickyStyle = getStickyCellStyle(headerColumn, background, true);
+                  const sorted = headerColumn.getIsSorted();
+                  const canSort = headerColumn.getCanSort() && !headerMeta?.internal;
+
+                  return (
+                    <th
+                      key={header.id}
+                      style={{
+                        ...stickyStyle,
+                        borderBottom: "1px solid #d9e4f1",
+                        color: "#0f172a",
+                        fontSize: 13,
+                        fontWeight: 800,
+                        padding: "0 16px",
+                        textAlign: "left",
+                        width: header.getSize(),
+                        minWidth: header.getSize(),
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 8,
+                          minHeight: 50,
+                        }}
+                      >
+                        {header.isPlaceholder ? null : canSort ? (
+                          <button
+                            type="button"
+                            onClick={headerColumn.getToggleSortingHandler()}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              border: "none",
+                              background: "transparent",
+                              padding: 0,
+                              font: "inherit",
+                              fontWeight: 800,
+                              color: "#0f172a",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                            <span
+                              style={{
+                                fontSize: 11,
+                                color: sorted ? "#0f766e" : "#94a3b8",
+                              }}
+                            >
+                              {sorted === "asc"
+                                ? "▲"
+                                : sorted === "desc"
+                                  ? "▼"
+                                  : "↕"}
+                            </span>
+                          </button>
+                        ) : (
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )
                         )}
-                  </th>
-                ))}
+
+                        {headerColumn.getCanResize() ? (
+                          <div
+                            onDoubleClick={() => headerColumn.resetSize()}
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            style={{
+                              width: 10,
+                              height: 30,
+                              cursor: "col-resize",
+                              display: "grid",
+                              placeItems: "center",
+                              marginRight: -12,
+                              userSelect: "none",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 2,
+                                height: 18,
+                                borderRadius: 999,
+                                background:
+                                  pinned && sorted
+                                    ? "rgba(15,118,110,0.45)"
+                                    : "rgba(148,163,184,0.5)",
+                              }}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -197,7 +425,7 @@ export function VibeGrid<Row extends RowRecord>({
             {table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={table.getAllLeafColumns().length}
+                  colSpan={table.getVisibleLeafColumns().length}
                   style={{
                     padding: "40px 24px",
                     textAlign: "center",
@@ -213,19 +441,14 @@ export function VibeGrid<Row extends RowRecord>({
                 const isActive = row.id === resolvedSelectionState.activeRowId;
                 const isSelected = resolvedSelectionState.selectedRowIds.has(row.id);
                 const meta = rowMetaByKey.get(row.id);
+                const rowBackground = isActive
+                  ? "rgba(14,165,233,0.12)"
+                  : isSelected
+                    ? "rgba(14,165,233,0.06)"
+                    : "#fff";
 
                 return (
-                  <tr
-                    key={row.id}
-                    style={{
-                      background: isActive
-                        ? "linear-gradient(90deg, rgba(14,165,233,0.12), rgba(255,255,255,0.98))"
-                        : isSelected
-                          ? "rgba(14,165,233,0.07)"
-                          : "#fff",
-                      cursor: "default",
-                    }}
-                  >
+                  <tr key={row.id} style={{ background: rowBackground, cursor: "default" }}>
                     {row.getVisibleCells().map((cell) => {
                       const columnMeta = cell.column.columnDef.meta as
                         | InternalColumnMeta
@@ -243,8 +466,7 @@ export function VibeGrid<Row extends RowRecord>({
                         <td
                           key={cell.id}
                           onClick={(event) => {
-                            const preserveSelection =
-                              event.ctrlKey || event.metaKey;
+                            const preserveSelection = event.ctrlKey || event.metaKey;
                             const nextBaseState = preserveSelection
                               ? toggleRowSelection(resolvedSelectionState, row.id)
                               : activateRow(resolvedSelectionState, row.id);
@@ -285,6 +507,12 @@ export function VibeGrid<Row extends RowRecord>({
                             );
                           }}
                           style={{
+                            ...getStickyCellStyle(
+                              cell.column,
+                              isActiveCell ? "#e0f2fe" : rowBackground,
+                              false,
+                              isActive,
+                            ),
                             borderBottom: "1px solid #eef2f7",
                             padding: "14px 16px",
                             color: meta?.state === "D" ? "#94a3b8" : "#0f172a",
@@ -293,9 +521,6 @@ export function VibeGrid<Row extends RowRecord>({
                             verticalAlign: "middle",
                             boxShadow: isActiveCell
                               ? "inset 0 0 0 2px #0ea5e9"
-                              : undefined,
-                            background: isActiveCell
-                              ? "rgba(14,165,233,0.08)"
                               : undefined,
                           }}
                         >
@@ -374,4 +599,28 @@ export function VibeGrid<Row extends RowRecord>({
       </div>
     </div>
   );
+}
+
+function getStickyCellStyle<Row extends RowRecord>(
+  column: Column<Row, unknown>,
+  background: string,
+  isHeader: boolean,
+  isActiveRow = false,
+) {
+  const pinned = column.getIsPinned();
+  const isLeft = pinned === "left";
+  const isRight = pinned === "right";
+
+  return {
+    position: pinned ? ("sticky" as const) : ("relative" as const),
+    left: isLeft ? column.getStart("left") : undefined,
+    right: isRight ? column.getAfter("right") : undefined,
+    zIndex: isHeader ? (pinned ? 6 : 4) : pinned ? (isActiveRow ? 3 : 2) : 1,
+    background,
+    boxShadow: isLeft && column.getIsLastColumn("left")
+      ? "2px 0 0 0 #d9e4f1, 10px 0 14px -14px rgba(15, 23, 42, 0.32)"
+      : isRight && column.getIsFirstColumn("right")
+        ? "-2px 0 0 0 #d9e4f1, -10px 0 14px -14px rgba(15, 23, 42, 0.32)"
+        : undefined,
+  };
 }
