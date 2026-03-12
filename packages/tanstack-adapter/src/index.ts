@@ -20,6 +20,7 @@ export function createTanStackColumns<Row extends object>(
       columnKey: column.key,
       editable: column.editable ?? false,
       hidden: column.hidden ?? false,
+      editor: column.editor,
     },
   }));
 }

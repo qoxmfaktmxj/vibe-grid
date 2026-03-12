@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import { useId, useMemo } from "react";
+import { useId, useMemo, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -25,6 +25,7 @@ import {
   toggleRowSelection,
   updateEditSessionDraft,
   type GridColumnState,
+  type GridEditorSpec,
   type GridEditSession,
   type GridSelectionState,
   type GridSortRule,
@@ -36,10 +37,11 @@ import { createTanStackColumns } from "@vibe-grid/tanstack-adapter";
 
 type RowRecord = Record<string, unknown>;
 
-type InternalColumnMeta = {
+type InternalColumnMeta<Row extends RowRecord = RowRecord> = {
   columnKey?: string;
   editable?: boolean;
   internal?: boolean;
+  editor?: GridEditorSpec<Row>;
 };
 
 export type VibeGridProps<Row extends RowRecord> = {
@@ -126,7 +128,7 @@ export function VibeGrid<Row extends RowRecord>({
         meta: {
           columnKey: "__rowNumber",
           internal: true,
-        } satisfies InternalColumnMeta,
+        } satisfies InternalColumnMeta<Row>,
       },
       {
         id: "__rowState",
@@ -161,7 +163,7 @@ export function VibeGrid<Row extends RowRecord>({
         meta: {
           columnKey: "__rowState",
           internal: true,
-        } satisfies InternalColumnMeta,
+        } satisfies InternalColumnMeta<Row>,
       },
       ...createTanStackColumns(columns),
     ],
@@ -272,7 +274,9 @@ export function VibeGrid<Row extends RowRecord>({
         sanitizeGridColumnState(columns, {
           ...resolvedColumnState,
           sizing: Object.fromEntries(
-            Object.entries(nextSizing).filter(([columnKey]) => !columnKey.startsWith("__")),
+            Object.entries(nextSizing).filter(
+              ([columnKey]) => !columnKey.startsWith("__"),
+            ),
           ),
         }),
       );
@@ -313,7 +317,7 @@ export function VibeGrid<Row extends RowRecord>({
                 {headerGroup.headers.map((header) => {
                   const headerColumn = header.column;
                   const headerMeta = headerColumn.columnDef.meta as
-                    | InternalColumnMeta
+                    | InternalColumnMeta<Row>
                     | undefined;
                   const pinned = headerColumn.getIsPinned();
                   const background = "#f8fafc";
@@ -451,7 +455,7 @@ export function VibeGrid<Row extends RowRecord>({
                   <tr key={row.id} style={{ background: rowBackground, cursor: "default" }}>
                     {row.getVisibleCells().map((cell) => {
                       const columnMeta = cell.column.columnDef.meta as
-                        | InternalColumnMeta
+                        | InternalColumnMeta<Row>
                         | undefined;
                       const isActiveCell =
                         resolvedSelectionState.activeCell?.rowKey === row.id &&
@@ -529,60 +533,16 @@ export function VibeGrid<Row extends RowRecord>({
                               <span style={{ display: "none" }}>
                                 {columnMeta?.columnKey}
                               </span>
-                              <input
-                                id={`${inputId}-${row.id}-${columnMeta?.columnKey}`}
-                                autoFocus
-                                value={editSession?.draftValue ?? ""}
-                                onChange={(event) => {
-                                  if (!editSession) {
-                                    return;
-                                  }
-
-                                  onEditSessionChange?.(
-                                    updateEditSessionDraft(
-                                      editSession,
-                                      event.target.value,
-                                    ),
-                                  );
-                                }}
-                                onBlur={() => {
-                                  if (!editSession || !columnMeta?.columnKey) {
-                                    return;
-                                  }
-
-                                  onCellEditCommit?.({
-                                    rowKey: row.id,
-                                    columnKey: columnMeta.columnKey,
-                                    draftValue: editSession.draftValue,
-                                  });
-                                }}
-                                onKeyDown={(event) => {
-                                  if (!editSession || !columnMeta?.columnKey) {
-                                    return;
-                                  }
-
-                                  if (event.key === "Enter") {
-                                    event.preventDefault();
-                                    onCellEditCommit?.({
-                                      rowKey: row.id,
-                                      columnKey: columnMeta.columnKey,
-                                      draftValue: editSession.draftValue,
-                                    });
-                                  }
-
-                                  if (event.key === "Escape") {
-                                    event.preventDefault();
-                                    onEditSessionChange?.(null);
-                                  }
-                                }}
-                                style={{
-                                  width: "100%",
-                                  border: "1px solid #38bdf8",
-                                  borderRadius: 10,
-                                  padding: "8px 10px",
-                                  font: "inherit",
-                                }}
-                              />
+                              {renderInlineEditor({
+                                inputId,
+                                rowId: row.id,
+                                columnKey: columnMeta?.columnKey,
+                                editor: columnMeta?.editor,
+                                row: row.original,
+                                editSession,
+                                onEditSessionChange,
+                                onCellEditCommit,
+                              })}
                             </label>
                           ) : (
                             flexRender(cell.column.columnDef.cell, cell.getContext())
@@ -598,6 +558,168 @@ export function VibeGrid<Row extends RowRecord>({
         </table>
       </div>
     </div>
+  );
+}
+
+function renderInlineEditor<Row extends RowRecord>(input: {
+  inputId: string;
+  rowId: string;
+  columnKey?: string;
+  editor?: GridEditorSpec<Row>;
+  row: Row;
+  editSession: GridEditSession | null | undefined;
+  onEditSessionChange?: (session: GridEditSession | null) => void;
+  onCellEditCommit?: (input: {
+    rowKey: string;
+    columnKey: string;
+    draftValue: string;
+  }) => void;
+}) {
+  const {
+    inputId,
+    rowId,
+    columnKey,
+    editor,
+    row,
+    editSession,
+    onEditSessionChange,
+    onCellEditCommit,
+  } = input;
+
+  if (!editSession || !columnKey) {
+    return null;
+  }
+
+  const commonStyle = {
+    width: "100%",
+    border: "1px solid #38bdf8",
+    borderRadius: 10,
+    padding: "8px 10px",
+    font: "inherit",
+    background: "#fff",
+  } as const;
+
+  const commit = (draftValue = editSession.draftValue) => {
+    onCellEditCommit?.({
+      rowKey: rowId,
+      columnKey,
+      draftValue,
+    });
+  };
+
+  const cancel = () => {
+    onEditSessionChange?.(null);
+  };
+
+  const onKeyDown = (
+    event: ReactKeyboardEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      cancel();
+      return;
+    }
+
+    if (editor?.type === "textarea") {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        commit();
+      }
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commit();
+    }
+  };
+
+  const commonProps = {
+    id: `${inputId}-${rowId}-${columnKey}`,
+    autoFocus: true,
+    value: editSession.draftValue,
+    onBlur: () => commit(),
+    style: commonStyle,
+  } as const;
+
+  if (editor?.type === "select") {
+    const options =
+      typeof editor.options === "function" ? editor.options(row) : editor.options;
+
+    return (
+      <select
+        {...commonProps}
+        onKeyDown={onKeyDown}
+        onChange={(event) => {
+          onEditSessionChange?.(
+            updateEditSessionDraft(editSession, event.target.value),
+          );
+          commit(event.target.value);
+        }}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  if (editor?.type === "textarea") {
+    return (
+      <textarea
+        {...commonProps}
+        rows={editor.rows ?? 4}
+        placeholder={editor.placeholder}
+        onKeyDown={onKeyDown}
+        onChange={(event) => {
+          onEditSessionChange?.(
+            updateEditSessionDraft(editSession, event.target.value),
+          );
+        }}
+        style={{
+          ...commonStyle,
+          minHeight: 88,
+          resize: "vertical",
+        }}
+      />
+    );
+  }
+
+  if (editor?.type === "number") {
+    return (
+      <input
+        {...commonProps}
+        type="number"
+        min={editor.min}
+        max={editor.max}
+        step={editor.step}
+        placeholder={editor.placeholder}
+        onKeyDown={onKeyDown}
+        onChange={(event) => {
+          onEditSessionChange?.(
+            updateEditSessionDraft(editSession, event.target.value),
+          );
+        }}
+      />
+    );
+  }
+
+  return (
+    <input
+      {...commonProps}
+      type="text"
+      placeholder={editor?.placeholder}
+      onKeyDown={onKeyDown}
+      onChange={(event) => {
+        onEditSessionChange?.(
+          updateEditSessionDraft(editSession, event.target.value),
+        );
+      }}
+    />
   );
 }
 

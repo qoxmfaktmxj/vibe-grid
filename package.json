@@ -16,13 +16,16 @@
     "build:playground": "npm run build -w @vibe-grid/playground",
     "build:bench": "npm run build -w @vibe-grid/bench",
     "build": "npm run build:playground && npm run build:bench",
+    "test:e2e": "playwright test",
+    "test:e2e:local": "npm run build:playground && playwright test",
     "lint:packages": "eslint packages --ext .ts,.tsx",
     "lint:playground": "npm run lint -w @vibe-grid/playground",
     "lint:bench": "npm run lint -w @vibe-grid/bench",
     "lint": "npm run lint:packages && npm run lint:playground && npm run lint:bench",
-    "ci": "npm run lint && npm run build"
+    "ci": "npm run lint && npm run build && npm run test:e2e"
   },
   "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",

@@ -8,6 +8,7 @@ build/
 .vercel/
 .logs/
 .playwright-cli/
+output/playwright/
 .DS_Store
 npm-debug.log*
 yarn-debug.log*

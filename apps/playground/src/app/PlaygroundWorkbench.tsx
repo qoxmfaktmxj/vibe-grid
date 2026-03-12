@@ -651,6 +651,7 @@ export function PlaygroundWorkbench() {
             <button
               key={command.id}
               type="button"
+              data-testid={`command-${command.id}`}
               disabled={!action}
               onClick={() => action?.()}
               style={action ? primaryGhostButtonStyle : disabledButtonStyle}
@@ -661,7 +662,9 @@ export function PlaygroundWorkbench() {
         })}
       </section>
 
-      <section style={statusPanelStyle}>{statusMessage}</section>
+      <section style={statusPanelStyle} data-testid="status-panel">
+        {statusMessage}
+      </section>
 
       <section style={layoutGridStyle}>
         <div style={{ display: "grid", gap: 18 }}>
@@ -769,6 +772,7 @@ export function PlaygroundWorkbench() {
             <label style={fieldLabelStyle}>
               키워드
               <input
+                data-testid="filter-keyword"
                 value={filterDraft.keyword}
                 onChange={(event) =>
                   setFilterDraft((previous) => ({
@@ -783,6 +787,7 @@ export function PlaygroundWorkbench() {
             <label style={fieldLabelStyle}>
               사용여부
               <select
+                data-testid="filter-useYn"
                 value={filterDraft.useYn}
                 onChange={(event) =>
                   setFilterDraft((previous) => ({
@@ -803,6 +808,7 @@ export function PlaygroundWorkbench() {
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button
                 type="button"
+                data-testid="server-search"
                 onClick={() => void handleSearch()}
                 disabled={isFetching}
                 style={primaryButtonStyle}
@@ -811,6 +817,7 @@ export function PlaygroundWorkbench() {
               </button>
               <button
                 type="button"
+                data-testid="server-reset"
                 onClick={() => {
                   setFilterDraft({ keyword: "", useYn: "" });
                   void loadRows(defaultGridQuery, "조건 초기화");
@@ -1007,6 +1014,7 @@ export function PlaygroundWorkbench() {
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button
                 type="button"
+                data-testid="clipboard-read"
                 onClick={() => void handleReadClipboard()}
                 style={secondaryButtonStyle}
               >
@@ -1014,6 +1022,7 @@ export function PlaygroundWorkbench() {
               </button>
               <button
                 type="button"
+                data-testid="paste-apply"
                 onClick={handleApplyPaste}
                 style={primaryButtonStyle}
               >
@@ -1030,6 +1039,7 @@ export function PlaygroundWorkbench() {
             </div>
 
             <textarea
+              data-testid="paste-textarea"
               value={pasteText}
               onChange={(event) => setPasteText(event.target.value)}
               rows={8}
@@ -1070,7 +1080,7 @@ export function PlaygroundWorkbench() {
               <h2 style={sectionTitleStyle}>저장 번들 미리보기</h2>
               <span style={badgeStyle("#e2e8f0", "#334155")}>Diff Bundle</span>
             </div>
-            <pre style={preStyle}>
+            <pre style={preStyle} data-testid="save-bundle-preview">
               {lastSaveBundle ? prettySaveBundle : "아직 저장 번들이 생성되지 않았습니다."}
             </pre>
           </section>
