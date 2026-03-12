@@ -23,11 +23,17 @@ test.describe("Grid Lab", () => {
     await page.getByTestId("server-search").click();
     await expect(page.getByTestId("status-panel")).toContainText(/서버|조건 조회/);
 
-    await page.getByTestId("paste-textarea").fill(
-      ["HR-901\t테스트행\t인사운영팀\t사원\tY\t901\t자동테스트", "HR-902\t테스트행2\t평가보상팀\t책임\tN\t902\t붙여넣기"].join("\n"),
-    );
+    await page
+      .getByTestId("paste-textarea")
+      .fill(
+        [
+          "HR-901\t테스트행\t인사운영팀\t사원\tY\t901\t자동테스트",
+          "HR-902\t테스트행2\t평가보상팀\t책임\tN\t902\t붙여넣기",
+        ].join("\n"),
+      );
     await page.getByTestId("paste-apply").click();
 
     await expect(page.getByTestId("status-panel")).toContainText(/붙여넣기|반영/);
   });
+
 });

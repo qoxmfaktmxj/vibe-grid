@@ -24,6 +24,7 @@ import {
   createInsertedRow,
   createLoadedRow,
   createSelectionState,
+  getSelectionAnchorCell,
   getPrimarySelectedRowId,
   getRowStateCounts,
   hasValidationIssues,
@@ -190,6 +191,18 @@ export function PlaygroundWorkbench() {
     () => JSON.stringify(lastSaveBundle, null, 2),
     [lastSaveBundle],
   );
+  const visibleClipboardColumns = useMemo(
+    () =>
+      columnState.order.flatMap((columnKey) => {
+        if (columnState.visibility[columnKey] === false) {
+          return [];
+        }
+
+        const column = clipboardSchema.find((item) => item.key === columnKey);
+        return column ? [column] : [];
+      }),
+    [columnState],
+  );
 
   useEffect(() => {
     try {
@@ -273,9 +286,13 @@ export function PlaygroundWorkbench() {
   function applyTabularText(text: string, sourceLabel: string) {
     const plan = buildRectangularPastePlan({
       text,
-      columns: clipboardSchema,
+      columns: visibleClipboardColumns,
       rowOrder: rows.map((row) => row.meta.rowKey),
-      anchor: selectionState.activeCell,
+      anchor: getSelectionAnchorCell(
+        selectionState,
+        rows.map((row) => row.meta.rowKey),
+        visibleClipboardColumns.map((column) => column.key),
+      ),
       allowAppendRows: true,
     });
 

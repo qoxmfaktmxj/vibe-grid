@@ -1,7 +1,13 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import { useId, useMemo, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -17,12 +23,17 @@ import {
 } from "@tanstack/react-table";
 import {
   activateRow,
+  beginRangeSelection,
   beginEditSession,
+  clearRangeSelection,
   createSelectionState,
+  getNormalizedCellRange,
+  hasRangeSelection,
   isEditingCell,
   sanitizeGridColumnState,
   setActiveCell,
   toggleRowSelection,
+  updateRangeSelection,
   updateEditSessionDraft,
   type GridColumnState,
   type GridEditorSpec,
@@ -42,6 +53,11 @@ type InternalColumnMeta<Row extends RowRecord = RowRecord> = {
   editable?: boolean;
   internal?: boolean;
   editor?: GridEditorSpec<Row>;
+};
+
+type GridActiveCellLike = {
+  rowKey: string;
+  columnKey: string;
 };
 
 export type VibeGridProps<Row extends RowRecord> = {
@@ -102,6 +118,12 @@ export function VibeGrid<Row extends RowRecord>({
   height = 420,
 }: VibeGridProps<Row>) {
   const inputId = useId();
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const dragRangeRef = useRef<{
+    anchor: GridActiveCellLike;
+    moved: boolean;
+  } | null>(null);
+  const suppressClickRef = useRef(false);
   const resolvedSelectionState =
     selectionState ?? createSelectionState({ activeRowId: rows[0]?.meta.rowKey });
   const resolvedColumnState = useMemo(
@@ -291,8 +313,101 @@ export function VibeGrid<Row extends RowRecord>({
     },
   });
 
+  const rowOrder = useMemo(() => rows.map((row) => row.meta.rowKey), [rows]);
+  const visibleBusinessColumnKeys = table
+    .getVisibleLeafColumns()
+    .flatMap((column) => {
+      const meta = column.columnDef.meta as InternalColumnMeta<Row> | undefined;
+      return meta?.internal || !meta?.columnKey ? [] : [meta.columnKey];
+    });
+  const rowIndexByKey = useMemo(
+    () => new Map(rowOrder.map((rowKey, index) => [rowKey, index])),
+    [rowOrder],
+  );
+  const columnIndexByKey = useMemo(
+    () =>
+      new Map(
+        visibleBusinessColumnKeys.map((columnKey, index) => [columnKey, index]),
+      ),
+    [visibleBusinessColumnKeys],
+  );
+  const normalizedRange = getNormalizedCellRange(
+    resolvedSelectionState,
+    rowOrder,
+    visibleBusinessColumnKeys,
+  );
+
+  useEffect(() => {
+    const handleMouseUp = () => {
+      if (!dragRangeRef.current) {
+        return;
+      }
+
+      suppressClickRef.current = dragRangeRef.current.moved;
+      dragRangeRef.current = null;
+    };
+
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  function focusGridSurface() {
+    gridRef.current?.focus({ preventScroll: true });
+  }
+
+  function copyRangeToClipboard() {
+    if (!normalizedRange) {
+      return;
+    }
+
+    const selectedRows = rowOrder.slice(
+      normalizedRange.startRowIndex,
+      normalizedRange.endRowIndex + 1,
+    );
+    const selectedColumns = visibleBusinessColumnKeys.slice(
+      normalizedRange.startColumnIndex,
+      normalizedRange.endColumnIndex + 1,
+    );
+    const rowMap = new Map(rows.map((row) => [row.meta.rowKey, row.row]));
+    const text = selectedRows
+      .map((rowKey) => {
+        const row = rowMap.get(rowKey);
+
+        return selectedColumns
+          .map((columnKey) => {
+            const value = row?.[columnKey as keyof Row];
+            return value == null ? "" : String(value);
+          })
+          .join("\t");
+      })
+      .join("\n");
+
+    if (!text) {
+      return;
+    }
+
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      void navigator.clipboard.writeText(text);
+    }
+  }
+
   return (
     <div
+      ref={gridRef}
+      tabIndex={0}
+      data-testid="vibe-grid"
+      data-selection-mode={resolvedSelectionState.mode ?? "row"}
+      data-range-anchor={resolvedSelectionState.range?.anchor.columnKey}
+      onKeyDown={(event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
+          if (hasRangeSelection(resolvedSelectionState)) {
+            event.preventDefault();
+            copyRangeToClipboard();
+          }
+        }
+      }}
       style={{
         border: "1px solid #d9e4f1",
         borderRadius: 24,
@@ -465,20 +580,176 @@ export function VibeGrid<Row extends RowRecord>({
                         !!columnMeta?.columnKey &&
                         isEditingCell(editSession, row.id, columnMeta.columnKey);
                       const baseValue = cell.getValue();
+                      const rangeState = getCellRangeState({
+                        normalizedRange,
+                        rowKey: row.id,
+                        columnKey: columnMeta?.columnKey,
+                        rowIndexByKey,
+                        columnIndexByKey,
+                      });
+                      const rangeBackground = rangeState.inRange
+                        ? "rgba(20,184,166,0.12)"
+                        : undefined;
 
                       return (
                         <td
                           key={cell.id}
+                          data-row-key={row.id}
+                          data-column-key={columnMeta?.columnKey}
+                          data-range-selected={rangeState.inRange ? "true" : "false"}
+                          data-active-cell={isActiveCell ? "true" : "false"}
+                          onMouseDown={(event) => {
+                            focusGridSurface();
+
+                            if (columnMeta?.internal || !columnMeta?.columnKey) {
+                              return;
+                            }
+
+                            if (event.shiftKey && resolvedSelectionState.activeCell) {
+                              suppressClickRef.current = true;
+                              onSelectionStateChange?.(
+                                updateRangeSelection(
+                                  beginRangeSelection(
+                                    createSelectionState({
+                                      activeRowId:
+                                        resolvedSelectionState.activeCell.rowKey,
+                                      activeCell: resolvedSelectionState.activeCell,
+                                    }),
+                                    resolvedSelectionState.activeCell,
+                                  ),
+                                  {
+                                    rowKey: row.id,
+                                    columnKey: columnMeta.columnKey,
+                                  },
+                                ),
+                              );
+                              return;
+                            }
+
+                            dragRangeRef.current = {
+                              anchor: {
+                                rowKey: row.id,
+                                columnKey: columnMeta.columnKey,
+                              },
+                              moved: false,
+                            };
+                          }}
+                          onMouseMove={() => {
+                            const dragState = dragRangeRef.current;
+
+                            if (
+                              !dragState ||
+                              columnMeta?.internal ||
+                              !columnMeta?.columnKey
+                            ) {
+                              return;
+                            }
+
+                            if (
+                              dragState.anchor.rowKey === row.id &&
+                              dragState.anchor.columnKey === columnMeta.columnKey
+                            ) {
+                              return;
+                            }
+
+                            dragState.moved = true;
+                            onSelectionStateChange?.(
+                              updateRangeSelection(
+                                beginRangeSelection(
+                                  createSelectionState({
+                                    activeRowId: dragState.anchor.rowKey,
+                                    activeCell: dragState.anchor,
+                                  }),
+                                  dragState.anchor,
+                                ),
+                                {
+                                  rowKey: row.id,
+                                  columnKey: columnMeta.columnKey,
+                                },
+                              ),
+                            );
+                          }}
+                          onMouseUp={() => {
+                            const dragState = dragRangeRef.current;
+
+                            if (
+                              !dragState ||
+                              columnMeta?.internal ||
+                              !columnMeta?.columnKey
+                            ) {
+                              return;
+                            }
+
+                            if (
+                              dragState.anchor.rowKey === row.id &&
+                              dragState.anchor.columnKey === columnMeta.columnKey
+                            ) {
+                              return;
+                            }
+
+                            dragState.moved = true;
+                            onSelectionStateChange?.(
+                              updateRangeSelection(
+                                beginRangeSelection(
+                                  createSelectionState({
+                                    activeRowId: dragState.anchor.rowKey,
+                                    activeCell: dragState.anchor,
+                                  }),
+                                  dragState.anchor,
+                                ),
+                                {
+                                  rowKey: row.id,
+                                  columnKey: columnMeta.columnKey,
+                                },
+                              ),
+                            );
+                          }}
                           onClick={(event) => {
+                            if (suppressClickRef.current) {
+                              suppressClickRef.current = false;
+                              return;
+                            }
+
+                            focusGridSurface();
+                            if (
+                              event.shiftKey &&
+                              !columnMeta?.internal &&
+                              columnMeta?.columnKey &&
+                              resolvedSelectionState.activeCell
+                            ) {
+                              onSelectionStateChange?.(
+                                updateRangeSelection(
+                                  beginRangeSelection(
+                                    createSelectionState({
+                                      activeRowId:
+                                        resolvedSelectionState.activeCell.rowKey,
+                                      activeCell: resolvedSelectionState.activeCell,
+                                    }),
+                                    resolvedSelectionState.activeCell,
+                                  ),
+                                  {
+                                    rowKey: row.id,
+                                    columnKey: columnMeta.columnKey,
+                                  },
+                                ),
+                              );
+                              return;
+                            }
+
                             const preserveSelection = event.ctrlKey || event.metaKey;
                             const nextBaseState = preserveSelection
                               ? toggleRowSelection(resolvedSelectionState, row.id)
-                              : activateRow(resolvedSelectionState, row.id);
+                              : activateRow(
+                                  clearRangeSelection(resolvedSelectionState),
+                                  row.id,
+                                );
                             const nextState =
                               columnMeta?.internal || !columnMeta?.columnKey
                                 ? {
                                     ...nextBaseState,
                                     activeCell: undefined,
+                                    range: undefined,
+                                    mode: "row" as const,
                                   }
                                 : setActiveCell(
                                     nextBaseState,
@@ -513,7 +784,9 @@ export function VibeGrid<Row extends RowRecord>({
                           style={{
                             ...getStickyCellStyle(
                               cell.column,
-                              isActiveCell ? "#e0f2fe" : rowBackground,
+                              isActiveCell
+                                ? "#e0f2fe"
+                                : (rangeBackground ?? rowBackground),
                               false,
                               isActive,
                             ),
@@ -523,9 +796,12 @@ export function VibeGrid<Row extends RowRecord>({
                             fontSize: 14,
                             fontWeight: isActive ? 700 : 500,
                             verticalAlign: "middle",
-                            boxShadow: isActiveCell
-                              ? "inset 0 0 0 2px #0ea5e9"
-                              : undefined,
+                            boxShadow: [
+                              buildRangeShadow(rangeState),
+                              isActiveCell ? "inset 0 0 0 2px #0ea5e9" : undefined,
+                            ]
+                              .filter(Boolean)
+                              .join(", "),
                           }}
                         >
                           {editing ? (
@@ -721,6 +997,66 @@ function renderInlineEditor<Row extends RowRecord>(input: {
       }}
     />
   );
+}
+
+function getCellRangeState(input: {
+  normalizedRange: ReturnType<typeof getNormalizedCellRange>;
+  rowKey: string;
+  columnKey?: string;
+  rowIndexByKey: Map<string, number>;
+  columnIndexByKey: Map<string, number>;
+}) {
+  if (!input.normalizedRange || !input.columnKey) {
+    return {
+      inRange: false,
+      isTop: false,
+      isRight: false,
+      isBottom: false,
+      isLeft: false,
+    };
+  }
+
+  const rowIndex = input.rowIndexByKey.get(input.rowKey);
+  const columnIndex = input.columnIndexByKey.get(input.columnKey);
+
+  if (rowIndex == null || columnIndex == null) {
+    return {
+      inRange: false,
+      isTop: false,
+      isRight: false,
+      isBottom: false,
+      isLeft: false,
+    };
+  }
+
+  const inRange =
+    rowIndex >= input.normalizedRange.startRowIndex &&
+    rowIndex <= input.normalizedRange.endRowIndex &&
+    columnIndex >= input.normalizedRange.startColumnIndex &&
+    columnIndex <= input.normalizedRange.endColumnIndex;
+
+  return {
+    inRange,
+    isTop: inRange && rowIndex === input.normalizedRange.startRowIndex,
+    isRight: inRange && columnIndex === input.normalizedRange.endColumnIndex,
+    isBottom: inRange && rowIndex === input.normalizedRange.endRowIndex,
+    isLeft: inRange && columnIndex === input.normalizedRange.startColumnIndex,
+  };
+}
+
+function buildRangeShadow(rangeState: ReturnType<typeof getCellRangeState>) {
+  if (!rangeState.inRange) {
+    return undefined;
+  }
+
+  return [
+    rangeState.isTop ? "inset 0 2px 0 0 #14b8a6" : undefined,
+    rangeState.isRight ? "inset -2px 0 0 0 #14b8a6" : undefined,
+    rangeState.isBottom ? "inset 0 -2px 0 0 #14b8a6" : undefined,
+    rangeState.isLeft ? "inset 2px 0 0 0 #14b8a6" : undefined,
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 function getStickyCellStyle<Row extends RowRecord>(

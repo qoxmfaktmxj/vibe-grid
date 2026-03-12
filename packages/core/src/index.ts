@@ -1,5 +1,6 @@
 export type {
   GridActiveCell,
+  GridCellRangeSelection,
   GridColumnPinningState,
   GridColumnSizingState,
   GridColumnState,
@@ -18,6 +19,7 @@ export type {
   GridQuery,
   GridRowMeta,
   GridScaffoldStatus,
+  GridSelectionMode,
   GridSelectionState,
   GridServerResult,
   GridSortRule,
@@ -67,12 +69,18 @@ export {
 } from "./edit-session";
 export {
   activateRow,
+  beginRangeSelection,
   clearSelection,
+  clearRangeSelection,
   createSelectionState,
   getPrimarySelectedRowId,
+  getNormalizedCellRange,
+  getSelectionAnchorCell,
+  hasRangeSelection,
   pruneSelectionState,
   setActiveCell,
   toggleRowSelection,
+  updateRangeSelection,
 } from "./selection";
 export {
   countValidationIssues,

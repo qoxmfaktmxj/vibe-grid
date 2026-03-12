@@ -1,9 +1,24 @@
-import type { GridActiveCell, GridSelectionState } from "./contracts";
+import type {
+  GridActiveCell,
+  GridCellRangeSelection,
+  GridSelectionState,
+} from "./contracts";
+
+type GridNormalizedRange = {
+  anchor: GridActiveCell;
+  focus: GridActiveCell;
+  startRowIndex: number;
+  endRowIndex: number;
+  startColumnIndex: number;
+  endColumnIndex: number;
+};
 
 export function createSelectionState(input?: {
   activeRowId?: string;
   selectedRowIds?: Iterable<string>;
   activeCell?: GridActiveCell;
+  range?: GridCellRangeSelection;
+  mode?: GridSelectionState["mode"];
 }): GridSelectionState {
   const selectedRowIds = new Set(input?.selectedRowIds ?? []);
 
@@ -19,6 +34,8 @@ export function createSelectionState(input?: {
     activeRowId: input?.activeCell?.rowKey ?? input?.activeRowId,
     selectedRowIds,
     activeCell: input?.activeCell,
+    range: input?.range,
+    mode: input?.range ? "range" : (input?.mode ?? "row"),
   };
 }
 
@@ -40,6 +57,8 @@ export function activateRow(
     selectedRowIds,
     activeCell:
       selection.activeCell?.rowKey === rowKey ? selection.activeCell : undefined,
+    range: undefined,
+    mode: "row",
   };
 }
 
@@ -54,6 +73,8 @@ export function setActiveCell(
     return {
       ...selection,
       activeCell: undefined,
+      range: undefined,
+      mode: "row",
     };
   }
 
@@ -67,6 +88,8 @@ export function setActiveCell(
     activeRowId: activeCell.rowKey,
     selectedRowIds,
     activeCell,
+    range: undefined,
+    mode: "row",
   };
 }
 
@@ -87,6 +110,8 @@ export function toggleRowSelection(
       selectedRowIds,
       activeCell:
         selection.activeCell?.rowKey === rowKey ? undefined : selection.activeCell,
+      range: undefined,
+      mode: "row",
     };
   }
 
@@ -97,6 +122,8 @@ export function toggleRowSelection(
     selectedRowIds,
     activeCell:
       selection.activeCell?.rowKey === rowKey ? selection.activeCell : undefined,
+    range: undefined,
+    mode: "row",
   };
 }
 
@@ -105,7 +132,109 @@ export function clearSelection(): GridSelectionState {
     activeRowId: undefined,
     selectedRowIds: new Set<string>(),
     activeCell: undefined,
+    range: undefined,
+    mode: "row",
   };
+}
+
+export function beginRangeSelection(
+  selection: GridSelectionState,
+  anchor: GridActiveCell,
+): GridSelectionState {
+  return {
+    activeRowId: anchor.rowKey,
+    selectedRowIds: new Set([anchor.rowKey]),
+    activeCell: anchor,
+    range: {
+      anchor,
+      focus: anchor,
+    },
+    mode: "range",
+  };
+}
+
+export function updateRangeSelection(
+  selection: GridSelectionState,
+  focus: GridActiveCell,
+): GridSelectionState {
+  const anchor = selection.range?.anchor ?? selection.activeCell ?? focus;
+
+  return {
+    activeRowId: focus.rowKey,
+    selectedRowIds: new Set([focus.rowKey]),
+    activeCell: focus,
+    range: {
+      anchor,
+      focus,
+    },
+    mode: "range",
+  };
+}
+
+export function clearRangeSelection(
+  selection: GridSelectionState,
+): GridSelectionState {
+  return {
+    ...selection,
+    range: undefined,
+    mode: "row",
+  };
+}
+
+export function hasRangeSelection(selection: GridSelectionState) {
+  return !!selection.range;
+}
+
+export function getNormalizedCellRange(
+  selection: GridSelectionState,
+  rowOrder: readonly string[],
+  columnOrder: readonly string[],
+): GridNormalizedRange | undefined {
+  if (!selection.range) {
+    return undefined;
+  }
+
+  const anchorRowIndex = rowOrder.indexOf(selection.range.anchor.rowKey);
+  const focusRowIndex = rowOrder.indexOf(selection.range.focus.rowKey);
+  const anchorColumnIndex = columnOrder.indexOf(selection.range.anchor.columnKey);
+  const focusColumnIndex = columnOrder.indexOf(selection.range.focus.columnKey);
+
+  if (
+    anchorRowIndex === -1 ||
+    focusRowIndex === -1 ||
+    anchorColumnIndex === -1 ||
+    focusColumnIndex === -1
+  ) {
+    return undefined;
+  }
+
+  return {
+    anchor: selection.range.anchor,
+    focus: selection.range.focus,
+    startRowIndex: Math.min(anchorRowIndex, focusRowIndex),
+    endRowIndex: Math.max(anchorRowIndex, focusRowIndex),
+    startColumnIndex: Math.min(anchorColumnIndex, focusColumnIndex),
+    endColumnIndex: Math.max(anchorColumnIndex, focusColumnIndex),
+  };
+}
+
+export function getSelectionAnchorCell(
+  selection: GridSelectionState,
+  rowOrder?: readonly string[],
+  columnOrder?: readonly string[],
+): GridActiveCell | undefined {
+  if (selection.range && rowOrder && columnOrder) {
+    const normalizedRange = getNormalizedCellRange(selection, rowOrder, columnOrder);
+
+    if (normalizedRange) {
+      return {
+        rowKey: rowOrder[normalizedRange.startRowIndex],
+        columnKey: columnOrder[normalizedRange.startColumnIndex],
+      };
+    }
+  }
+
+  return selection.activeCell;
 }
 
 export function pruneSelectionState(
@@ -124,6 +253,12 @@ export function pruneSelectionState(
     selection.activeCell && validRowIds.has(selection.activeCell.rowKey)
       ? selection.activeCell
       : undefined;
+  const range =
+    selection.range &&
+    validRowIds.has(selection.range.anchor.rowKey) &&
+    validRowIds.has(selection.range.focus.rowKey)
+      ? selection.range
+      : undefined;
 
   if (activeRowId) {
     selectedRowIds.add(activeRowId);
@@ -133,6 +268,8 @@ export function pruneSelectionState(
     activeRowId,
     selectedRowIds,
     activeCell,
+    range,
+    mode: range ? "range" : "row",
   };
 }
 

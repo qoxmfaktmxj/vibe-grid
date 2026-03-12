@@ -49,10 +49,19 @@ export type GridActiveCell = {
   columnKey: string;
 };
 
+export type GridCellRangeSelection = {
+  anchor: GridActiveCell;
+  focus: GridActiveCell;
+};
+
+export type GridSelectionMode = "row" | "range";
+
 export type GridSelectionState = {
   activeRowId?: string;
   selectedRowIds: Set<string>;
   activeCell?: GridActiveCell;
+  range?: GridCellRangeSelection;
+  mode?: GridSelectionMode;
 };
 
 export type GridColumnVisibilityState = Record<string, boolean>;
