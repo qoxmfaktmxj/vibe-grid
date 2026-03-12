@@ -33,40 +33,23 @@ export function BenchWorkbench() {
 
   return (
     <section style={{ display: "grid", gap: 24 }}>
-      <section
-        style={{
-          border: "1px solid #dbe7f3",
-          borderRadius: 28,
-          padding: 32,
-          background:
-            "linear-gradient(135deg, rgba(245,252,255,0.96), rgba(233,248,244,0.98))",
-          boxShadow: "0 18px 50px rgba(15, 23, 42, 0.08)",
-        }}
-      >
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
-          <span style={tagStyle("#0f766e", "#f0fdfa")}>Bench</span>
-          <span style={tagStyle("#dff7eb", "#047857")}>Virtualized rows</span>
-          <span style={tagStyle("#e0f2fe", "#0369a1")}>
+      <section className="hero-panel hero-panel--mint">
+        <div className="hero-eyebrow">
+          <span className="hero-tag hero-tag--light">Bench</span>
+          <span className="hero-tag hero-tag--light">Virtualized rows</span>
+          <span className="hero-tag hero-tag--light">
             {deferredRowCount.toLocaleString("ko-KR")} rows
           </span>
         </div>
-        <h1 style={{ margin: 0, fontSize: 40, color: "#0f172a" }}>
-          VibeGrid 성능 벤치 랩
-        </h1>
-        <p
-          style={{
-            marginTop: 16,
-            color: "#475569",
-            lineHeight: 1.8,
-            maxWidth: 920,
-          }}
-        >
-          실제 업무형 그리드에 기능을 더 붙이기 전에, 대량 데이터 스크롤 기준선을 먼저
-          확인하는 화면입니다. row virtualization, sticky header, visible range를 한 번에
-          보면서 10만 건 수준의 렌더링 감각을 확인할 수 있습니다.
+        <h1 className="hero-title">VibeGrid 성능 벤치 랩</h1>
+        <p className="hero-copy hero-copy--dark">
+          실제 업무형 기능을 더 붙이기 전에 대량 데이터에서 스크롤과 sticky 동작이
+          어디까지 버티는지 먼저 확인하는 공간입니다. 지금은 row virtualization에
+          집중하고, 다음 슬라이스에서 pinned column과 shadow 레이어를 더 정교하게
+          다듬습니다.
         </p>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
+        <div className="segmented-row" style={{ marginTop: 22 }}>
           {SCENARIOS.map((scenario) => (
             <button
               key={scenario}
@@ -76,19 +59,11 @@ export function BenchWorkbench() {
                   setRowCount(scenario);
                 })
               }
-              style={{
-                border: "1px solid #bfdbfe",
-                borderRadius: 14,
-                background: scenario === rowCount ? "#0f766e" : "#ffffff",
-                color: scenario === rowCount ? "#f8fafc" : "#0f172a",
-                padding: "12px 16px",
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow:
-                  scenario === rowCount
-                    ? "0 10px 24px rgba(15, 118, 110, 0.22)"
-                    : "0 6px 18px rgba(15, 23, 42, 0.06)",
-              }}
+              className={
+                scenario === rowCount
+                  ? "segmented-button segmented-button--active"
+                  : "segmented-button"
+              }
             >
               {scenario.toLocaleString("ko-KR")} rows
             </button>
@@ -96,57 +71,44 @@ export function BenchWorkbench() {
         </div>
       </section>
 
-      <section
-        style={{
-          display: "grid",
-          gap: 16,
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        }}
-      >
-        <StatCard label="대상 행 수" value={snapshot.totalRows.toLocaleString("ko-KR")} />
+      <section className="stat-grid">
+        <StatCard label="총 데이터" value={snapshot.totalRows.toLocaleString("ko-KR")} />
         <StatCard label="현재 표시 범위" value={visibleRange} />
-        <StatCard label="실제 렌더 행 수" value={String(virtualRows.length)} />
+        <StatCard label="실제 렌더 수" value={String(virtualRows.length)} />
         <StatCard label="Overscan" value={String(defaultVirtualizationPreset.overscan)} />
       </section>
 
       <section
-        style={{
-          border: "1px solid #dbe7f3",
-          borderRadius: 24,
-          overflow: "hidden",
-          background: "#ffffff",
-          boxShadow: "0 18px 50px rgba(15, 23, 42, 0.08)",
-        }}
+        className="section-panel"
+        style={{ padding: 0, overflow: "hidden", borderRadius: 28 }}
       >
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "140px 170px 1.2fr 1fr 0.8fr 120px 120px",
-            borderBottom: "1px solid #dbe7f3",
-            background: "#f8fbff",
+            borderBottom: "1px solid rgba(226, 232, 240, 0.86)",
+            background: "linear-gradient(180deg, #f9fcff, #f1f7fb)",
             position: "sticky",
             top: 0,
             zIndex: 2,
           }}
         >
-          {["No", "사번", "이름", "부서", "직급", "사용", "정렬"].map(
-            (header, index) => (
-              <div
-                key={header}
-                style={{
-                  padding: "16px 18px",
-                  fontWeight: 800,
-                  color: "#0f172a",
-                  position: index === 0 ? "sticky" : "relative",
-                  left: index === 0 ? 0 : undefined,
-                  background: index === 0 ? "#f3f8ff" : undefined,
-                  zIndex: index === 0 ? 3 : 2,
-                }}
-              >
-                {header}
-              </div>
-            ),
-          )}
+          {["No", "사번", "이름", "부서", "직급", "사용", "정렬"].map((header, index) => (
+            <div
+              key={header}
+              style={{
+                padding: "16px 18px",
+                fontWeight: 800,
+                color: "#091526",
+                position: index === 0 ? "sticky" : "relative",
+                left: index === 0 ? 0 : undefined,
+                background: index === 0 ? "#eef6fb" : undefined,
+                zIndex: index === 0 ? 3 : 2,
+              }}
+            >
+              {header}
+            </div>
+          ))}
         </div>
 
         <div ref={scrollRef} style={{ height: 640, overflow: "auto", position: "relative" }}>
@@ -172,7 +134,7 @@ export function BenchWorkbench() {
                     transform: `translateY(${virtualRow.start}px)`,
                     display: "grid",
                     gridTemplateColumns: "140px 170px 1.2fr 1fr 0.8fr 120px 120px",
-                    borderBottom: "1px solid #eef4fb",
+                    borderBottom: "1px solid rgba(237, 242, 247, 0.9)",
                     background: odd ? "#fbfdff" : "#ffffff",
                     color: "#1e293b",
                   }}
@@ -198,21 +160,19 @@ export function BenchWorkbench() {
           gridTemplateColumns: "1.2fr 1fr",
         }}
       >
-        <article style={panelStyle}>
-          <h2 style={{ margin: 0, fontSize: 20, color: "#0f172a" }}>
-            Benchmark sample rows
-          </h2>
-          <pre style={codeBlockStyle}>{JSON.stringify(snapshot.firstRows, null, 2)}</pre>
+        <article className="section-panel">
+          <h2 className="section-panel__title">Benchmark sample rows</h2>
+          <pre className="code-block">{JSON.stringify(snapshot.firstRows, null, 2)}</pre>
         </article>
 
-        <article style={panelStyle}>
-          <h2 style={{ margin: 0, fontSize: 20, color: "#0f172a" }}>Bench notes</h2>
-          <div style={{ marginTop: 16, color: "#475569", lineHeight: 1.8 }}>
-            <div>현재는 row virtualization 중심으로 성능 기준선을 잡았습니다.</div>
-            <div>다음 단계에서는 pinned column과 sticky shadow를 더 붙일 예정입니다.</div>
+        <article className="section-panel">
+          <h2 className="section-panel__title">Bench notes</h2>
+          <div style={{ marginTop: 16, color: "#506176", lineHeight: 1.8 }}>
+            <div>현재는 row virtualization 중심으로 성능 기준선을 잡고 있습니다.</div>
+            <div>다음 단계에서는 pinned column과 sticky shadow를 함께 실험합니다.</div>
             <div>
-              100,000 rows 시나리오를 바로 전환해서 스크롤 감각과 렌더 행 수를 확인할 수
-              있습니다.
+              100,000 rows 시나리오를 바로 전환해 스크롤 체감과 렌더 수를 함께 확인할
+              수 있습니다.
             </div>
           </div>
         </article>
@@ -223,26 +183,9 @@ export function BenchWorkbench() {
 
 function StatCard(props: { label: string; value: string }) {
   return (
-    <article
-      style={{
-        border: "1px solid #dbe7f3",
-        borderRadius: 20,
-        padding: 20,
-        background: "#ffffff",
-        boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
-      }}
-    >
-      <div style={{ color: "#64748b", fontSize: 13 }}>{props.label}</div>
-      <strong
-        style={{
-          display: "block",
-          marginTop: 8,
-          fontSize: 28,
-          color: "#0f172a",
-        }}
-      >
-        {props.value}
-      </strong>
+    <article className="stat-card">
+      <div className="stat-card__label">{props.label}</div>
+      <strong className="stat-card__value">{props.value}</strong>
     </article>
   );
 }
@@ -256,7 +199,7 @@ function BenchCell(props: { children: React.ReactNode; sticky?: boolean }) {
         alignItems: "center",
         position: props.sticky ? "sticky" : "relative",
         left: props.sticky ? 0 : undefined,
-        background: props.sticky ? "#f8fbff" : undefined,
+        background: props.sticky ? "#f6fbff" : undefined,
         zIndex: props.sticky ? 1 : undefined,
       }}
     >
@@ -264,29 +207,3 @@ function BenchCell(props: { children: React.ReactNode; sticky?: boolean }) {
     </div>
   );
 }
-
-function tagStyle(background: string, color: string) {
-  return {
-    padding: "6px 12px",
-    borderRadius: 999,
-    background,
-    color,
-    fontSize: 12,
-  } as const;
-}
-
-const panelStyle = {
-  border: "1px solid #dbe7f3",
-  borderRadius: 24,
-  padding: 20,
-  background: "#ffffff",
-  boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
-} as const;
-
-const codeBlockStyle = {
-  margin: 0,
-  marginTop: 16,
-  whiteSpace: "pre-wrap",
-  color: "#1e293b",
-  lineHeight: 1.7,
-} as const;

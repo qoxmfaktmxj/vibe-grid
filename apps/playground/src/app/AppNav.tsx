@@ -15,13 +15,7 @@ export function AppNav() {
   const pathname = usePathname();
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        gap: 10,
-        flexWrap: "wrap",
-      }}
-    >
+    <nav className="app-nav">
       {NAV_ITEMS.map((item) => {
         const active =
           item.href === "/"
@@ -32,14 +26,7 @@ export function AppNav() {
           <Link
             key={item.href}
             href={item.href}
-            style={{
-              borderRadius: 999,
-              padding: "10px 14px",
-              border: active ? "1px solid #0f766e" : "1px solid #d9e4f1",
-              background: active ? "#0f766e" : "#fff",
-              color: active ? "#fff" : "#0f172a",
-              fontWeight: 700,
-            }}
+            className={active ? "app-nav__link app-nav__link--active" : "app-nav__link"}
           >
             {item.label}
           </Link>

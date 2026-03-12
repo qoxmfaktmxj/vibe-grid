@@ -1176,14 +1176,38 @@ function MetricCard(input: {
   tone: "teal" | "blue" | "amber" | "slate";
 }) {
   const palette = {
-    teal: { background: "#ecfeff", color: "#0f766e" },
-    blue: { background: "#eff6ff", color: "#1d4ed8" },
-    amber: { background: "#fff7ed", color: "#c2410c" },
-    slate: { background: "#f8fafc", color: "#334155" },
+    teal: {
+      background: "linear-gradient(180deg, rgba(219, 247, 244, 0.96), rgba(236, 253, 255, 0.96))",
+      color: "#0f766e",
+      borderColor: "rgba(15, 118, 110, 0.18)",
+    },
+    blue: {
+      background: "linear-gradient(180deg, rgba(224, 242, 254, 0.96), rgba(239, 246, 255, 0.96))",
+      color: "#1d4ed8",
+      borderColor: "rgba(29, 78, 216, 0.16)",
+    },
+    amber: {
+      background: "linear-gradient(180deg, rgba(255, 244, 214, 0.96), rgba(255, 247, 237, 0.96))",
+      color: "#c2410c",
+      borderColor: "rgba(194, 65, 12, 0.16)",
+    },
+    slate: {
+      background: "linear-gradient(180deg, rgba(244, 248, 252, 0.98), rgba(248, 250, 252, 0.98))",
+      color: "#334155",
+      borderColor: "rgba(100, 116, 139, 0.14)",
+    },
   }[input.tone];
 
   return (
-    <article style={{ borderRadius: 18, padding: 16, ...palette }}>
+    <article
+      style={{
+        borderRadius: 20,
+        padding: 16,
+        border: `1px solid ${palette.borderColor}`,
+        boxShadow: "0 12px 28px rgba(9, 21, 38, 0.06)",
+        ...palette,
+      }}
+    >
       <div style={{ fontSize: 12, fontWeight: 800 }}>{input.label}</div>
       <div style={{ marginTop: 8, fontSize: 18, fontWeight: 800 }}>{input.value}</div>
     </article>
@@ -1191,57 +1215,61 @@ function MetricCard(input: {
 }
 
 const heroSectionStyle = {
-  border: "1px solid #d9e4f1",
-  borderRadius: 28,
-  padding: 28,
+  border: "1px solid rgba(255, 255, 255, 0.12)",
+  borderRadius: 32,
+  padding: "30px 32px",
   background:
-    "linear-gradient(135deg, rgba(15,23,42,0.98), rgba(15,118,110,0.94))",
+    "linear-gradient(135deg, rgba(8,40,59,0.98), rgba(15,118,110,0.96), rgba(20,184,166,0.92))",
   color: "#fff",
-  boxShadow: "0 20px 60px rgba(15, 23, 42, 0.14)",
+  boxShadow: "0 28px 70px rgba(9, 21, 38, 0.16)",
 } as const;
 
 const heroDescriptionStyle = {
   marginTop: 16,
   maxWidth: 920,
-  lineHeight: 1.8,
-  color: "rgba(255,255,255,0.82)",
+  lineHeight: 1.82,
+  color: "rgba(255,255,255,0.84)",
 } as const;
 
 const heroChipStyle = (background: string) =>
   ({
-    padding: "6px 12px",
+    padding: "7px 12px",
     borderRadius: 999,
     background,
     fontSize: 12,
+    fontWeight: 700,
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
   }) as const;
 
 const statusPanelStyle = {
-  border: "1px solid #d9e4f1",
+  border: "1px solid rgba(148, 163, 184, 0.2)",
   borderRadius: 22,
-  background: "#fff",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,250,255,0.92))",
   padding: 18,
   color: "#334155",
   lineHeight: 1.7,
+  boxShadow: "0 14px 34px rgba(9, 21, 38, 0.06)",
+  fontWeight: 600,
 } as const;
 
 const layoutGridStyle = {
   display: "grid",
-  gap: 20,
+  gap: 22,
   gridTemplateColumns: "minmax(0, 1.75fr) minmax(340px, 0.95fr)",
   alignItems: "start",
 } as const;
 
 const cardStyle = {
-  border: "1px solid #d9e4f1",
-  borderRadius: 24,
-  padding: 20,
-  background: "#fff",
-  boxShadow: "0 14px 40px rgba(15, 23, 42, 0.08)",
+  border: "1px solid rgba(153, 177, 201, 0.24)",
+  borderRadius: 26,
+  padding: 22,
+  background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,251,255,0.94))",
+  boxShadow: "0 20px 50px rgba(9, 21, 38, 0.08)",
 } as const;
 
 const metricGridStyle = {
   display: "grid",
-  gap: 12,
+  gap: 14,
   gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
 } as const;
 
@@ -1256,8 +1284,9 @@ const sectionHeaderStyle = {
 
 const sectionTitleStyle = {
   margin: 0,
-  fontSize: 20,
+  fontSize: 21,
   color: "#0f172a",
+  letterSpacing: "-0.02em",
 } as const;
 
 const badgeStyle = (background: string, color: string) =>
@@ -1280,49 +1309,53 @@ const fieldLabelStyle = {
 
 const fullInputStyle = {
   width: "100%",
-  border: "1px solid #cbd5e1",
+  border: "1px solid rgba(148, 163, 184, 0.38)",
   borderRadius: 14,
-  padding: "10px 12px",
+  padding: "11px 13px",
   font: "inherit",
-  background: "#fff",
+  background: "rgba(255,255,255,0.94)",
+  boxShadow: "inset 0 1px 2px rgba(15, 23, 42, 0.04)",
 } as const;
 
 const compactInputStyle = {
-  border: "1px solid #cbd5e1",
-  borderRadius: 12,
+  border: "1px solid rgba(148, 163, 184, 0.38)",
+  borderRadius: 14,
   padding: "10px 12px",
   font: "inherit",
-  background: "#fff",
+  background: "rgba(255,255,255,0.94)",
 } as const;
 
 const primaryButtonStyle = {
-  border: "1px solid #0f766e",
-  borderRadius: 12,
-  padding: "10px 14px",
-  background: "#0f766e",
+  border: "1px solid rgba(15, 118, 110, 0.22)",
+  borderRadius: 14,
+  padding: "11px 15px",
+  background: "linear-gradient(135deg, #0f766e, #0d9488)",
   color: "#fff",
   fontWeight: 700,
   cursor: "pointer",
+  boxShadow: "0 14px 30px rgba(15, 118, 110, 0.18)",
 } as const;
 
 const secondaryButtonStyle = {
-  border: "1px solid #cbd5e1",
-  borderRadius: 12,
-  padding: "10px 14px",
-  background: "#fff",
+  border: "1px solid rgba(148, 163, 184, 0.26)",
+  borderRadius: 14,
+  padding: "11px 15px",
+  background: "rgba(255,255,255,0.92)",
   color: "#0f172a",
   fontWeight: 700,
   cursor: "pointer",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
 } as const;
 
 const primaryGhostButtonStyle = {
-  border: "1px solid #cbd5e1",
-  borderRadius: 14,
-  background: "#fff",
+  border: "1px solid rgba(148, 163, 184, 0.24)",
+  borderRadius: 16,
+  background: "rgba(255,255,255,0.92)",
   color: "#0f172a",
   padding: "12px 16px",
   fontWeight: 700,
   cursor: "pointer",
+  boxShadow: "0 10px 24px rgba(9, 21, 38, 0.05)",
 } as const;
 
 const disabledButtonStyle = {
@@ -1330,15 +1363,18 @@ const disabledButtonStyle = {
   background: "#f8fafc",
   color: "#94a3b8",
   cursor: "not-allowed",
+  boxShadow: "none",
 } as const;
 
 const preStyle = {
   margin: 0,
-  padding: 14,
-  borderRadius: 16,
-  background: "#0f172a",
-  color: "#e2e8f0",
+  padding: 16,
+  borderRadius: 18,
+  background: "linear-gradient(180deg, #091220, #111d32)",
+  color: "#d7e1f0",
   fontSize: 12,
   lineHeight: 1.7,
   overflowX: "auto",
+  border: "1px solid rgba(148, 163, 184, 0.16)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
 } as const;
