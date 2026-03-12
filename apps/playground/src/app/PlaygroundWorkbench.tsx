@@ -6,12 +6,6 @@ import {
   createClipboardSchema,
 } from "@vibe-grid/clipboard";
 import {
-  createExcelTemplateBuffer,
-  exportRowsToExcelBuffer,
-  importExcelPreview,
-  type GridExcelImportPreview,
-} from "@vibe-grid/excel";
-import {
   applyRowPatch,
   beginEditSession,
   buildSaveBundle,
@@ -37,6 +31,12 @@ import {
   type VibeGridColumn,
 } from "@vibe-grid/core";
 import { VibeGrid } from "@vibe-grid/react";
+import {
+  createExcelTemplateBufferLazy,
+  exportRowsToExcelBufferLazy,
+  importExcelPreviewLazy,
+  type GridExcelImportPreview,
+} from "./excel-client";
 
 type PlaygroundRow = {
   sampleCode: string;
@@ -484,7 +484,7 @@ export function PlaygroundWorkbench() {
   }
 
   async function handleExportExcel() {
-    const buffer = await exportRowsToExcelBuffer({
+    const buffer = await exportRowsToExcelBufferLazy({
       sheetName: "VibeGridRows",
       columns: playgroundColumns,
       rows: rows.map((row) => row.row),
@@ -495,7 +495,7 @@ export function PlaygroundWorkbench() {
   }
 
   async function handleDownloadTemplate() {
-    const buffer = await createExcelTemplateBuffer({
+    const buffer = await createExcelTemplateBufferLazy({
       sheetName: "VibeGridTemplate",
       columns: playgroundColumns,
       sampleRows: [createBlankRow(1)],
@@ -534,7 +534,7 @@ export function PlaygroundWorkbench() {
     }
 
     const buffer = await file.arrayBuffer();
-    const preview = await importExcelPreview<PlaygroundRow>({
+    const preview = await importExcelPreviewLazy<PlaygroundRow>({
       buffer,
       columns: playgroundColumns,
     });
