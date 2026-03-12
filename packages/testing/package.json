@@ -1,0 +1,14 @@
+{
+  "name": "@vibe-grid/testing",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@vibe-grid/core": "0.0.1",
+    "@vibe-grid/virtualization": "0.0.1",
+    "react": "^19.2.0"
+  }
+}

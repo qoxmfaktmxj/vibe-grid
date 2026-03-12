@@ -1,0 +1,13 @@
+{
+  "name": "@vibe-grid/excel",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@vibe-grid/core": "0.0.1",
+    "exceljs": "^4.4.0"
+  }
+}

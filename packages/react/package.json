@@ -1,0 +1,15 @@
+{
+  "name": "@vibe-grid/react",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
+    "@vibe-grid/core": "0.0.1",
+    "@vibe-grid/tanstack-adapter": "0.0.1",
+    "react": "^19.2.0"
+  }
+}

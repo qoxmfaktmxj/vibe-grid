@@ -1,0 +1,13 @@
+{
+  "name": "@vibe-grid/virtualization",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-virtual": "^3.13.12",
+    "react": "^19.2.0"
+  }
+}

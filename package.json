@@ -1,0 +1,33 @@
+{
+  "name": "vibe-grid",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "npm@11.8.0",
+  "workspaces": [
+    "apps/playground",
+    "apps/bench",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev:playground",
+    "dev:playground": "npm run dev -w @vibe-grid/playground",
+    "dev:bench": "npm run dev -w @vibe-grid/bench",
+    "start": "npm run start -w @vibe-grid/playground",
+    "build:playground": "npm run build -w @vibe-grid/playground",
+    "build:bench": "npm run build -w @vibe-grid/bench",
+    "build": "npm run build:playground && npm run build:bench",
+    "lint:packages": "eslint packages --ext .ts,.tsx",
+    "lint:playground": "npm run lint -w @vibe-grid/playground",
+    "lint:bench": "npm run lint -w @vibe-grid/bench",
+    "lint": "npm run lint:packages && npm run lint:playground && npm run lint:bench",
+    "ci": "npm run lint && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.24.0",
+    "eslint-config-next": "16.1.6",
+    "typescript": "^5.8.2"
+  }
+}

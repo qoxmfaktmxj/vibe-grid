@@ -1,0 +1,21 @@
+{
+  "name": "@vibe-grid/playground",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint src next.config.ts"
+  },
+  "dependencies": {
+    "@vibe-grid/clipboard": "0.0.1",
+    "@vibe-grid/core": "0.0.1",
+    "@vibe-grid/excel": "0.0.1",
+    "@vibe-grid/react": "0.0.1",
+    "@vibe-grid/testing": "0.0.1",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}
