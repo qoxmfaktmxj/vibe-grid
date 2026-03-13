@@ -34,6 +34,7 @@ Current active references:
 
 - `docs/roadmap/current-execution-plan.md`
 - `docs/release/public-api-stability.md`
+- `docs/release/release-routine.md`
 - `docs/roadmap/slice-8-range-selection-design.md`
 - `docs/roadmap/slice-8-status.md`
 - `docs/roadmap/slice-9-productized-grid-ux-design.md`
@@ -75,6 +76,7 @@ Validation commands:
 npm run lint
 npm run build
 npm run ci
+npm run test:e2e:smoke
 ```
 
 For fresh browser validation, prefer:

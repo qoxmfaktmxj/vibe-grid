@@ -252,6 +252,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                 data-column-pinned={pinned || "none"}
                 data-column-filtered={isFiltered ? "true" : "false"}
                 data-column-filter-count={filterCount}
+                data-column-width={header.getSize()}
                 data-header-menu-open={isMenuOpen ? "true" : "false"}
                 onContextMenu={
                   canShowMenu
@@ -415,6 +416,9 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                     )}
                     {headerColumn.getCanResize() ? (
                       <div
+                        data-testid={
+                          columnKey ? `header-resize-handle-${columnKey}` : undefined
+                        }
                         onDoubleClick={() => headerColumn.resetSize()}
                         onMouseDown={header.getResizeHandler()}
                         onTouchStart={header.getResizeHandler()}

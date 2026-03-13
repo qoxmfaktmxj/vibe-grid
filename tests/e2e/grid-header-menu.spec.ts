@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Grid Header Menu", () => {
-  test("opens by click and right-click, shows filtered state, pins, sorts, and hides columns", async ({
+  test("opens by click and right-click, shows filtered state, pins, resizes, persists, sorts, and hides columns", async ({
     page,
   }) => {
     await page.goto("/labs/grid");
@@ -35,6 +35,33 @@ test.describe("Grid Header Menu", () => {
       "left",
     );
 
+    const sampleCodeHeader = page.getByTestId("header-cell-sampleCode");
+    const resizeHandle = page.getByTestId("header-resize-handle-sampleCode");
+    const beforeWidth = Number(
+      (await sampleCodeHeader.getAttribute("data-column-width")) ?? "0",
+    );
+
+    const handleBox = await resizeHandle.boundingBox();
+    if (!handleBox) {
+      throw new Error("Resize handle bounding box was not available.");
+    }
+
+    await page.mouse.move(
+      handleBox.x + handleBox.width / 2,
+      handleBox.y + handleBox.height / 2,
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      handleBox.x + handleBox.width / 2 + 48,
+      handleBox.y + handleBox.height / 2,
+    );
+    await page.mouse.up();
+
+    const afterWidth = Number(
+      (await sampleCodeHeader.getAttribute("data-column-width")) ?? "0",
+    );
+    expect(afterWidth).toBeGreaterThan(beforeWidth);
+
     await page.getByTestId("header-menu-trigger-sampleCode").click();
     await page.getByTestId("header-menu-action-sampleCode-sortDesc").click();
     await expect(page.locator('td[data-column-key="sampleCode"]').first()).toHaveText(
@@ -46,6 +73,14 @@ test.describe("Grid Header Menu", () => {
     await expect(page.getByTestId("header-cell-note")).toHaveCount(0);
 
     await page.reload();
+    await expect(page.getByTestId("header-cell-sampleName")).toHaveAttribute(
+      "data-column-pinned",
+      "left",
+    );
+    await expect(page.getByTestId("header-cell-sampleCode")).toHaveAttribute(
+      "data-column-width",
+      String(afterWidth),
+    );
     await expect(page.getByTestId("header-cell-note")).toHaveCount(0);
   });
 });

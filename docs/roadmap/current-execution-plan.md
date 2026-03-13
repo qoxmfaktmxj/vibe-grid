@@ -314,6 +314,9 @@ Status:
   - hub-level smoke browser regression
   - Playwright CI retries, `forbidOnly`, and HTML report output
   - CI artifact upload for Playwright outputs
+  - richer resize / persistence / compatibility browser regression
+  - concrete release routine and changelog discipline
+  - explicit Chromium-only CI policy with optional manual cross-browser smoke
 
 Tasks:
 

@@ -9,6 +9,12 @@
   - CI retries
   - HTML report output
 - Added CI artifact upload for Playwright outputs.
+- Expanded browser regression coverage for:
+  - persisted pinning after reload
+  - persisted width after reload
+  - richer Compatibility Lab assertions
+- Added a concrete release routine and changelog rule.
+- Explicitly decided to keep Chromium as the default CI browser and leave cross-browser smoke as an opt-in manual activity.
 
 ## Validation
 
@@ -23,10 +29,10 @@
   - release discipline
   - smoke regression coverage
   - CI observability
+  - resize/persistence regression depth
 
 ## Remaining P7 Work
 
-- expand regression depth for resize, persistence, and compatibility paths
-- decide whether cross-browser smoke is worth the cost in CI
-- define a concrete internal release routine and changelog rule
+- expand regression depth for additional persistence paths if product scope widens beyond column state
+- revisit cross-browser smoke only if sticky/focus regressions begin to appear outside Chromium
 - tighten the stable surface further if additional packages become pilot consumers
