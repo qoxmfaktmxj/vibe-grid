@@ -13,6 +13,7 @@ import {
   type GridEditSession,
   type GridSelectionState,
 } from "@vibe-grid/core";
+import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import { VibeGridInlineEditor } from "./VibeGridInlineEditor";
 import type {
   GridActiveCellLike,
@@ -108,8 +109,8 @@ export function VibeGridTableBody<Row extends RowRecord>({
             style={{
               padding: "40px 24px",
               textAlign: "center",
-              color: "#64748b",
-              background: "#fff",
+              color: vibeGridThemeTokens.body.emptyTextColor,
+              background: vibeGridThemeTokens.body.emptyBackground,
             }}
           >
             {emptyMessage}
@@ -139,10 +140,10 @@ export function VibeGridTableBody<Row extends RowRecord>({
         const isSelected = selectionState.selectedRowIds.has(row.id);
         const meta = rowMetaByKey.get(row.id);
         const rowBackground = isActive
-          ? "rgba(14,165,233,0.12)"
+          ? vibeGridThemeTokens.body.activeRowBackground
           : isSelected
-            ? "rgba(14,165,233,0.06)"
-            : "#fff";
+            ? vibeGridThemeTokens.body.selectedRowBackground
+            : vibeGridThemeTokens.body.rowBackground;
 
         return (
           <tr
@@ -172,7 +173,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                 columnIndexByKey,
               });
               const rangeBackground = rangeState.inRange
-                ? "rgba(20,184,166,0.12)"
+                ? vibeGridThemeTokens.body.rangeBackground
                 : undefined;
 
               return (
@@ -289,19 +290,26 @@ export function VibeGridTableBody<Row extends RowRecord>({
                   style={{
                     ...getStickyCellStyle(
                       cell.column,
-                      isActiveCell ? "#e0f2fe" : (rangeBackground ?? rowBackground),
+                      isActiveCell
+                        ? vibeGridThemeTokens.body.activeCellBackground
+                        : (rangeBackground ?? rowBackground),
                       false,
                       isActive,
                     ),
-                    borderBottom: "1px solid #eef2f7",
+                    borderBottom: `1px solid ${vibeGridThemeTokens.body.cellBorderColor}`,
                     padding: "14px 16px",
-                    color: meta?.state === "D" ? "#94a3b8" : "#0f172a",
+                    color:
+                      meta?.state === "D"
+                        ? vibeGridThemeTokens.body.deletedCellTextColor
+                        : vibeGridThemeTokens.body.cellTextColor,
                     fontSize: 14,
                     fontWeight: isActive ? 700 : 500,
                     verticalAlign: "middle",
                     boxShadow: [
                       buildRangeShadow(rangeState),
-                      isActiveCell ? "inset 0 0 0 2px #0ea5e9" : undefined,
+                      isActiveCell
+                        ? `inset 0 0 0 2px ${vibeGridThemeTokens.body.activeCellOutline}`
+                        : undefined,
                     ]
                       .filter(Boolean)
                       .join(", "),
@@ -338,7 +346,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
               height: bottomSpacerHeight,
               padding: 0,
               border: "none",
-              background: "#fff",
+              background: vibeGridThemeTokens.body.spacerBackground,
             }}
           />
         </tr>

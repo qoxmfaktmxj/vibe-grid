@@ -4,6 +4,7 @@ import {
   type GridEditorSpec,
   type GridEditSession,
 } from "@vibe-grid/core";
+import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import type { RowRecord } from "./vibe-grid-types";
 
 type VibeGridInlineEditorProps<Row extends RowRecord> = {
@@ -37,11 +38,11 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
 
   const commonStyle = {
     width: "100%",
-    border: "1px solid #38bdf8",
-    borderRadius: 10,
+    border: `1px solid ${vibeGridThemeTokens.editor.borderColor}`,
+    borderRadius: vibeGridThemeTokens.editor.borderRadius,
     padding: "8px 10px",
     font: "inherit",
-    background: "#fff",
+    background: vibeGridThemeTokens.editor.background,
   } as const;
 
   const commit = (draftValue = editSession.draftValue) => {

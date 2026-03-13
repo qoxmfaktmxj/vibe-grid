@@ -31,6 +31,7 @@ import {
   type RowState,
   type VibeGridColumn,
 } from "@vibe-grid/core";
+import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import { createTanStackColumns } from "@vibe-grid/tanstack-adapter";
 import { VibeGridTableBody } from "./internal/VibeGridTableBody";
 import { VibeGridTableHeader } from "./internal/VibeGridTableHeader";
@@ -101,10 +102,10 @@ const rowStateLabel: Record<RowState, string> = {
 };
 
 const rowStateColor: Record<RowState, { background: string; color: string }> = {
-  N: { background: "#eff6ff", color: "#1d4ed8" },
-  I: { background: "#ecfdf5", color: "#047857" },
-  U: { background: "#fff7ed", color: "#c2410c" },
-  D: { background: "#fef2f2", color: "#b91c1c" },
+  N: vibeGridThemeTokens.rowState.N,
+  I: vibeGridThemeTokens.rowState.I,
+  U: vibeGridThemeTokens.rowState.U,
+  D: vibeGridThemeTokens.rowState.D,
 };
 
 export function VibeGrid<Row extends RowRecord>({
@@ -544,11 +545,11 @@ export function VibeGrid<Row extends RowRecord>({
         }
       }}
       style={{
-        border: "1px solid #d9e4f1",
+        border: `1px solid ${vibeGridThemeTokens.surface.borderColor}`,
         borderRadius: 24,
         overflow: "hidden",
-        background: "#fff",
-        boxShadow: "0 16px 50px rgba(15, 23, 42, 0.08)",
+        background: vibeGridThemeTokens.surface.background,
+        boxShadow: vibeGridThemeTokens.surface.shadow,
       }}
     >
       <div

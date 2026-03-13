@@ -285,6 +285,7 @@ Status:
   - Grid Lab status message normalization through `@vibe-grid/i18n`
   - shared clipboard fallback validation copy through `@vibe-grid/i18n`
   - placeholder-based grid message formatting
+  - wider theme token adoption across grid surface, body, row-state badges, editors, and sticky/range visuals
 
 Work items:
 

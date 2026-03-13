@@ -1,4 +1,5 @@
 import type { Column, Updater } from "@tanstack/react-table";
+import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import type { RowRecord } from "./vibe-grid-types";
 
 export type NormalizedCellRange =
@@ -72,10 +73,18 @@ export function buildRangeShadow(rangeState: GridRangeCellState) {
   }
 
   return [
-    rangeState.isTop ? "inset 0 2px 0 0 #14b8a6" : undefined,
-    rangeState.isRight ? "inset -2px 0 0 0 #14b8a6" : undefined,
-    rangeState.isBottom ? "inset 0 -2px 0 0 #14b8a6" : undefined,
-    rangeState.isLeft ? "inset 2px 0 0 0 #14b8a6" : undefined,
+    rangeState.isTop
+      ? `inset 0 2px 0 0 ${vibeGridThemeTokens.sticky.rangeOutline}`
+      : undefined,
+    rangeState.isRight
+      ? `inset -2px 0 0 0 ${vibeGridThemeTokens.sticky.rangeOutline}`
+      : undefined,
+    rangeState.isBottom
+      ? `inset 0 -2px 0 0 ${vibeGridThemeTokens.sticky.rangeOutline}`
+      : undefined,
+    rangeState.isLeft
+      ? `inset 2px 0 0 0 ${vibeGridThemeTokens.sticky.rangeOutline}`
+      : undefined,
   ]
     .filter(Boolean)
     .join(", ");
@@ -98,9 +107,9 @@ export function getStickyCellStyle<Row extends RowRecord>(
     zIndex: isHeader ? (pinned ? 6 : 4) : pinned ? (isActiveRow ? 3 : 2) : 1,
     background,
     boxShadow: isLeft && column.getIsLastColumn("left")
-      ? "2px 0 0 0 #d9e4f1, 10px 0 14px -14px rgba(15, 23, 42, 0.32)"
+      ? `2px 0 0 0 ${vibeGridThemeTokens.sticky.boundaryColor}, 10px 0 14px -14px ${vibeGridThemeTokens.sticky.boundaryShadow}`
       : isRight && column.getIsFirstColumn("right")
-        ? "-2px 0 0 0 #d9e4f1, -10px 0 14px -14px rgba(15, 23, 42, 0.32)"
+        ? `-2px 0 0 0 ${vibeGridThemeTokens.sticky.boundaryColor}, -10px 0 14px -14px ${vibeGridThemeTokens.sticky.boundaryShadow}`
         : undefined,
   };
 }

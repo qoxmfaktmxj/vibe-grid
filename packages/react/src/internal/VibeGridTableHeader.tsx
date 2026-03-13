@@ -435,8 +435,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                             borderRadius: 999,
                             background:
                               pinned && sorted
-                                ? "rgba(15,118,110,0.45)"
-                                : "rgba(148,163,184,0.5)",
+                                ? vibeGridThemeTokens.header.resizeHandlePinnedSorted
+                                : vibeGridThemeTokens.header.resizeHandleIdle,
                           }}
                         />
                       </div>

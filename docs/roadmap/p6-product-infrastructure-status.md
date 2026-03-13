@@ -16,6 +16,12 @@
 - Normalized Grid Lab status copy through `@vibe-grid/i18n`.
 - Normalized shared clipboard fallback validation messages through `@vibe-grid/i18n`.
 - Added a shared message formatter for placeholder-based status and validation text.
+- Expanded shared theme tokens into:
+  - grid surface
+  - body rows and empty states
+  - row-state badges
+  - inline editors
+  - sticky boundary and range outline visuals
 
 ## Validation
 
@@ -31,12 +37,15 @@
   - menu labels
   - header/menu theme tokens
 -  - Grid Lab status and clipboard fallback messages
+-  - Grid Lab status and clipboard fallback messages
+-  - body/editor/state badge theme tokens
 - Remaining P6 work still includes:
-  - wider token adoption outside header/menu surfaces
   - locale strategy beyond the default catalog
+  - deciding whether non-grid lab shell panels should use shared product tokens
+  - expanding persistence beyond column state if product behavior requires it
 
 ## Next Candidates
 
 1. expand persistence from column state to wider view preferences if needed
-2. continue token extraction for body, badges, and side panels
+2. decide whether lab shell cards and side panels belong in shared theme scope
 3. move broader validation and lab copy into the shared catalog where it still leaks
