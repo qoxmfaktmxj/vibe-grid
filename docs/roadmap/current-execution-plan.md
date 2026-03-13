@@ -203,6 +203,12 @@ Validation:
 
 ### P4. Slice 8 Polish: Stable Range Selection and Range-Aware Clipboard
 
+Status:
+
+- in progress on `2026-03-13`
+- keyboard range extension, range summary, and invalid paste summary are implemented
+- drag-range polish remains open before P4 can be called complete
+
 Why here:
 
 - the range foundation exists, but the user-facing experience is not stable enough yet
@@ -226,8 +232,8 @@ Acceptance:
 
 Validation:
 
-- Playwright drag, copy, paste, and invalid-input scenarios
-- manual browser pass for drag and sticky behavior
+- Playwright keyboard range, copy, paste, and invalid-input scenarios
+- manual browser pass for drag and sticky behavior until drag is stable enough for CI
 
 ### P5. Real-Grid Performance Verification
 

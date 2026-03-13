@@ -160,6 +160,11 @@ export function VibeGridTableBody<Row extends RowRecord>({
               return (
                 <td
                   key={cell.id}
+                  data-testid={
+                    columnMeta?.columnKey
+                      ? `grid-cell-${row.id}-${columnMeta.columnKey}`
+                      : undefined
+                  }
                   data-row-key={row.id}
                   data-column-key={columnMeta?.columnKey}
                   data-range-selected={rangeState.inRange ? "true" : "false"}
@@ -170,6 +175,8 @@ export function VibeGridTableBody<Row extends RowRecord>({
                     if (columnMeta?.internal || !columnMeta?.columnKey) {
                       return;
                     }
+
+                    event.preventDefault();
 
                     if (event.shiftKey) {
                       const nextState = buildShiftRangeState(selectionState, {
@@ -192,6 +199,33 @@ export function VibeGridTableBody<Row extends RowRecord>({
                       },
                       moved: false,
                     };
+                  }}
+                  onMouseEnter={(event) => {
+                    const dragState = dragRangeRef.current;
+
+                    if (
+                      !dragState ||
+                      event.buttons !== 1 ||
+                      columnMeta?.internal ||
+                      !columnMeta?.columnKey
+                    ) {
+                      return;
+                    }
+
+                    if (
+                      dragState.anchor.rowKey === row.id &&
+                      dragState.anchor.columnKey === columnMeta.columnKey
+                    ) {
+                      return;
+                    }
+
+                    dragState.moved = true;
+                    onSelectionStateChange?.(
+                      buildDragRangeState(dragState.anchor, {
+                        rowKey: row.id,
+                        columnKey: columnMeta.columnKey,
+                      }),
+                    );
                   }}
                   onMouseMove={() => {
                     const dragState = dragRangeRef.current;

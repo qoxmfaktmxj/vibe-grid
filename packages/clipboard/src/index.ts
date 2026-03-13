@@ -7,6 +7,10 @@ export type ClipboardColumn<Row extends RowRecord> = {
   editable?: boolean;
   hidden?: boolean;
   parse?: (value: string) => Row[Extract<keyof Row, string>];
+  validate?: (
+    value: Row[Extract<keyof Row, string>],
+    row: Row,
+  ) => string[];
 };
 
 export type ClipboardSkipReason =
@@ -16,12 +20,22 @@ export type ClipboardSkipReason =
   | "columnOverflow"
   | "rowOverflow"
   | "hidden"
-  | "readonly";
+  | "readonly"
+  | "validation";
 
 export type ClipboardSkippedCell = {
   rowOffset: number;
   columnOffset: number;
   reason: ClipboardSkipReason;
+};
+
+export type ClipboardValidationError = {
+  rowOffset: number;
+  columnOffset: number;
+  rowKey?: string;
+  columnKey: string;
+  input: string;
+  messages: string[];
 };
 
 export type RectangularPastePlan<Row extends RowRecord> = {
@@ -34,7 +48,16 @@ export type RectangularPastePlan<Row extends RowRecord> = {
   appendedRows: Partial<Row>[];
   appliedCellCount: number;
   skippedCells: ClipboardSkippedCell[];
+  validationErrors: ClipboardValidationError[];
 };
+
+function isEmptyValue(value: unknown) {
+  return (
+    value == null ||
+    (typeof value === "string" && value.trim() === "") ||
+    (Array.isArray(value) && value.length === 0)
+  );
+}
 
 export function parseTsv(text: string): string[][] {
   return text
@@ -64,6 +87,22 @@ export function createClipboardSchema<Row extends RowRecord>(
         (column.parse
           ? (column.parse(value, {} as Row) as Row[Extract<keyof Row, string>])
           : (value as Row[Extract<keyof Row, string>]))),
+    validate: (value, row) => {
+      const issues: string[] = [];
+
+      if (column.required && isEmptyValue(value)) {
+        issues.push(`${column.header} is required.`);
+      }
+
+      for (const validator of column.validate ?? []) {
+        const result = validator(value, row);
+        if (result) {
+          issues.push(result);
+        }
+      }
+
+      return issues;
+    },
   }));
 }
 
@@ -73,9 +112,12 @@ export function buildRectangularPastePlan<Row extends RowRecord>(input: {
   rowOrder: readonly string[];
   anchor?: GridActiveCell;
   allowAppendRows?: boolean;
+  rowsByKey?: ReadonlyMap<string, Row>;
+  createAppendedRow?: (absoluteRowIndex: number) => Row;
 }): RectangularPastePlan<Row> {
   const matrix = parseTsv(input.text);
   const skippedCells: ClipboardSkippedCell[] = [];
+  const validationErrors: ClipboardValidationError[] = [];
   const patchMap = new Map<string, Partial<Row>>();
   const appendedRowMap = new Map<number, Partial<Row>>();
 
@@ -87,6 +129,7 @@ export function buildRectangularPastePlan<Row extends RowRecord>(input: {
       appendedRows: [],
       appliedCellCount: 0,
       skippedCells: [{ rowOffset: 0, columnOffset: 0, reason: "emptyMatrix" }],
+      validationErrors,
     };
   }
 
@@ -99,6 +142,7 @@ export function buildRectangularPastePlan<Row extends RowRecord>(input: {
       skippedCells: [
         { rowOffset: 0, columnOffset: 0, reason: "missingAnchorColumn" },
       ],
+      validationErrors,
     };
   }
 
@@ -119,6 +163,7 @@ export function buildRectangularPastePlan<Row extends RowRecord>(input: {
       skippedCells: [
         { rowOffset: 0, columnOffset: 0, reason: "missingAnchorColumn" },
       ],
+      validationErrors,
     };
   }
 
@@ -130,6 +175,7 @@ export function buildRectangularPastePlan<Row extends RowRecord>(input: {
       appendedRows: [],
       appliedCellCount: 0,
       skippedCells: [{ rowOffset: 0, columnOffset: 0, reason: "missingAnchorRow" }],
+      validationErrors,
     };
   }
 
@@ -167,15 +213,66 @@ export function buildRectangularPastePlan<Row extends RowRecord>(input: {
       }
 
       const targetRowIndex = anchorRowIndex + rowOffset;
-      const nextValue = column.parse
-        ? column.parse(value)
-        : (value as Row[Extract<keyof Row, string>]);
+      const rowKey =
+        targetRowIndex < input.rowOrder.length
+          ? input.rowOrder[targetRowIndex]
+          : undefined;
+
+      let nextValue: Row[Extract<keyof Row, string>];
+
+      try {
+        nextValue = column.parse
+          ? column.parse(value)
+          : (value as Row[Extract<keyof Row, string>]);
+      } catch (error) {
+        skippedCells.push({
+          rowOffset,
+          columnOffset,
+          reason: "validation",
+        });
+        validationErrors.push({
+          rowOffset,
+          columnOffset,
+          rowKey,
+          columnKey: column.key,
+          input: value,
+          messages: [
+            error instanceof Error ? error.message : "Failed to parse clipboard value.",
+          ],
+        });
+        return;
+      }
 
       if (targetRowIndex < input.rowOrder.length) {
-        const rowKey = input.rowOrder[targetRowIndex];
-        const patch: Partial<Row> = patchMap.get(rowKey) ?? {};
+        const existingRowKey = input.rowOrder[targetRowIndex];
+        const patch: Partial<Row> = patchMap.get(existingRowKey) ?? {};
+        const baseRow = input.rowsByKey?.get(existingRowKey) ?? ({} as Row);
+        const candidateRow = {
+          ...baseRow,
+          ...patch,
+          [column.key]: nextValue,
+        } as Row;
+        const issues = column.validate?.(nextValue, candidateRow) ?? [];
+
+        if (issues.length > 0) {
+          skippedCells.push({
+            rowOffset,
+            columnOffset,
+            reason: "validation",
+          });
+          validationErrors.push({
+            rowOffset,
+            columnOffset,
+            rowKey: existingRowKey,
+            columnKey: column.key,
+            input: value,
+            messages: issues,
+          });
+          return;
+        }
+
         patch[column.key] = nextValue;
-        patchMap.set(rowKey, patch);
+        patchMap.set(existingRowKey, patch);
         appliedCellCount += 1;
         return;
       }
@@ -191,6 +288,32 @@ export function buildRectangularPastePlan<Row extends RowRecord>(input: {
 
       const appendedIndex = targetRowIndex - input.rowOrder.length;
       const patch: Partial<Row> = appendedRowMap.get(appendedIndex) ?? {};
+      const baseRow = input.createAppendedRow
+        ? input.createAppendedRow(targetRowIndex)
+        : ({} as Row);
+      const candidateRow = {
+        ...baseRow,
+        ...patch,
+        [column.key]: nextValue,
+      } as Row;
+      const issues = column.validate?.(nextValue, candidateRow) ?? [];
+
+      if (issues.length > 0) {
+        skippedCells.push({
+          rowOffset,
+          columnOffset,
+          reason: "validation",
+        });
+        validationErrors.push({
+          rowOffset,
+          columnOffset,
+          columnKey: column.key,
+          input: value,
+          messages: issues,
+        });
+        return;
+      }
+
       patch[column.key] = nextValue;
       appendedRowMap.set(appendedIndex, patch);
       appliedCellCount += 1;
@@ -209,5 +332,6 @@ export function buildRectangularPastePlan<Row extends RowRecord>(input: {
       .map(([, patch]) => patch),
     appliedCellCount,
     skippedCells,
+    validationErrors,
   };
 }

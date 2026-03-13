@@ -20,23 +20,36 @@
   - range-aware copy interception scaffold
 - Updated Grid Lab paste behavior to use selection-aware anchors instead of only `activeCell`.
 - Updated paste column mapping to follow current visible column order and visibility state.
+- Added keyboard range extension helpers:
+  - `moveActiveCellByArrow`
+  - `extendRangeByArrow`
+- Added Grid Lab range summary surface.
+- Added paste summary surface with:
+  - applied cell count
+  - appended row count
+  - skipped-cell counts
+  - validation error summary
+- Added clipboard validation-aware planning so invalid cells are skipped and reported.
+- Added Playwright browser coverage for:
+  - `Shift + Arrow` range selection
+  - invalid paste summary reporting
 
 ## Validation
 
 - `npm run lint`
 - `npm run build`
-- `npm run test:e2e`
+- `CI=1 npm run test:e2e`
 
 ## Notes
 
-- Slice 8 foundation is in place.
-- Range contracts and range-aware paste anchor logic are implemented.
-- Drag and shift-based range interaction still need a focused polish pass in a real browser loop before we promote them as stable UX.
-- For now, CI remains green by keeping regression coverage on the already-stable Grid Lab and Compatibility flows.
+- Slice 8 is no longer foundation-only.
+- Keyboard-based range selection, range-aware paste anchors, and invalid paste summaries are implemented and regression-tested.
+- Drag range selection still needs one more focused browser polish pass before it should be treated as stable product UX.
+- The official CI regression path for Slice 8 is currently keyboard range selection plus invalid paste validation.
 
 ## Next Candidates
 
-1. stabilize real browser range interaction in `VibeGrid`
-2. surface visible range summary in Grid Lab
-3. add range-copy verification and paste validation summary
-4. continue into Slice 9 header menu and filter row
+1. stabilize real browser drag-range interaction in `VibeGrid`
+2. add automated range-copy verification
+3. decide whether drag becomes a required CI path or remains manual-browser verification
+4. continue performance verification under combined pinning + range states

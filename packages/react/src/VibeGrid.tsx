@@ -14,8 +14,10 @@ import {
 } from "@tanstack/react-table";
 import {
   createSelectionState,
+  extendRangeByArrow,
   getNormalizedCellRange,
   hasRangeSelection,
+  moveActiveCellByArrow,
   sanitizeGridColumnState,
   type GridColumnState,
   type GridEditSession,
@@ -306,6 +308,12 @@ export function VibeGrid<Row extends RowRecord>({
     rowOrder,
     visibleBusinessColumnKeys,
   );
+  const rangeRowCount = normalizedRange
+    ? normalizedRange.endRowIndex - normalizedRange.startRowIndex + 1
+    : 0;
+  const rangeColumnCount = normalizedRange
+    ? normalizedRange.endColumnIndex - normalizedRange.startColumnIndex + 1
+    : 0;
 
   useEffect(() => {
     const handleMouseUp = () => {
@@ -370,7 +378,46 @@ export function VibeGrid<Row extends RowRecord>({
       data-testid="vibe-grid"
       data-selection-mode={resolvedSelectionState.mode ?? "row"}
       data-range-anchor={resolvedSelectionState.range?.anchor.columnKey}
+      data-range-rows={rangeRowCount}
+      data-range-columns={rangeColumnCount}
       onKeyDown={(event) => {
+        if (event.key === "Escape" && hasRangeSelection(resolvedSelectionState)) {
+          event.preventDefault();
+          onSelectionStateChange?.({
+            ...resolvedSelectionState,
+            range: undefined,
+            mode: "row",
+          });
+          return;
+        }
+
+        if (
+          event.key === "ArrowUp" ||
+          event.key === "ArrowDown" ||
+          event.key === "ArrowLeft" ||
+          event.key === "ArrowRight"
+        ) {
+          const nextState = event.shiftKey
+            ? extendRangeByArrow(
+                resolvedSelectionState,
+                event.key,
+                rowOrder,
+                visibleBusinessColumnKeys,
+              )
+            : moveActiveCellByArrow(
+                resolvedSelectionState,
+                event.key,
+                rowOrder,
+                visibleBusinessColumnKeys,
+              );
+
+          if (nextState) {
+            event.preventDefault();
+            onSelectionStateChange?.(nextState);
+          }
+          return;
+        }
+
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
           if (hasRangeSelection(resolvedSelectionState)) {
             event.preventDefault();

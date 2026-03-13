@@ -56,4 +56,31 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("query-preview")).toContainText('"field": "useYn"');
     await expect(page.getByTestId("query-preview")).toContainText('"value": "N"');
   });
+
+  test("reports keyboard range selection and invalid paste summary", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-001-sampleCode").click();
+    await page.keyboard.down("Shift");
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.up("Shift");
+
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute("data-range-rows", "2");
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute(
+      "data-range-columns",
+      "2",
+    );
+    await expect(page.getByTestId("range-summary")).toContainText("2 x 2");
+
+    await page.getByTestId("grid-cell-HR-001-sortOrder").click();
+    await page.getByTestId("paste-textarea").fill("abc");
+    await page.getByTestId("paste-apply").click();
+
+    await expect(page.getByTestId("paste-summary")).toContainText("validation errors: 1");
+    await expect(page.getByTestId("paste-summary")).toContainText("sortOrder");
+    await expect(page.getByTestId("grid-cell-HR-001-sortOrder")).toHaveText("1");
+  });
 });

@@ -13,6 +13,57 @@ type GridNormalizedRange = {
   endColumnIndex: number;
 };
 
+type GridArrowDirection =
+  | "ArrowUp"
+  | "ArrowDown"
+  | "ArrowLeft"
+  | "ArrowRight";
+
+function clampIndex(value: number, maxIndex: number) {
+  return Math.min(Math.max(value, 0), maxIndex);
+}
+
+function getOffsetByDirection(direction: GridArrowDirection) {
+  switch (direction) {
+    case "ArrowUp":
+      return { rowDelta: -1, columnDelta: 0 };
+    case "ArrowDown":
+      return { rowDelta: 1, columnDelta: 0 };
+    case "ArrowLeft":
+      return { rowDelta: 0, columnDelta: -1 };
+    case "ArrowRight":
+      return { rowDelta: 0, columnDelta: 1 };
+    default:
+      return { rowDelta: 0, columnDelta: 0 };
+  }
+}
+
+function moveCellByDirection(
+  cell: GridActiveCell,
+  direction: GridArrowDirection,
+  rowOrder: readonly string[],
+  columnOrder: readonly string[],
+) {
+  const rowIndex = rowOrder.indexOf(cell.rowKey);
+  const columnIndex = columnOrder.indexOf(cell.columnKey);
+
+  if (rowIndex === -1 || columnIndex === -1) {
+    return undefined;
+  }
+
+  const { rowDelta, columnDelta } = getOffsetByDirection(direction);
+  const nextRowIndex = clampIndex(rowIndex + rowDelta, rowOrder.length - 1);
+  const nextColumnIndex = clampIndex(
+    columnIndex + columnDelta,
+    columnOrder.length - 1,
+  );
+
+  return {
+    rowKey: rowOrder[nextRowIndex],
+    columnKey: columnOrder[nextColumnIndex],
+  } satisfies GridActiveCell;
+}
+
 export function createSelectionState(input?: {
   activeRowId?: string;
   selectedRowIds?: Iterable<string>;
@@ -275,4 +326,60 @@ export function pruneSelectionState(
 
 export function getPrimarySelectedRowId(selection: GridSelectionState) {
   return selection.activeRowId ?? [...selection.selectedRowIds][0];
+}
+
+export function moveActiveCellByArrow(
+  selection: GridSelectionState,
+  direction: GridArrowDirection,
+  rowOrder: readonly string[],
+  columnOrder: readonly string[],
+): GridSelectionState | undefined {
+  if (!selection.activeCell || rowOrder.length === 0 || columnOrder.length === 0) {
+    return undefined;
+  }
+
+  const nextCell = moveCellByDirection(
+    selection.activeCell,
+    direction,
+    rowOrder,
+    columnOrder,
+  );
+
+  if (!nextCell) {
+    return undefined;
+  }
+
+  return setActiveCell(clearRangeSelection(selection), nextCell);
+}
+
+export function extendRangeByArrow(
+  selection: GridSelectionState,
+  direction: GridArrowDirection,
+  rowOrder: readonly string[],
+  columnOrder: readonly string[],
+): GridSelectionState | undefined {
+  const originCell = selection.range?.focus ?? selection.activeCell;
+
+  if (!originCell || rowOrder.length === 0 || columnOrder.length === 0) {
+    return undefined;
+  }
+
+  const nextFocus = moveCellByDirection(originCell, direction, rowOrder, columnOrder);
+
+  if (!nextFocus) {
+    return undefined;
+  }
+
+  const anchor = selection.range?.anchor ?? selection.activeCell ?? nextFocus;
+
+  return updateRangeSelection(
+    beginRangeSelection(
+      createSelectionState({
+        activeRowId: anchor.rowKey,
+        activeCell: anchor,
+      }),
+      anchor,
+    ),
+    nextFocus,
+  );
 }

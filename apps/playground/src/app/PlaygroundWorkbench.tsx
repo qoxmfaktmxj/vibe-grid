@@ -24,6 +24,7 @@ import {
   createInsertedRow,
   createLoadedRow,
   createSelectionState,
+  getNormalizedCellRange,
   getSelectionAnchorCell,
   getPrimarySelectedRowId,
   getRowStateCounts,
@@ -47,6 +48,10 @@ import {
   type ManagedGridRow,
   type SaveBundle,
 } from "@vibe-grid/core";
+import type {
+  ClipboardSkipReason,
+  ClipboardValidationError,
+} from "@vibe-grid/clipboard";
 import { VibeGrid } from "@vibe-grid/react";
 import {
   buildGridLabServerResult,
@@ -73,6 +78,14 @@ const clipboardSchema = createClipboardSchema(playgroundColumns, {
 type FilterDraft = {
   keyword: string;
   useYn: "" | "Y" | "N";
+};
+
+type PasteSummary = {
+  sourceLabel: string;
+  appliedCellCount: number;
+  appendedRowCount: number;
+  skippedCounts: Record<ClipboardSkipReason, number>;
+  validationErrors: ClipboardValidationError[];
 };
 
 const initialServerResult = buildGridLabServerResult(defaultGridQuery);
@@ -161,6 +174,7 @@ export function PlaygroundWorkbench() {
   const [statusMessage, setStatusMessage] = useState(
     "Grid Lab에서 조회, 입력, 저장, 엑셀, 붙여넣기, 컬럼 상태를 함께 검증할 수 있습니다.",
   );
+  const [pasteSummary, setPasteSummary] = useState<PasteSummary | null>(null);
   const [importPreview, setImportPreview] =
     useState<GridExcelImportPreview<PlaygroundRow> | null>(null);
   const [query, setQuery] = useState<GridQuery>(initialServerResult.query);
@@ -199,6 +213,32 @@ export function PlaygroundWorkbench() {
       })),
     [query.filters],
   );
+  const visibleBusinessColumnKeys = useMemo(
+    () =>
+      columnState.order.filter((columnKey) => columnState.visibility[columnKey] !== false),
+    [columnState.order, columnState.visibility],
+  );
+  const normalizedRange = useMemo(
+    () =>
+      getNormalizedCellRange(
+        selectionState,
+        rows.map((row) => row.meta.rowKey),
+        visibleBusinessColumnKeys,
+      ),
+    [rows, selectionState, visibleBusinessColumnKeys],
+  );
+  const rangeSummary = useMemo(() => {
+    if (!normalizedRange) {
+      return null;
+    }
+
+    return {
+      rows: normalizedRange.endRowIndex - normalizedRange.startRowIndex + 1,
+      columns: normalizedRange.endColumnIndex - normalizedRange.startColumnIndex + 1,
+      anchor: normalizedRange.anchor,
+      focus: normalizedRange.focus,
+    };
+  }, [normalizedRange]);
   const visibleClipboardColumns = useMemo(
     () =>
       columnState.order.flatMap((columnKey) => {
@@ -281,6 +321,7 @@ export function PlaygroundWorkbench() {
 
       setEditSession(null);
       setLastSaveBundle(null);
+      setPasteSummary(null);
       setImportPreview(null);
       setQuery(result.query);
       setPageSnapshot({
@@ -305,19 +346,36 @@ export function PlaygroundWorkbench() {
   }
 
   function applyTabularText(text: string, sourceLabel: string) {
+    const rowOrder = rows.map((row) => row.meta.rowKey);
     const plan = buildRectangularPastePlan({
       text,
       columns: visibleClipboardColumns,
-      rowOrder: rows.map((row) => row.meta.rowKey),
+      rowOrder,
       anchor: getSelectionAnchorCell(
         selectionState,
-        rows.map((row) => row.meta.rowKey),
+        rowOrder,
         visibleClipboardColumns.map((column) => column.key),
       ),
       allowAppendRows: true,
+      rowsByKey: new Map(rows.map((row) => [row.meta.rowKey, row.row])),
+      createAppendedRow: (absoluteRowIndex) => createBlankRow(absoluteRowIndex + 1),
     });
 
-    if (plan.appliedCellCount === 0) {
+    setPasteSummary({
+      sourceLabel,
+      appliedCellCount: plan.appliedCellCount,
+      appendedRowCount: plan.appendedRows.length,
+      skippedCounts: plan.skippedCells.reduce(
+        (summary, cell) => ({
+          ...summary,
+          [cell.reason]: (summary[cell.reason] ?? 0) + 1,
+        }),
+        {} as Record<ClipboardSkipReason, number>,
+      ),
+      validationErrors: plan.validationErrors,
+    });
+
+    if (plan.appliedCellCount === 0 && plan.validationErrors.length === 0) {
       const firstReason = plan.skippedCells[0]?.reason;
       setStatusMessage(
         firstReason === "missingAnchorColumn"
@@ -325,6 +383,13 @@ export function PlaygroundWorkbench() {
           : firstReason === "missingAnchorRow"
             ? "선택된 행이 없어 데이터를 적용할 수 없습니다."
             : "적용 가능한 데이터가 없습니다.",
+      );
+      return;
+    }
+
+    if (plan.validationErrors.length > 0 && plan.appliedCellCount === 0) {
+      setStatusMessage(
+        `${sourceLabel}: validation ${plan.validationErrors.length}, skipped ${plan.skippedCells.length}`,
       );
       return;
     }
@@ -1138,6 +1203,77 @@ export function PlaygroundWorkbench() {
                 <div>미리보기 행수: {importPreview.rows.length}</div>
               </div>
             ) : null}
+          </section>
+
+          <section style={cardStyle}>
+            <div style={sectionHeaderStyle}>
+              <h2 style={sectionTitleStyle}>선택 / 붙여넣기 상태</h2>
+              <span style={badgeStyle("#ecfeff", "#0f766e")}>Range + Paste</span>
+            </div>
+
+            <div
+              data-testid="range-summary"
+              style={{
+                borderRadius: 16,
+                border: "1px solid #dbeafe",
+                background: "#f8fbff",
+                padding: 14,
+                color: "#0f172a",
+                lineHeight: 1.7,
+              }}
+            >
+              {rangeSummary ? (
+                <>
+                  <div>
+                    크기: {rangeSummary.rows} x {rangeSummary.columns}
+                  </div>
+                  <div>
+                    anchor: {rangeSummary.anchor.rowKey} / {rangeSummary.anchor.columnKey}
+                  </div>
+                  <div>
+                    focus: {rangeSummary.focus.rowKey} / {rangeSummary.focus.columnKey}
+                  </div>
+                </>
+              ) : (
+                <div>현재 활성 range가 없습니다.</div>
+              )}
+            </div>
+
+            <div
+              data-testid="paste-summary"
+              style={{
+                marginTop: 14,
+                borderRadius: 16,
+                border: "1px solid #e2e8f0",
+                background: "#fff",
+                padding: 14,
+                color: "#334155",
+                lineHeight: 1.7,
+              }}
+            >
+              {pasteSummary ? (
+                <>
+                  <div>source: {pasteSummary.sourceLabel}</div>
+                  <div>applied: {pasteSummary.appliedCellCount}</div>
+                  <div>appended rows: {pasteSummary.appendedRowCount}</div>
+                  <div>validation errors: {pasteSummary.validationErrors.length}</div>
+                  <div>
+                    skipped:{" "}
+                    {Object.entries(pasteSummary.skippedCounts)
+                      .map(([reason, count]) => `${reason} ${count}`)
+                      .join(", ") || "none"}
+                  </div>
+                  {pasteSummary.validationErrors.length > 0 ? (
+                    <div style={{ marginTop: 8 }}>
+                      first error: {pasteSummary.validationErrors[0].columnKey} /{" "}
+                      {pasteSummary.validationErrors[0].messages.join("; ")}
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <div>아직 paste 결과가 없습니다.</div>
+              )}
+            </div>
           </section>
 
           <section style={cardStyle}>
