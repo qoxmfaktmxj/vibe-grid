@@ -174,6 +174,20 @@ export function VibeGridTableHeader<Row extends RowRecord>({
 
               closeMenu(true);
             };
+            const headerLabel = (
+              <span
+                style={{
+                  display: "inline-block",
+                  flex: "1 1 auto",
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {flexRender(header.column.columnDef.header, header.getContext())}
+              </span>
+            );
 
             return (
               <th
@@ -192,6 +206,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                   fontWeight: 800,
                   padding: "0 16px",
                   textAlign: "left",
+                  whiteSpace: "nowrap",
                   width: header.getSize(),
                   minWidth: header.getSize(),
                 }}
@@ -214,6 +229,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 6,
+                        minWidth: 0,
                         border: "none",
                         background: "transparent",
                         padding: 0,
@@ -223,10 +239,10 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         cursor: "pointer",
                       }}
                     >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {headerLabel}
                     </button>
                   ) : (
-                    flexRender(header.column.columnDef.header, header.getContext())
+                    headerLabel
                   )}
 
                   <div

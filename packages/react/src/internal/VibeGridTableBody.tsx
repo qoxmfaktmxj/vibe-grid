@@ -28,6 +28,8 @@ import {
 
 type VibeGridTableBodyProps<Row extends RowRecord> = {
   table: Table<Row>;
+  rows: ReturnType<Table<Row>["getRowModel"]>["rows"];
+  totalRowCount: number;
   rowMetaByKey: ReadonlyMap<string, { state: string }>;
   selectionState: GridSelectionState;
   editSession?: GridEditSession | null;
@@ -50,6 +52,9 @@ type VibeGridTableBodyProps<Row extends RowRecord> = {
     lastFocus?: GridActiveCellLike;
   } | null>;
   suppressClickRef: MutableRefObject<boolean>;
+  topSpacerHeight?: number;
+  bottomSpacerHeight?: number;
+  rowHeight?: number;
 };
 
 function buildShiftRangeState(
@@ -74,6 +79,8 @@ function buildShiftRangeState(
 
 export function VibeGridTableBody<Row extends RowRecord>({
   table,
+  rows,
+  totalRowCount,
   rowMetaByKey,
   selectionState,
   editSession,
@@ -88,8 +95,11 @@ export function VibeGridTableBody<Row extends RowRecord>({
   focusGridSurface,
   dragRangeRef,
   suppressClickRef,
+  topSpacerHeight = 0,
+  bottomSpacerHeight = 0,
+  rowHeight,
 }: VibeGridTableBodyProps<Row>) {
-  if (table.getRowModel().rows.length === 0) {
+  if (totalRowCount === 0) {
     return (
       <tbody>
         <tr>
@@ -111,7 +121,20 @@ export function VibeGridTableBody<Row extends RowRecord>({
 
   return (
     <tbody>
-      {table.getRowModel().rows.map((row) => {
+      {topSpacerHeight > 0 ? (
+        <tr aria-hidden="true">
+          <td
+            colSpan={table.getVisibleLeafColumns().length}
+            style={{
+              height: topSpacerHeight,
+              padding: 0,
+              border: "none",
+              background: "#fff",
+            }}
+          />
+        </tr>
+      ) : null}
+      {rows.map((row) => {
         const isActive = row.id === selectionState.activeRowId;
         const isSelected = selectionState.selectedRowIds.has(row.id);
         const meta = rowMetaByKey.get(row.id);
@@ -122,7 +145,14 @@ export function VibeGridTableBody<Row extends RowRecord>({
             : "#fff";
 
         return (
-          <tr key={row.id} style={{ background: rowBackground, cursor: "default" }}>
+          <tr
+            key={row.id}
+            style={{
+              background: rowBackground,
+              cursor: "default",
+              height: rowHeight,
+            }}
+          >
             {row.getVisibleCells().map((cell) => {
               const columnMeta = cell.column.columnDef.meta as
                 | InternalColumnMeta<Row>
@@ -300,6 +330,19 @@ export function VibeGridTableBody<Row extends RowRecord>({
           </tr>
         );
       })}
+      {bottomSpacerHeight > 0 ? (
+        <tr aria-hidden="true">
+          <td
+            colSpan={table.getVisibleLeafColumns().length}
+            style={{
+              height: bottomSpacerHeight,
+              padding: 0,
+              border: "none",
+              background: "#fff",
+            }}
+          />
+        </tr>
+      ) : null}
     </tbody>
   );
 }

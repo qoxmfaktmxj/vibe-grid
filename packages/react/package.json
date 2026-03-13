@@ -10,6 +10,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@vibe-grid/core": "0.0.1",
     "@vibe-grid/tanstack-adapter": "0.0.1",
+    "@vibe-grid/virtualization": "0.0.1",
     "react": "^19.2.0"
   }
 }

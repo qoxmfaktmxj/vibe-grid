@@ -12,6 +12,7 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
+import { useVirtualRows } from "@vibe-grid/virtualization";
 import {
   beginRangeSelection,
   createSelectionState,
@@ -85,13 +86,18 @@ export type VibeGridProps<Row extends RowRecord> = {
   enableFilterRow?: boolean;
   emptyMessage?: string;
   height?: number;
+  virtualization?: {
+    enabled?: boolean;
+    rowHeight?: number;
+    overscan?: number;
+  };
 };
 
 const rowStateLabel: Record<RowState, string> = {
-  N: "?뺤긽",
-  I: "?낅젰",
-  U: "?섏젙",
-  D: "??젣",
+  N: "정상",
+  I: "입력",
+  U: "수정",
+  D: "삭제",
 };
 
 const rowStateColor: Record<RowState, { background: string; color: string }> = {
@@ -117,11 +123,13 @@ export function VibeGrid<Row extends RowRecord>({
   filters,
   onFiltersChange,
   enableFilterRow = false,
-  emptyMessage = "議고쉶???곗씠?곌? ?놁뒿?덈떎.",
+  emptyMessage = "조회된 데이터가 없습니다.",
   height = 420,
+  virtualization,
 }: VibeGridProps<Row>) {
   const inputId = useId();
   const gridRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const dragRangeRef = useRef<{
     anchor: GridActiveCellLike;
     moved: boolean;
@@ -158,7 +166,7 @@ export function VibeGrid<Row extends RowRecord>({
       },
       {
         id: "__rowState",
-        header: "?곹깭",
+        header: "상태",
         cell: ({ row }) => {
           const state = rowMetaByKey.get(row.id)?.state ?? "N";
           const palette = rowStateColor[state];
@@ -315,6 +323,32 @@ export function VibeGrid<Row extends RowRecord>({
       onSortingChange(nextSorting.map((item) => ({ id: item.id, desc: item.desc })));
     },
   });
+  const tableRows = table.getRowModel().rows;
+  const virtualizationEnabled = virtualization?.enabled === true && tableRows.length > 0;
+  const virtualizer = useVirtualRows({
+    count: virtualizationEnabled ? tableRows.length : 0,
+    getScrollElement: () => scrollRef.current,
+    rowHeight: virtualization?.rowHeight ?? 56,
+    overscan: virtualization?.overscan ?? 10,
+  });
+  const virtualItems = virtualizationEnabled ? virtualizer.getVirtualItems() : [];
+  const renderedRows = virtualizationEnabled
+    ? virtualItems.flatMap((item) => {
+        const row = tableRows[item.index];
+        return row ? [row] : [];
+      })
+    : tableRows;
+  const topSpacerHeight =
+    virtualizationEnabled && virtualItems.length > 0
+      ? virtualItems[0]?.start ?? 0
+      : 0;
+  const bottomSpacerHeight =
+    virtualizationEnabled && virtualItems.length > 0
+      ? Math.max(
+          0,
+          virtualizer.getTotalSize() - (virtualItems[virtualItems.length - 1]?.end ?? 0),
+        )
+      : 0;
 
   const rowOrder = useMemo(() => rows.map((row) => row.meta.rowKey), [rows]);
   const visibleBusinessColumnKeys = table.getVisibleLeafColumns().flatMap((column) => {
@@ -458,6 +492,9 @@ export function VibeGrid<Row extends RowRecord>({
       data-range-anchor={resolvedSelectionState.range?.anchor.columnKey}
       data-range-rows={rangeRowCount}
       data-range-columns={rangeColumnCount}
+      data-virtualized={virtualizationEnabled ? "true" : "false"}
+      data-total-row-count={tableRows.length}
+      data-rendered-row-count={renderedRows.length}
       onKeyDown={(event) => {
         if (event.key === "Escape" && hasRangeSelection(resolvedSelectionState)) {
           event.preventDefault();
@@ -511,7 +548,10 @@ export function VibeGrid<Row extends RowRecord>({
         boxShadow: "0 16px 50px rgba(15, 23, 42, 0.08)",
       }}
     >
-      <div style={{ overflow: "auto", maxHeight: height }}>
+      <div
+        ref={scrollRef}
+        style={{ overflow: "auto", maxHeight: height, position: "relative" }}
+      >
         <table
           style={{
             width: Math.max(table.getTotalSize(), 980),
@@ -529,6 +569,8 @@ export function VibeGrid<Row extends RowRecord>({
           />
           <VibeGridTableBody
             table={table}
+            rows={renderedRows}
+            totalRowCount={tableRows.length}
             rowMetaByKey={rowMetaByKey}
             selectionState={resolvedSelectionState}
             editSession={editSession}
@@ -543,6 +585,9 @@ export function VibeGrid<Row extends RowRecord>({
             focusGridSurface={focusGridSurface}
             dragRangeRef={dragRangeRef}
             suppressClickRef={suppressClickRef}
+            topSpacerHeight={topSpacerHeight}
+            bottomSpacerHeight={bottomSpacerHeight}
+            rowHeight={virtualizationEnabled ? virtualization?.rowHeight ?? 56 : undefined}
           />
         </table>
       </div>

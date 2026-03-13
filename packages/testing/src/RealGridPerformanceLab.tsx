@@ -23,7 +23,7 @@ import {
 } from "@vibe-grid/core";
 import { VibeGrid } from "@vibe-grid/react";
 
-const REAL_GRID_SCENARIOS = [1_000, 2_500, 5_000] as const;
+const REAL_GRID_SCENARIOS = [10_000, 50_000, 100_000] as const;
 const REAL_GRID_DEFAULT_COLUMN = "employeeNo";
 
 const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
@@ -242,7 +242,7 @@ function describeSelection(selection: GridSelectionState) {
 }
 
 export function RealGridPerformanceLab() {
-  const [rowCount, setRowCount] = useState<number>(2_500);
+  const [rowCount, setRowCount] = useState<number>(10_000);
   const [selectionState, setSelectionState] = useState<GridSelectionState>(
     createSelectionState(),
   );
@@ -301,16 +301,14 @@ export function RealGridPerformanceLab() {
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           <span className="hero-tag hero-tag--light">P5 baseline</span>
           <span className="hero-tag hero-tag--light">Actual VibeGrid path</span>
-          <span className="hero-tag hero-tag--light">
-            capped until row virtualization lands
-          </span>
+          <span className="hero-tag hero-tag--light">Row virtualization active</span>
         </div>
         <div>
-          <h2 className="section-panel__title">Real-grid performance lab</h2>
+          <h2 className="section-panel__title">실제 VibeGrid 성능 랩</h2>
           <p className="section-panel__copy">
-            This lab renders the actual <code>VibeGrid</code> component, not the raw
-            virtualized benchmark list. It is the baseline for pinning, sticky header,
-            filter row, and range interaction on the current product path.
+            이 랩은 raw virtualization 목록이 아니라 실제 <code>VibeGrid</code> 렌더
+            경로를 확인합니다. pinning, sticky header, filter row, range interaction이
+            같이 붙은 상태에서 성능 기준선을 보는 용도입니다.
           </p>
         </div>
       </div>
@@ -332,7 +330,7 @@ export function RealGridPerformanceLab() {
                 : "segmented-button"
             }
           >
-            {scenario.toLocaleString("en-US")} rows
+            {scenario.toLocaleString("ko-KR")} rows
           </button>
         ))}
       </div>
@@ -340,27 +338,27 @@ export function RealGridPerformanceLab() {
       <div className="stat-grid" style={{ marginTop: 18 }}>
         <StatCard
           dataTestId="real-grid-visible-rows"
-          label="Visible rows"
-          value={shaped.rows.length.toLocaleString("en-US")}
+          label="현재 표시 행"
+          value={shaped.rows.length.toLocaleString("ko-KR")}
         />
         <StatCard
           dataTestId="real-grid-materialize-ms"
-          label="Materialize"
+          label="데이터 생성"
           value={`${materialized.durationMs.toFixed(1)} ms`}
         />
         <StatCard
           dataTestId="real-grid-shape-ms"
-          label="Filter + sort"
+          label="필터 + 정렬"
           value={`${shaped.durationMs.toFixed(1)} ms`}
         />
         <StatCard
           dataTestId="real-grid-estimated-cells"
-          label="Estimated cells"
-          value={estimatedCellCount.toLocaleString("en-US")}
+          label="추정 셀 수"
+          value={estimatedCellCount.toLocaleString("ko-KR")}
         />
         <StatCard
           dataTestId="real-grid-selection-mode"
-          label="Selection"
+          label="선택 상태"
           value={describeSelection(resolvedSelectionState)}
         />
       </div>
@@ -380,7 +378,12 @@ export function RealGridPerformanceLab() {
           onColumnStateChange={setColumnState}
           enableFilterRow
           height={520}
-          emptyMessage="No rows match the current benchmark filter."
+          emptyMessage="현재 벤치 필터에 맞는 행이 없습니다."
+          virtualization={{
+            enabled: true,
+            rowHeight: 56,
+            overscan: 12,
+          }}
         />
       </div>
 
@@ -395,10 +398,10 @@ export function RealGridPerformanceLab() {
           lineHeight: 1.8,
         }}
       >
-        <div>Check header menu, filter row, sticky columns, and `Shift + Arrow` range here.</div>
         <div>
-          This is intentionally capped at 5,000 visible rows until row virtualization is
-          wired into the actual `VibeGrid` rendering path.
+          이제 실제 <code>VibeGrid</code> 경로에 row virtualization이 연결되어
+          10k / 50k / 100k 기준으로 header menu, filter row, sticky column,
+          <code>Shift + Arrow</code> range 동작을 함께 확인할 수 있습니다.
         </div>
       </div>
     </section>

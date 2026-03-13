@@ -24,7 +24,7 @@ It is based on:
 
 - `Slice 8` now has drag range, keyboard range, range copy, and invalid paste summary regression coverage.
 - Range overflow / append policy still needs a final product decision.
-- `P5` now has a real `VibeGrid` performance baseline lab, but it is still capped below the raw virtualization bench limits.
+- `P5` now has a real `VibeGrid` performance lab with row virtualization wired into the actual render path.
 
 ### Not Product-Complete Yet
 
@@ -240,8 +240,8 @@ Validation:
 Status:
 
 - in progress on `2026-03-13`
-- `Bench` now includes a real `VibeGrid` performance lab with column pinning, filter row, and range interaction
-- current baseline is capped at `1,000 / 2,500 / 5,000` visible rows until row virtualization lands in the actual grid path
+- `Bench` now includes a real `VibeGrid` performance lab with column pinning, filter row, range interaction, and row virtualization on the actual render path
+- the current actual-path benchmark now runs at `10,000 / 50,000 / 100,000` rows
 
 Why separate from Bench:
 
@@ -250,13 +250,14 @@ Why separate from Bench:
 
 Tasks:
 
-- add a real-grid performance scenario in `apps/playground`
-- test 10k / 50k / 100k rows with:
+- keep the real-grid performance scenario in `apps/playground`
+- verify 10k / 50k / 100k rows with:
   - pinning
   - sticky header
   - current header states
   - range interaction enabled
 - measure paste and selection latency under realistic render load
+- confirm sticky header and pinned boundary behavior remain stable under virtualization
 
 Acceptance:
 
@@ -322,7 +323,7 @@ Do not prioritize these until the earlier items move:
 If work continues immediately, execute in this order:
 
 1. `P4` drag-range stabilization in a real browser loop
-2. `P5` raise the actual-grid benchmark ceiling or wire row virtualization into `VibeGrid`
+2. `P5` combined-feature performance validation and policy cleanup
 3. `P6` product infrastructure
 
 That order keeps the next work focused on business-facing UX now that the runtime split is in place.
