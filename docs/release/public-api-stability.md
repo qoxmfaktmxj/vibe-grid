@@ -32,6 +32,7 @@ These areas are expected to remain compatible unless a roadmap document explicit
 - range selection, range copy, and paste overflow policy behavior
 - row virtualization toggle through the published prop
 - cell-level editable versus readonly rendering behavior driven by the shared contract
+- dedicated delete-check control column behavior driven through the shared React surface
 
 ### Product Validation Rules
 

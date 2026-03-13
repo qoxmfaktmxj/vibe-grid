@@ -78,6 +78,7 @@ export type VibeGridProps<Row extends RowRecord> = {
     columnKey: string;
     draftValue: string;
   }) => void;
+  onDeleteCheckToggle?: (rowKey: string) => void;
   columnState?: GridColumnState;
   onColumnStateChange?: (state: GridColumnState) => void;
   sorting?: GridSortRule[];
@@ -117,6 +118,7 @@ export function VibeGrid<Row extends RowRecord>({
   editSession,
   onEditSessionChange,
   onCellEditCommit,
+  onDeleteCheckToggle,
   columnState,
   onColumnStateChange,
   sorting,
@@ -163,6 +165,52 @@ export function VibeGrid<Row extends RowRecord>({
         meta: {
           columnKey: "__rowNumber",
           internal: true,
+          internalControl: "rowNumber",
+        } satisfies InternalColumnMeta<Row>,
+      },
+      {
+        id: "__deleteCheck",
+        header: "삭제",
+        cell: ({ row }) => {
+          const isChecked = rowMetaByKey.get(row.id)?.state === "D";
+
+          return (
+            <span
+              style={{
+                display: "inline-flex",
+                justifyContent: "center",
+                width: "100%",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={isChecked}
+                data-testid={`delete-check-${row.id}`}
+                aria-label={`${row.id} 삭제 체크`}
+                onChange={() => {
+                  onDeleteCheckToggle?.(row.id);
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                }}
+                style={{
+                  width: 16,
+                  height: 16,
+                  cursor: onDeleteCheckToggle ? "pointer" : "default",
+                }}
+              />
+            </span>
+          );
+        },
+        size: 88,
+        minSize: 88,
+        maxSize: 88,
+        enableSorting: false,
+        enableResizing: false,
+        meta: {
+          columnKey: "__deleteCheck",
+          internal: true,
+          internalControl: "deleteCheck",
         } satisfies InternalColumnMeta<Row>,
       },
       {
@@ -198,11 +246,12 @@ export function VibeGrid<Row extends RowRecord>({
         meta: {
           columnKey: "__rowState",
           internal: true,
+          internalControl: "rowState",
         } satisfies InternalColumnMeta<Row>,
       },
       ...createTanStackColumns(columns),
     ];
-  }, [columns, rowMetaByKey]);
+  }, [columns, onDeleteCheckToggle, rowMetaByKey]);
 
   const visibilityState = useMemo<VisibilityState>(() => {
     const visibility: VisibilityState = {};
@@ -215,13 +264,13 @@ export function VibeGrid<Row extends RowRecord>({
   }, [columns, resolvedColumnState.visibility]);
 
   const columnOrderState = useMemo<ColumnOrderState>(
-    () => ["__rowNumber", "__rowState", ...resolvedColumnState.order],
+    () => ["__rowNumber", "__deleteCheck", "__rowState", ...resolvedColumnState.order],
     [resolvedColumnState.order],
   );
 
   const columnPinningState = useMemo<ColumnPinningState>(
     () => ({
-      left: ["__rowNumber", "__rowState", ...resolvedColumnState.pinning.left],
+      left: ["__rowNumber", "__deleteCheck", "__rowState", ...resolvedColumnState.pinning.left],
       right: [...resolvedColumnState.pinning.right],
     }),
     [resolvedColumnState.pinning.left, resolvedColumnState.pinning.right],

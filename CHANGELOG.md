@@ -11,6 +11,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Hub smoke regression coverage.
 - Scoped persistence adapter and initial product infrastructure.
 - Row-aware cell editability as a shared grid contract.
+- Dedicated delete-check control column with shared browser-tested delete-toggle behavior.
 
 ### Changed
 

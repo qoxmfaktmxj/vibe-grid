@@ -575,6 +575,25 @@ export function PlaygroundWorkbench() {
     );
   }
 
+  function handleDeleteCheckToggle(rowKey: string) {
+    const nextRows = rows.flatMap((row) => {
+      if (row.meta.rowKey !== rowKey) {
+        return row;
+      }
+
+      const toggledRow = toggleRowDeleted(row);
+      return toggledRow ? [toggledRow] : [];
+    });
+
+    setEditSession(null);
+    commitRows(nextRows);
+    setStatusMessage(
+      getStatusMessage("statusToggleDeleteSuccess", {
+        rowCount: 1,
+      }),
+    );
+  }
+
   function handleSave() {
     if (hasValidationIssues(rows)) {
       setStatusMessage(getStatusMessage("statusSaveBlockedValidation"));
@@ -892,6 +911,7 @@ export function PlaygroundWorkbench() {
             editSession={editSession}
             onEditSessionChange={setEditSession}
             onCellEditCommit={handleCellEditCommit}
+            onDeleteCheckToggle={handleDeleteCheckToggle}
             columnState={columnState}
             onColumnStateChange={setColumnState}
             sorting={query.sorting}

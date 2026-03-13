@@ -142,6 +142,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
             const pinIndicator = getPinIndicator(pinned);
             const filterCount = getColumnFilterCount(columnKey, filters);
             const isFiltered = filterCount > 0;
+            const showIndicators = !headerMeta?.internal;
             const background = isMenuOpen
               ? vibeGridThemeTokens.header.menuOpenBackground
               : pinned
@@ -329,9 +330,10 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         color: sorted
                           ? vibeGridThemeTokens.indicator.sortedText
                           : vibeGridThemeTokens.indicator.idleText,
+                        visibility: showIndicators ? "visible" : "hidden",
                       }}
                     >
-                      {getSortIndicator(sorted)}
+                      {showIndicators ? getSortIndicator(sorted) : " "}
                     </span>
                     <span
                       aria-hidden="true"
@@ -343,9 +345,10 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         color: pinIndicator
                           ? vibeGridThemeTokens.indicator.pinnedText
                           : vibeGridThemeTokens.indicator.idleText,
+                        visibility: showIndicators ? "visible" : "hidden",
                       }}
                     >
-                      {pinIndicator ?? " "}
+                      {showIndicators ? (pinIndicator ?? " ") : " "}
                     </span>
                     {canShowMenu ? (
                       <span

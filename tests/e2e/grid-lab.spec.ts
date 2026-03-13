@@ -25,6 +25,25 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("save-bundle-preview")).toContainText("inserted");
   });
 
+  test("toggles delete by dedicated check column and reflects the save bundle", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("delete-check-HR-001").click();
+    await expect(page.getByTestId("grid-cell-HR-001-__rowState")).toContainText("삭제");
+
+    await page.getByTestId("delete-check-HR-001").click();
+    await expect(page.getByTestId("grid-cell-HR-001-__rowState")).toContainText("정상");
+
+    await page.getByTestId("delete-check-HR-001").click();
+    await expect(page.getByTestId("grid-cell-HR-001-__rowState")).toContainText("삭제");
+
+    await page.getByTestId("command-save").click();
+    await expect(page.getByTestId("save-bundle-preview")).toContainText('"deleted"');
+    await expect(page.getByTestId("save-bundle-preview")).toContainText('"rowKey": "HR-001"');
+  });
+
   test("applies append paste flow at the loaded row boundary", async ({ page }) => {
     await page.goto("/labs/grid");
 

@@ -116,6 +116,16 @@ Keep this separate from:
 - save bundle reflects deleted rows correctly
 - range and row selection do not become confused with delete marking
 
+### Status
+
+- implemented on `2026-03-13`
+- shared `VibeGrid` now exposes a dedicated `__deleteCheck` internal column
+- Grid Lab uses the shared checkbox event to drive the existing `toggleRowDeleted` semantics
+- current browser coverage verifies:
+  - delete check marks a loaded row as deleted
+  - delete check can restore a loaded row before save
+  - save bundle includes deleted row keys
+
 ## FE-2. Single-Click Edit For Editable Cells
 
 ### Goal
@@ -252,12 +262,14 @@ Reason:
 Status:
 
 - `FE-3a cell-level editability contract` is implemented on `2026-03-13`
+- `FE-1 dedicated delete check column` is implemented on `2026-03-13`
 - current demo rule:
   - `note` is editable only when `useYn === "Y"`
 - current coverage:
   - cell-level editability attribute in the grid body
   - side editor disabled state
   - paste skips readonly targets and reports `readonly` in the summary
+  - dedicated delete checkbox marks and restores loaded rows
 
 Next recommended slice:
 

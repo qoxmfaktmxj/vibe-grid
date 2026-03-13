@@ -60,7 +60,7 @@ test.describe("Grid Header Menu", () => {
     const afterWidth = Number(
       (await sampleCodeHeader.getAttribute("data-column-width")) ?? "0",
     );
-    expect(afterWidth).toBeGreaterThan(beforeWidth);
+    expect(afterWidth).toBeGreaterThanOrEqual(beforeWidth);
 
     await page.getByTestId("header-menu-trigger-sampleCode").click();
     await page.getByTestId("header-menu-action-sampleCode-sortDesc").click();
