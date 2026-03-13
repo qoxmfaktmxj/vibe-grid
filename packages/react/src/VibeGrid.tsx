@@ -495,6 +495,9 @@ export function VibeGrid<Row extends RowRecord>({
       data-virtualized={virtualizationEnabled ? "true" : "false"}
       data-total-row-count={tableRows.length}
       data-rendered-row-count={renderedRows.length}
+      data-filter-count={filters?.length ?? 0}
+      data-pinned-left-count={columnPinningState.left?.length ?? 0}
+      data-pinned-right-count={columnPinningState.right?.length ?? 0}
       onKeyDown={(event) => {
         if (event.key === "Escape" && hasRangeSelection(resolvedSelectionState)) {
           event.preventDefault();

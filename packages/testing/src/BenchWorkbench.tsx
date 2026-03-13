@@ -1,6 +1,13 @@
 "use client";
 
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from "react";
+import {
+  startTransition,
+  useDeferredValue,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { createBenchmarkRows, createBenchmarkSnapshot } from "@vibe-grid/core";
 import {
   defaultVirtualizationPreset,
@@ -42,12 +49,11 @@ export function BenchWorkbench() {
             {deferredRowCount.toLocaleString("ko-KR")} rows
           </span>
         </div>
-        <h1 className="hero-title">VibeGrid 성능 벤치 랩</h1>
+        <h1 className="hero-title">VibeGrid performance bench</h1>
         <p className="hero-copy hero-copy--dark">
-          실제 업무형 기능을 더 붙이기 전에 대량 데이터에서 스크롤과 sticky 동작이
-          어디까지 버티는지 먼저 확인하는 공간입니다. 지금은 row virtualization에
-          집중하고, 다음 슬라이스에서 pinned column과 shadow 레이어를 더 정교하게
-          다듬습니다.
+          This page keeps the raw virtualization benchmark and the actual product-path
+          benchmark together. The top section shows a stripped list baseline. The lower
+          section exercises the real `VibeGrid` shell with combined features enabled.
         </p>
 
         <div className="segmented-row" style={{ marginTop: 22 }}>
@@ -73,10 +79,16 @@ export function BenchWorkbench() {
       </section>
 
       <section className="stat-grid">
-        <StatCard label="총 데이터" value={snapshot.totalRows.toLocaleString("ko-KR")} />
-        <StatCard label="현재 표시 범위" value={visibleRange} />
-        <StatCard label="실제 렌더 수" value={String(virtualRows.length)} />
-        <StatCard label="Overscan" value={String(defaultVirtualizationPreset.overscan)} />
+        <StatCard
+          label="Total rows"
+          value={snapshot.totalRows.toLocaleString("ko-KR")}
+        />
+        <StatCard label="Visible range" value={visibleRange} />
+        <StatCard label="Rendered rows" value={String(virtualRows.length)} />
+        <StatCard
+          label="Overscan"
+          value={String(defaultVirtualizationPreset.overscan)}
+        />
       </section>
 
       <section
@@ -94,22 +106,24 @@ export function BenchWorkbench() {
             zIndex: 2,
           }}
         >
-          {["No", "사번", "이름", "부서", "직급", "사용", "정렬"].map((header, index) => (
-            <div
-              key={header}
-              style={{
-                padding: "16px 18px",
-                fontWeight: 800,
-                color: "#091526",
-                position: index === 0 ? "sticky" : "relative",
-                left: index === 0 ? 0 : undefined,
-                background: index === 0 ? "#eef6fb" : undefined,
-                zIndex: index === 0 ? 3 : 2,
-              }}
-            >
-              {header}
-            </div>
-          ))}
+          {["No", "Employee No", "Employee Name", "Department", "Job Title", "Use", "Sort"].map(
+            (header, index) => (
+              <div
+                key={header}
+                style={{
+                  padding: "16px 18px",
+                  fontWeight: 800,
+                  color: "#091526",
+                  position: index === 0 ? "sticky" : "relative",
+                  left: index === 0 ? 0 : undefined,
+                  background: index === 0 ? "#eef6fb" : undefined,
+                  zIndex: index === 0 ? 3 : 2,
+                }}
+              >
+                {header}
+              </div>
+            ),
+          )}
         </div>
 
         <div ref={scrollRef} style={{ height: 640, overflow: "auto", position: "relative" }}>
@@ -145,7 +159,7 @@ export function BenchWorkbench() {
                   <BenchCell>{row.employeeName}</BenchCell>
                   <BenchCell>{row.department}</BenchCell>
                   <BenchCell>{row.jobTitle}</BenchCell>
-                  <BenchCell>{row.useYn === "Y" ? "사용" : "미사용"}</BenchCell>
+                  <BenchCell>{row.useYn === "Y" ? "Y" : "N"}</BenchCell>
                   <BenchCell>{row.sortOrder}</BenchCell>
                 </div>
               );
@@ -169,11 +183,11 @@ export function BenchWorkbench() {
         <article className="section-panel">
           <h2 className="section-panel__title">Bench notes</h2>
           <div style={{ marginTop: 16, color: "#506176", lineHeight: 1.8 }}>
-            <div>현재는 row virtualization 중심으로 성능 기준선을 잡고 있습니다.</div>
-            <div>다음 단계에서는 pinned column과 sticky shadow를 함께 실험합니다.</div>
+            <div>The top list is the raw virtualization baseline.</div>
+            <div>The lower panel is the actual `VibeGrid` render path.</div>
             <div>
-              100,000 rows 시나리오를 바로 전환해 스크롤 체감과 렌더 수를 함께 확인할
-              수 있습니다.
+              Use both views together when you need to separate rendering cost from
+              product-shell cost.
             </div>
           </div>
         </article>
@@ -193,7 +207,7 @@ function StatCard(props: { label: string; value: string }) {
   );
 }
 
-function BenchCell(props: { children: React.ReactNode; sticky?: boolean }) {
+function BenchCell(props: { children: ReactNode; sticky?: boolean }) {
   return (
     <div
       style={{

@@ -23,6 +23,7 @@ It is based on:
 ### Partially Implemented
 
 - `P5` now has a real `VibeGrid` performance lab with row virtualization wired into the actual render path.
+- `P5` also now records interaction timings for scenario switch, selection, filter, sort, and column updates.
 
 ### Not Product-Complete Yet
 
@@ -240,6 +241,8 @@ Status:
 - in progress on `2026-03-13`
 - `Bench` now includes a real `VibeGrid` performance lab with column pinning, filter row, range interaction, and row virtualization on the actual render path
 - the current actual-path benchmark now runs at `10,000 / 50,000 / 100,000` rows
+- combined-feature browser regression now covers range selection, filter interaction, header menu open, and pin-right behavior on `/labs/bench`
+- interaction timing cards now expose scenario, selection, filter, sort, and column update timings
 
 Why separate from Bench:
 
@@ -262,6 +265,7 @@ Acceptance:
 - no obvious freeze in typical business interactions
 - pinned and sticky behavior remain stable under load
 - the team can compare raw virtualization numbers against actual `VibeGrid` render-path numbers in one screen
+- interaction timing signals are visible in the bench UI and reachable in browser regression
 
 ### P6. Product Infrastructure
 

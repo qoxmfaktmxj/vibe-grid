@@ -3,7 +3,9 @@
 import {
   startTransition,
   useDeferredValue,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -25,6 +27,23 @@ import { VibeGrid } from "@vibe-grid/react";
 
 const REAL_GRID_SCENARIOS = [10_000, 50_000, 100_000] as const;
 const REAL_GRID_DEFAULT_COLUMN = "employeeNo";
+
+type MetricKey =
+  | "scenario"
+  | "selection"
+  | "filters"
+  | "sorting"
+  | "columns";
+
+type InteractionMetrics = Record<MetricKey, number | null>;
+
+const INITIAL_METRICS: InteractionMetrics = {
+  scenario: null,
+  selection: null,
+  filters: null,
+  sorting: null,
+  columns: null,
+};
 
 const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
   {
@@ -124,6 +143,10 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
 
 function now() {
   return typeof performance !== "undefined" ? performance.now() : Date.now();
+}
+
+function formatMetric(value: number | null) {
+  return value == null ? "-" : `${value.toFixed(1)} ms`;
 }
 
 function createDefaultSelection(
@@ -241,6 +264,15 @@ function describeSelection(selection: GridSelectionState) {
   return "none";
 }
 
+function createSelectionFingerprint(selection: GridSelectionState) {
+  return JSON.stringify({
+    activeRowId: selection.activeRowId,
+    activeCell: selection.activeCell,
+    range: selection.range,
+    selectedRowIds: [...selection.selectedRowIds].sort(),
+  });
+}
+
 export function RealGridPerformanceLab() {
   const [rowCount, setRowCount] = useState<number>(10_000);
   const [selectionState, setSelectionState] = useState<GridSelectionState>(
@@ -257,7 +289,10 @@ export function RealGridPerformanceLab() {
       "left",
     ),
   );
+  const [interactionMetrics, setInteractionMetrics] =
+    useState<InteractionMetrics>(INITIAL_METRICS);
   const deferredRowCount = useDeferredValue(rowCount);
+  const interactionStartRef = useRef<Partial<Record<MetricKey, number>>>({});
 
   const materialized = useMemo(() => {
     const startedAt = now();
@@ -294,6 +329,55 @@ export function RealGridPerformanceLab() {
   }, [selectionState, shaped.rows]);
 
   const estimatedCellCount = shaped.rows.length * realGridColumns.length;
+  const selectionFingerprint = useMemo(
+    () => createSelectionFingerprint(resolvedSelectionState),
+    [resolvedSelectionState],
+  );
+  const sortingFingerprint = useMemo(() => JSON.stringify(sorting), [sorting]);
+  const filtersFingerprint = useMemo(() => JSON.stringify(filters), [filters]);
+  const columnFingerprint = useMemo(() => JSON.stringify(columnState), [columnState]);
+  const businessPinnedLeftCount = columnState.pinning.left.length;
+  const businessPinnedRightCount = columnState.pinning.right.length;
+
+  function markInteraction(metric: MetricKey) {
+    interactionStartRef.current[metric] = now();
+  }
+
+  function measureAfterPaint(metric: MetricKey) {
+    const startedAt = interactionStartRef.current[metric];
+
+    if (startedAt == null) {
+      return;
+    }
+
+    delete interactionStartRef.current[metric];
+    requestAnimationFrame(() => {
+      setInteractionMetrics((current) => ({
+        ...current,
+        [metric]: Math.max(0, now() - startedAt),
+      }));
+    });
+  }
+
+  useEffect(() => {
+    measureAfterPaint("scenario");
+  }, [deferredRowCount, shaped.rows.length]);
+
+  useEffect(() => {
+    measureAfterPaint("selection");
+  }, [selectionFingerprint]);
+
+  useEffect(() => {
+    measureAfterPaint("filters");
+  }, [filtersFingerprint, shaped.rows.length]);
+
+  useEffect(() => {
+    measureAfterPaint("sorting");
+  }, [sortingFingerprint, shaped.rows.length]);
+
+  useEffect(() => {
+    measureAfterPaint("columns");
+  }, [columnFingerprint]);
 
   return (
     <section className="section-panel" data-testid="real-grid-performance-lab">
@@ -304,11 +388,12 @@ export function RealGridPerformanceLab() {
           <span className="hero-tag hero-tag--light">Row virtualization active</span>
         </div>
         <div>
-          <h2 className="section-panel__title">실제 VibeGrid 성능 랩</h2>
+          <h2 className="section-panel__title">Actual VibeGrid performance lab</h2>
           <p className="section-panel__copy">
-            이 랩은 raw virtualization 목록이 아니라 실제 <code>VibeGrid</code> 렌더
-            경로를 확인합니다. pinning, sticky header, filter row, range interaction이
-            같이 붙은 상태에서 성능 기준선을 보는 용도입니다.
+            This panel measures the real `VibeGrid` render path with pinning, sticky
+            header, filter row, range selection, and virtualization enabled together.
+            The goal is not a synthetic list benchmark. The goal is to confirm that the
+            full product shell remains responsive under combined feature load.
           </p>
         </div>
       </div>
@@ -319,11 +404,12 @@ export function RealGridPerformanceLab() {
             key={scenario}
             type="button"
             data-testid={`real-grid-scenario-${scenario}`}
-            onClick={() =>
+            onClick={() => {
+              markInteraction("scenario");
               startTransition(() => {
                 setRowCount(scenario);
-              })
-            }
+              });
+            }}
             className={
               scenario === rowCount
                 ? "segmented-button segmented-button--active"
@@ -338,28 +424,61 @@ export function RealGridPerformanceLab() {
       <div className="stat-grid" style={{ marginTop: 18 }}>
         <StatCard
           dataTestId="real-grid-visible-rows"
-          label="현재 표시 행"
+          label="Visible rows after shaping"
           value={shaped.rows.length.toLocaleString("ko-KR")}
         />
         <StatCard
           dataTestId="real-grid-materialize-ms"
-          label="데이터 생성"
+          label="Materialize rows"
           value={`${materialized.durationMs.toFixed(1)} ms`}
         />
         <StatCard
           dataTestId="real-grid-shape-ms"
-          label="필터 + 정렬"
+          label="Filter + sort"
           value={`${shaped.durationMs.toFixed(1)} ms`}
         />
         <StatCard
           dataTestId="real-grid-estimated-cells"
-          label="추정 셀 수"
+          label="Estimated cells"
           value={estimatedCellCount.toLocaleString("ko-KR")}
         />
         <StatCard
           dataTestId="real-grid-selection-mode"
-          label="선택 상태"
+          label="Selection state"
           value={describeSelection(resolvedSelectionState)}
+        />
+        <StatCard
+          dataTestId="real-grid-pinned-summary"
+          label="Pinned business columns"
+          value={`L ${businessPinnedLeftCount} / R ${businessPinnedRightCount}`}
+        />
+      </div>
+
+      <div className="stat-grid" style={{ marginTop: 14 }}>
+        <StatCard
+          dataTestId="real-grid-scenario-ms"
+          label="Scenario switch"
+          value={formatMetric(interactionMetrics.scenario)}
+        />
+        <StatCard
+          dataTestId="real-grid-selection-ms"
+          label="Selection interaction"
+          value={formatMetric(interactionMetrics.selection)}
+        />
+        <StatCard
+          dataTestId="real-grid-filter-ms"
+          label="Filter interaction"
+          value={formatMetric(interactionMetrics.filters)}
+        />
+        <StatCard
+          dataTestId="real-grid-sorting-ms"
+          label="Sort interaction"
+          value={formatMetric(interactionMetrics.sorting)}
+        />
+        <StatCard
+          dataTestId="real-grid-column-ms"
+          label="Column interaction"
+          value={formatMetric(interactionMetrics.columns)}
         />
       </div>
 
@@ -369,16 +488,28 @@ export function RealGridPerformanceLab() {
           rows={shaped.rows}
           columns={realGridColumns}
           selectionState={resolvedSelectionState}
-          onSelectionStateChange={setSelectionState}
+          onSelectionStateChange={(nextSelectionState) => {
+            markInteraction("selection");
+            setSelectionState(nextSelectionState);
+          }}
           sorting={sorting}
-          onSortingChange={setSorting}
+          onSortingChange={(nextSorting) => {
+            markInteraction("sorting");
+            setSorting(nextSorting);
+          }}
           filters={filters}
-          onFiltersChange={setFilters}
+          onFiltersChange={(nextFilters) => {
+            markInteraction("filters");
+            setFilters(nextFilters);
+          }}
           columnState={columnState}
-          onColumnStateChange={setColumnState}
+          onColumnStateChange={(nextColumnState) => {
+            markInteraction("columns");
+            setColumnState(nextColumnState);
+          }}
           enableFilterRow
           height={520}
-          emptyMessage="현재 벤치 필터에 맞는 행이 없습니다."
+          emptyMessage="No rows match the active benchmark filters."
           virtualization={{
             enabled: true,
             rowHeight: 56,
@@ -399,9 +530,9 @@ export function RealGridPerformanceLab() {
         }}
       >
         <div>
-          이제 실제 <code>VibeGrid</code> 경로에 row virtualization이 연결되어
-          10k / 50k / 100k 기준으로 header menu, filter row, sticky column,
-          <code>Shift + Arrow</code> range 동작을 함께 확인할 수 있습니다.
+          Use this panel to exercise the actual product path at 10k / 50k / 100k rows.
+          Switch scenarios, apply a filter, pin a column, and create a range selection.
+          The metric cards above should update after each interaction.
         </div>
       </div>
     </section>
