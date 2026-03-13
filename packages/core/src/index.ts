@@ -10,6 +10,7 @@ export type {
   GridCommandId,
   GridCommandScope,
   GridEditorOption,
+  GridFilterEditorSpec,
   GridEditorSpec,
   GridEditSession,
   GridFilter,

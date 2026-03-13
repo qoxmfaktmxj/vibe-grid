@@ -19,6 +19,7 @@ import {
   sanitizeGridColumnState,
   type GridColumnState,
   type GridEditSession,
+  type GridFilter,
   type GridSelectionState,
   type GridSortRule,
   type ManagedGridRow,
@@ -52,6 +53,9 @@ export type VibeGridProps<Row extends RowRecord> = {
   onColumnStateChange?: (state: GridColumnState) => void;
   sorting?: GridSortRule[];
   onSortingChange?: (sorting: GridSortRule[]) => void;
+  filters?: GridFilter[];
+  onFiltersChange?: (filters: GridFilter[]) => void;
+  enableFilterRow?: boolean;
   emptyMessage?: string;
   height?: number;
 };
@@ -83,6 +87,9 @@ export function VibeGrid<Row extends RowRecord>({
   onColumnStateChange,
   sorting,
   onSortingChange,
+  filters,
+  onFiltersChange,
+  enableFilterRow = false,
   emptyMessage = "議고쉶???곗씠?곌? ?놁뒿?덈떎.",
   height = 420,
 }: VibeGridProps<Row>) {
@@ -389,7 +396,12 @@ export function VibeGrid<Row extends RowRecord>({
             tableLayout: "fixed",
           }}
         >
-          <VibeGridTableHeader table={table} />
+          <VibeGridTableHeader
+            table={table}
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            enableFilterRow={enableFilterRow}
+          />
           <VibeGridTableBody
             table={table}
             rowMetaByKey={rowMetaByKey}

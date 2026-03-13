@@ -1,0 +1,359 @@
+import { useState, type KeyboardEvent } from "react";
+import type {
+  GridEditorOption,
+  GridEditorSpec,
+  GridFilter,
+  GridFilterEditorSpec,
+} from "@vibe-grid/core";
+import type { Table } from "@tanstack/react-table";
+import type { InternalColumnMeta, RowRecord } from "./vibe-grid-types";
+import { getStickyCellStyle } from "./vibe-grid-utils";
+
+type VibeGridFilterRowProps<Row extends RowRecord> = {
+  table: Table<Row>;
+  filters?: GridFilter[];
+  onFiltersChange?: (filters: GridFilter[]) => void;
+};
+
+type VibeGridFilterRowInnerProps<Row extends RowRecord> =
+  VibeGridFilterRowProps<Row> & {
+    initialDrafts: Record<string, string>;
+  };
+
+function buildFilterSyncSignature<Row extends RowRecord>(
+  table: Table<Row>,
+  filters: GridFilter[],
+) {
+  return JSON.stringify({
+    columns: table.getVisibleLeafColumns().map((column) => column.id),
+    filters: filters.map((filter) => ({
+      field: filter.field,
+      op: filter.op,
+      value: filter.value,
+    })),
+  });
+}
+
+function resolveFilterEditor<Row extends RowRecord>(
+  meta?: InternalColumnMeta<Row>,
+): GridFilterEditorSpec | null {
+  if (!meta?.filterable) {
+    return null;
+  }
+
+  if (meta.filterEditor) {
+    return meta.filterEditor;
+  }
+
+  if (meta.editor?.type === "number") {
+    return { type: "number" };
+  }
+
+  if (meta.editor?.type === "select") {
+    const options = resolveSelectOptions(meta.editor);
+    if (options.length > 0) {
+      return {
+        type: "select",
+        options,
+        emptyLabel: "All",
+      };
+    }
+  }
+
+  return { type: "text" };
+}
+
+function resolveSelectOptions<Row extends RowRecord>(
+  editor?: GridEditorSpec<Row>,
+): GridEditorOption[] {
+  if (editor?.type !== "select") {
+    return [];
+  }
+
+  return Array.isArray(editor.options) ? editor.options : [];
+}
+
+function getFilterDraftValue(filters: GridFilter[], field: string) {
+  const current = filters.find((filter) => filter.field === field);
+  return current?.value == null ? "" : String(current.value);
+}
+
+function createDraftMap<Row extends RowRecord>(
+  table: Table<Row>,
+  filters: GridFilter[],
+) {
+  const nextDrafts: Record<string, string> = {};
+
+  for (const column of table.getVisibleLeafColumns()) {
+    const meta = column.columnDef.meta as InternalColumnMeta<Row> | undefined;
+    if (!meta?.columnKey) {
+      continue;
+    }
+
+    nextDrafts[meta.columnKey] = getFilterDraftValue(filters, meta.columnKey);
+  }
+
+  return nextDrafts;
+}
+
+function createNextFilters(
+  filters: GridFilter[],
+  field: string,
+  nextFilter?: GridFilter,
+) {
+  return [
+    ...filters.filter((filter) => filter.field !== field),
+    ...(nextFilter ? [nextFilter] : []),
+  ];
+}
+
+function buildNextFilter(
+  field: string,
+  filterEditor: GridFilterEditorSpec,
+  rawValue: string,
+): GridFilter | undefined {
+  const trimmed = rawValue.trim();
+
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (filterEditor.type === "number") {
+    const value = Number(trimmed);
+    if (!Number.isFinite(value)) {
+      return undefined;
+    }
+
+    return {
+      field,
+      op: filterEditor.op ?? "eq",
+      value,
+    };
+  }
+
+  if (filterEditor.type === "select") {
+    return {
+      field,
+      op: filterEditor.op ?? "eq",
+      value: rawValue,
+    };
+  }
+
+  return {
+    field,
+    op: filterEditor.op ?? "contains",
+    value: trimmed,
+  };
+}
+
+export function VibeGridFilterRow<Row extends RowRecord>({
+  table,
+  filters = [],
+  onFiltersChange,
+}: VibeGridFilterRowProps<Row>) {
+  const syncSignature = buildFilterSyncSignature(table, filters);
+
+  return (
+    <VibeGridFilterRowInner
+      key={syncSignature}
+      table={table}
+      filters={filters}
+      onFiltersChange={onFiltersChange}
+      initialDrafts={createDraftMap(table, filters)}
+    />
+  );
+}
+
+function VibeGridFilterRowInner<Row extends RowRecord>({
+  table,
+  filters = [],
+  onFiltersChange,
+  initialDrafts,
+}: VibeGridFilterRowInnerProps<Row>) {
+  const [drafts, setDrafts] = useState<Record<string, string>>(initialDrafts);
+
+  if (!onFiltersChange) {
+    return null;
+  }
+
+  return (
+    <tr data-testid="grid-filter-row">
+      {table.getVisibleLeafColumns().map((column) => {
+        const meta = column.columnDef.meta as InternalColumnMeta<Row> | undefined;
+        const filterEditor = resolveFilterEditor(meta);
+        const columnKey = meta?.columnKey;
+        const pinned = column.getIsPinned();
+        const background = pinned ? "#f8fbff" : "#ffffff";
+        const stickyStyle = getStickyCellStyle(column, background, true);
+        const draftValue = columnKey ? drafts[columnKey] ?? "" : "";
+        const isInvalidNumber =
+          filterEditor?.type === "number" &&
+          draftValue.trim().length > 0 &&
+          !Number.isFinite(Number(draftValue));
+
+        const applyFilter = () => {
+          if (!columnKey || !filterEditor) {
+            return;
+          }
+
+          const nextFilter = buildNextFilter(columnKey, filterEditor, draftValue);
+          const nextFilters = createNextFilters(filters, columnKey, nextFilter);
+          onFiltersChange(nextFilters);
+        };
+
+        const clearFilter = () => {
+          if (!columnKey) {
+            return;
+          }
+
+          setDrafts((current) => ({ ...current, [columnKey]: "" }));
+          onFiltersChange(createNextFilters(filters, columnKey));
+        };
+
+        const onTextKeyDown = (
+          event: KeyboardEvent<HTMLInputElement | HTMLSelectElement>,
+        ) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            applyFilter();
+          }
+        };
+
+        return (
+          <th
+            key={`filter-${column.id}`}
+            data-testid={columnKey ? `filter-cell-${columnKey}` : undefined}
+            style={{
+              ...stickyStyle,
+              borderBottom: "1px solid #d9e4f1",
+              padding: "10px 12px 12px",
+              width: column.getSize(),
+              minWidth: column.getSize(),
+              verticalAlign: "top",
+            }}
+          >
+            {!columnKey || !filterEditor ? (
+              <div style={{ minHeight: 38 }} />
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gap: 8,
+                }}
+              >
+                {filterEditor.type === "select" ? (
+                  <select
+                    data-testid={`filter-input-${columnKey}`}
+                    value={draftValue}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setDrafts((current) => ({
+                        ...current,
+                        [columnKey]: nextValue,
+                      }));
+                      onFiltersChange(
+                        createNextFilters(
+                          filters,
+                          columnKey,
+                          buildNextFilter(columnKey, filterEditor, nextValue),
+                        ),
+                      );
+                    }}
+                    onKeyDown={onTextKeyDown}
+                    style={{
+                      width: "100%",
+                      minHeight: 36,
+                      borderRadius: 12,
+                      border: "1px solid #cbd5e1",
+                      padding: "0 12px",
+                      background: "#fff",
+                      color: "#0f172a",
+                      font: "inherit",
+                    }}
+                  >
+                    <option value="">{filterEditor.emptyLabel ?? "All"}</option>
+                    {filterEditor.options.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    data-testid={`filter-input-${columnKey}`}
+                    type={filterEditor.type === "number" ? "number" : "text"}
+                    value={draftValue}
+                    placeholder={filterEditor.placeholder}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setDrafts((current) => ({
+                        ...current,
+                        [columnKey]: nextValue,
+                      }));
+                    }}
+                    onKeyDown={onTextKeyDown}
+                    style={{
+                      width: "100%",
+                      minHeight: 36,
+                      borderRadius: 12,
+                      border: isInvalidNumber
+                        ? "1px solid #f97316"
+                        : "1px solid #cbd5e1",
+                      padding: "0 12px",
+                      background: "#fff",
+                      color: "#0f172a",
+                      font: "inherit",
+                    }}
+                  />
+                )}
+
+                <div style={{ display: "flex", gap: 8 }}>
+                  {filterEditor.type === "select" ? null : (
+                    <button
+                      type="button"
+                      data-testid={`filter-apply-${columnKey}`}
+                      onClick={applyFilter}
+                      disabled={isInvalidNumber}
+                      style={{
+                        flex: 1,
+                        minHeight: 30,
+                        borderRadius: 10,
+                        border: "1px solid #7dd3fc",
+                        background: "#f0f9ff",
+                        color: "#0369a1",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: isInvalidNumber ? "not-allowed" : "pointer",
+                        opacity: isInvalidNumber ? 0.5 : 1,
+                      }}
+                    >
+                      Apply
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    data-testid={`filter-clear-${columnKey}`}
+                    onClick={clearFilter}
+                    style={{
+                      minWidth: filterEditor.type === "select" ? "100%" : 56,
+                      minHeight: 30,
+                      borderRadius: 10,
+                      border: "1px solid #e2e8f0",
+                      background: "#fff",
+                      color: "#475569",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            )}
+          </th>
+        );
+      })}
+    </tr>
+  );
+}

@@ -44,7 +44,7 @@ const sampleNameCatalog = [
   "평가운영",
   "급여정산",
   "조직개편",
-  "채용현황",
+  "채용전환",
   "복리후생",
   "교육이력",
   "승진심사",
@@ -54,11 +54,11 @@ const sampleNameCatalog = [
 
 const noteCatalog = [
   "기본 마스터 검증 시나리오",
-  "저장 payload 분리 점검용",
+  "저장 payload 분리 체크",
   "엑셀 업로드 헤더 검증용",
-  "삭제 체크 후 저장 동선 확인",
-  "클립보드 붙여넣기 대상",
-  "서버 정렬/필터 테스트 데이터",
+  "삭제 체크 후 저장 흐름 확인",
+  "클립보드 붙여넣기 테스트",
+  "서버 정렬 및 필터 테스트 데이터",
 ];
 
 export const firstEditableColumnKey: keyof PlaygroundRow = "sampleCode";
@@ -76,6 +76,10 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
     editor: {
       type: "text",
       placeholder: "예: HR-001",
+    },
+    filterEditor: {
+      type: "text",
+      placeholder: "코드 검색",
     },
     validate: [
       (value) =>
@@ -97,6 +101,10 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
       type: "text",
       placeholder: "예: 인사기본",
     },
+    filterEditor: {
+      type: "text",
+      placeholder: "샘플명 검색",
+    },
   },
   {
     key: "department",
@@ -111,6 +119,11 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
       type: "select",
       options: departmentOptions,
     },
+    filterEditor: {
+      type: "select",
+      options: departmentOptions,
+      emptyLabel: "전체",
+    },
   },
   {
     key: "jobTitle",
@@ -124,6 +137,11 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
     editor: {
       type: "select",
       options: jobTitleOptions,
+    },
+    filterEditor: {
+      type: "select",
+      options: jobTitleOptions,
+      emptyLabel: "전체",
     },
   },
   {
@@ -140,6 +158,11 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
       type: "select",
       options: useYnOptions,
     },
+    filterEditor: {
+      type: "select",
+      options: useYnOptions,
+      emptyLabel: "전체",
+    },
     validate: [
       (value) =>
         value === "Y" || value === "N"
@@ -155,12 +178,18 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
     editable: true,
     required: true,
     sortable: true,
+    filterable: true,
     parse: (value) => Number(value.trim() || "0"),
     editor: {
       type: "number",
       min: 0,
       step: 1,
       placeholder: "0",
+    },
+    filterEditor: {
+      type: "number",
+      placeholder: "번호",
+      op: "eq",
     },
     validate: [
       (value) =>
@@ -181,6 +210,10 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
       rows: 4,
       placeholder: "비고를 입력하세요.",
     },
+    filterEditor: {
+      type: "text",
+      placeholder: "비고 검색",
+    },
   },
 ];
 
@@ -199,7 +232,7 @@ export function createBlankRow(sequence: number): PlaygroundRow {
     jobTitle: "사원",
     useYn: "Y",
     sortOrder: sequence,
-    note: "입력 후 저장 대상입니다.",
+    note: "입력 전 기본 데이터입니다.",
   };
 }
 
@@ -283,12 +316,15 @@ function createPlaygroundDataset(count: number) {
 
 function applyFilters(rows: PlaygroundRow[], filters: GridFilter[]) {
   return filters.reduce((currentRows, filter) => {
-    if (filter.field === "keyword" && typeof filter.value === "string") {
-      const keyword = filter.value.trim().toLowerCase();
-      if (!keyword) {
+    const rawValue =
+      typeof filter.value === "string" ? filter.value.trim() : filter.value;
+
+    if (filter.field === "keyword" && typeof rawValue === "string") {
+      if (!rawValue) {
         return currentRows;
       }
 
+      const keyword = rawValue.toLowerCase();
       return currentRows.filter((row) =>
         [
           row.sampleCode,
@@ -300,12 +336,63 @@ function applyFilters(rows: PlaygroundRow[], filters: GridFilter[]) {
       );
     }
 
-    if (filter.field === "useYn" && (filter.value === "Y" || filter.value === "N")) {
-      return currentRows.filter((row) => row.useYn === filter.value);
+    if (!isPlaygroundField(filter.field)) {
+      return currentRows;
     }
 
-    return currentRows;
+    const field = filter.field;
+
+    if (rawValue == null || rawValue === "") {
+      return currentRows;
+    }
+
+    return currentRows.filter((row) => matchesFilter(row[field], rawValue, filter.op));
   }, rows);
+}
+
+function isPlaygroundField(field: string): field is keyof PlaygroundRow {
+  return [
+    "sampleCode",
+    "sampleName",
+    "department",
+    "jobTitle",
+    "useYn",
+    "sortOrder",
+    "note",
+  ].includes(field);
+}
+
+function matchesFilter(
+  rowValue: PlaygroundRow[keyof PlaygroundRow],
+  filterValue: string | number | unknown,
+  operator: string,
+) {
+  if (typeof rowValue === "number") {
+    const numericValue = Number(filterValue);
+
+    if (!Number.isFinite(numericValue)) {
+      return false;
+    }
+
+    if (operator === "gte") {
+      return rowValue >= numericValue;
+    }
+
+    if (operator === "lte") {
+      return rowValue <= numericValue;
+    }
+
+    return rowValue === numericValue;
+  }
+
+  const left = String(rowValue).toLowerCase();
+  const right = String(filterValue).toLowerCase();
+
+  if (operator === "eq") {
+    return left === right;
+  }
+
+  return left.includes(right);
 }
 
 function applySorting(rows: PlaygroundRow[], sorting: GridSortRule[]) {

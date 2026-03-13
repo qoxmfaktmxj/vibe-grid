@@ -28,8 +28,8 @@ It is based on:
 
 ### Not Product-Complete Yet
 
-- header action menu
-- in-grid filter row
+- filtered-column indicator polish
+- right-click header menu open
 - range copy / paste error summary
 - real-grid performance verification under combined features
 - persistence adapter productization
@@ -173,6 +173,11 @@ Validation:
 - pin/hide/sort regression checks
 
 ### P3. Slice 9C: Filter Row
+
+Status:
+
+- completed on `2026-03-13`
+- in-grid filter row now renders under the sticky header and updates `GridQuery.filters`
 
 Why before more range work:
 

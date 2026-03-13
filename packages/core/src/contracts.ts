@@ -85,6 +85,25 @@ export type GridEditorOption = {
   value: string;
 };
 
+export type GridFilterEditorSpec =
+  | {
+      type?: "text";
+      placeholder?: string;
+      op?: "contains" | "eq";
+    }
+  | {
+      type: "number";
+      placeholder?: string;
+      op?: "eq" | "gte" | "lte";
+    }
+  | {
+      type: "select";
+      options: GridEditorOption[];
+      placeholder?: string;
+      emptyLabel?: string;
+      op?: "eq";
+    };
+
 export type GridEditorSpec<Row> =
   | {
       type?: "text";
@@ -129,6 +148,7 @@ export type VibeGridColumn<Row> = {
   pin?: "left" | "right";
   sortable?: boolean;
   filterable?: boolean;
+  filterEditor?: GridFilterEditorSpec;
   editable?: boolean;
   hidden?: boolean;
   required?: boolean;

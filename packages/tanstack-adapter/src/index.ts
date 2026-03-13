@@ -19,6 +19,8 @@ export function createTanStackColumns<Row extends object>(
       ...column.meta,
       columnKey: column.key,
       editable: column.editable ?? false,
+      filterable: column.filterable ?? false,
+      filterEditor: column.filterEditor,
       hidden: column.hidden ?? false,
       editor: column.editor,
     },

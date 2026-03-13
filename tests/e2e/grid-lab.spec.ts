@@ -36,4 +36,24 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("status-panel")).toContainText(/붙여넣기|반영/);
   });
 
+  test("applies and clears the in-grid filter row", async ({ page }) => {
+    await page.goto("/labs/grid");
+
+    await expect(page.getByTestId("grid-filter-row")).toBeVisible();
+
+    await page.getByTestId("filter-input-sampleCode").fill("HR-012");
+    await page.getByTestId("filter-apply-sampleCode").click();
+
+    await expect(page.getByTestId("query-preview")).toContainText('"field": "sampleCode"');
+    await expect(page.getByTestId("query-preview")).toContainText('"value": "HR-012"');
+
+    await page.getByTestId("filter-clear-sampleCode").click();
+    await expect(page.getByTestId("query-preview")).not.toContainText(
+      '"field": "sampleCode"',
+    );
+
+    await page.getByTestId("filter-input-useYn").selectOption("N");
+    await expect(page.getByTestId("query-preview")).toContainText('"field": "useYn"');
+    await expect(page.getByTestId("query-preview")).toContainText('"value": "N"');
+  });
 });

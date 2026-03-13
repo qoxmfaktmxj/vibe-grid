@@ -1,3 +1,4 @@
+import type { GridFilter } from "@vibe-grid/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flexRender, type Table } from "@tanstack/react-table";
 import {
@@ -5,11 +6,15 @@ import {
   type GridHeaderMenuAction,
   type MenuActionItem,
 } from "./VibeGridHeaderMenu";
+import { VibeGridFilterRow } from "./VibeGridFilterRow";
 import type { InternalColumnMeta, RowRecord } from "./vibe-grid-types";
 import { getStickyCellStyle } from "./vibe-grid-utils";
 
 type VibeGridTableHeaderProps<Row extends RowRecord> = {
   table: Table<Row>;
+  filters?: GridFilter[];
+  onFiltersChange?: (filters: GridFilter[]) => void;
+  enableFilterRow?: boolean;
 };
 
 function getSortIndicator(sorted: false | "asc" | "desc") {
@@ -38,6 +43,9 @@ function getPinIndicator(pinState: false | "left" | "right") {
 
 export function VibeGridTableHeader<Row extends RowRecord>({
   table,
+  filters,
+  onFiltersChange,
+  enableFilterRow = false,
 }: VibeGridTableHeaderProps<Row>) {
   const headerRef = useRef<HTMLTableSectionElement | null>(null);
   const triggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -176,6 +184,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                 data-header-menu-open={isMenuOpen ? "true" : "false"}
                 style={{
                   ...stickyStyle,
+                  zIndex: isMenuOpen ? 40 : stickyStyle.zIndex,
                   overflow: "visible",
                   borderBottom: "1px solid #d9e4f1",
                   color: "#0f172a",
@@ -330,6 +339,13 @@ export function VibeGridTableHeader<Row extends RowRecord>({
           })}
         </tr>
       ))}
+      {enableFilterRow ? (
+        <VibeGridFilterRow
+          table={table}
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+        />
+      ) : null}
     </thead>
   );
 }

@@ -65,15 +65,15 @@ import {
   type GridExcelImportPreview,
 } from "./excel-client";
 
-type FilterDraft = {
-  keyword: string;
-  useYn: "" | "Y" | "N";
-};
-
 const clipboardSchema = createClipboardSchema(playgroundColumns, {
   useYn: (value) => (value.trim().toUpperCase() === "N" ? "N" : "Y"),
   sortOrder: (value) => Number(value.trim() || "0"),
 });
+
+type FilterDraft = {
+  keyword: string;
+  useYn: "" | "Y" | "N";
+};
 
 const initialServerResult = buildGridLabServerResult(defaultGridQuery);
 
@@ -191,6 +191,14 @@ export function PlaygroundWorkbench() {
     () => JSON.stringify(lastSaveBundle, null, 2),
     [lastSaveBundle],
   );
+  const activeFiltersSummary = useMemo(
+    () =>
+      query.filters.map((filter) => ({
+        key: `${filter.field}:${filter.op}`,
+        label: `${filter.field} ${filter.op} ${String(filter.value)}`,
+      })),
+    [query.filters],
+  );
   const visibleClipboardColumns = useMemo(
     () =>
       columnState.order.flatMap((columnKey) => {
@@ -225,6 +233,19 @@ export function PlaygroundWorkbench() {
       JSON.stringify(columnState),
     );
   }, [columnState]);
+
+  useEffect(() => {
+    const keywordFilter = query.filters.find((filter) => filter.field === "keyword");
+    const useYnFilter = query.filters.find((filter) => filter.field === "useYn");
+
+    setFilterDraft({
+      keyword: typeof keywordFilter?.value === "string" ? keywordFilter.value : "",
+      useYn:
+        useYnFilter?.value === "Y" || useYnFilter?.value === "N"
+          ? (useYnFilter.value as FilterDraft["useYn"])
+          : "",
+    });
+  }, [query.filters]);
 
   useEffect(() => {
     void loadRows(initialServerResult.query, "초기 서버 조회");
@@ -507,6 +528,17 @@ export function PlaygroundWorkbench() {
     );
   }
 
+  async function handleFiltersChange(nextFilters: GridFilter[]) {
+    await loadRows(
+      {
+        ...query,
+        pageIndex: 0,
+        filters: nextFilters,
+      },
+      nextFilters.length > 0 ? "그리드 필터 적용" : "그리드 필터 초기화",
+    );
+  }
+
   async function handleExportExcel() {
     const buffer = await exportRowsToExcelBufferLazy({
       sheetName: "VibeGridRows",
@@ -729,6 +761,9 @@ export function PlaygroundWorkbench() {
             onColumnStateChange={setColumnState}
             sorting={query.sorting}
             onSortingChange={handleSortingChange}
+            filters={query.filters}
+            onFiltersChange={handleFiltersChange}
+            enableFilterRow
             height={620}
           />
 
@@ -785,6 +820,17 @@ export function PlaygroundWorkbench() {
             <div style={sectionHeaderStyle}>
               <h2 style={sectionTitleStyle}>서버 Query / Filter / Sort / Page</h2>
               <span style={badgeStyle("#e0f2fe", "#0369a1")}>실동작</span>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              {activeFiltersSummary.length === 0 ? (
+                <span style={badgeStyle("#f8fafc", "#475569")}>활성 필터 없음</span>
+              ) : (
+                activeFiltersSummary.map((filter) => (
+                  <span key={filter.key} style={badgeStyle("#ecfeff", "#0f766e")}>
+                    {filter.label}
+                  </span>
+                ))
+              )}
             </div>
             <label style={fieldLabelStyle}>
               키워드
@@ -844,7 +890,9 @@ export function PlaygroundWorkbench() {
                 조건 초기화
               </button>
             </div>
-            <pre style={preStyle}>{prettyQuery}</pre>
+            <pre data-testid="query-preview" style={preStyle}>
+              {prettyQuery}
+            </pre>
           </section>
 
           <section style={cardStyle}>

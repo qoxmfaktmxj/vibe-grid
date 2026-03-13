@@ -27,6 +27,17 @@
   - pin action
   - sort action
   - hide action
+- Added an in-grid filter row under the sticky header.
+- Added filter-row controls for:
+  - text filters with explicit apply and clear
+  - select filters with immediate apply and clear
+  - number filters with numeric validation
+- Wired filter-row changes to the server-mode `GridQuery.filters` contract.
+- Added Grid Lab browser coverage for:
+  - filter row visibility
+  - text filter apply
+  - filter clear
+  - select filter apply
 
 ## Validation
 
@@ -36,13 +47,13 @@
 
 ## Notes
 
-- Slice 9A/9B are now in place at MVP level.
+- Slice 9A/9B/9C are now in place at MVP level.
 - Right-click menu open is still deferred.
-- Filter row is still the next major part of Slice 9.
+- Filtered-column indicator polish is still deferred.
 
 ## Next Candidates
 
-1. `Slice 9C` filter row
-2. filtered-column indicator polish
-3. right-click open support
-4. width reset and hide behavior edge-case coverage
+1. filtered-column indicator polish
+2. right-click open support
+3. width reset and hide behavior edge-case coverage
+4. `Slice 8` range selection polish
