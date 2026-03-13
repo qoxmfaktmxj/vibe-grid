@@ -306,6 +306,15 @@ Acceptance:
 
 ### P7. Test and Release Hardening
 
+Status:
+
+- in progress on `2026-03-13`
+- first-pass hardening now covers:
+  - stable vs experimental boundary documentation
+  - hub-level smoke browser regression
+  - Playwright CI retries, `forbidOnly`, and HTML report output
+  - CI artifact upload for Playwright outputs
+
 Tasks:
 
 - expand core unit coverage

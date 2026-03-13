@@ -33,10 +33,27 @@ Before changing code, read these files first:
 Current active references:
 
 - `docs/roadmap/current-execution-plan.md`
+- `docs/release/public-api-stability.md`
 - `docs/roadmap/slice-8-range-selection-design.md`
 - `docs/roadmap/slice-8-status.md`
 - `docs/roadmap/slice-9-productized-grid-ux-design.md`
 - `docs/roadmap/slice-9-status.md`
+
+## Stability Boundary
+
+Use [docs/release/public-api-stability.md](C:/Users/kms/Desktop/dev/vibe-grid/docs/release/public-api-stability.md) as the current stable/experimental boundary for this repo.
+
+In short:
+
+- stable for pilot:
+  - `@vibe-grid/core` shared contracts
+  - `@vibe-grid/react` main `VibeGrid` surface
+  - header menu, filter row, range copy/paste, row virtualization
+- still experimental:
+  - benchmark timing interpretation
+  - broader persistence beyond column state
+  - theme token naming/details
+  - non-grid lab shell presentation
 
 ## Local commands
 

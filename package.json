@@ -17,6 +17,7 @@
     "build:bench": "npm run build -w @vibe-grid/bench",
     "build": "npm run build:playground && npm run build:bench",
     "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test tests/e2e/hub-smoke.spec.ts tests/e2e/compatibility.spec.ts tests/e2e/bench.spec.ts",
     "test:e2e:local": "npm run build:playground && playwright test",
     "lint:packages": "eslint packages --ext .ts,.tsx",
     "lint:playground": "npm run lint -w @vibe-grid/playground",
