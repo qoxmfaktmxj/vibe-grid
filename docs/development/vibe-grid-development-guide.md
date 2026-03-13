@@ -17,6 +17,7 @@ Before touching code, read these documents:
 
 Current high-priority references:
 
+- [Current Execution Plan](C:/Users/kms/Desktop/dev/vibe-grid/docs/roadmap/current-execution-plan.md)
 - [Slice 8 Range Selection Design](C:/Users/kms/Desktop/dev/vibe-grid/docs/roadmap/slice-8-range-selection-design.md)
 - [Slice 8 Status](C:/Users/kms/Desktop/dev/vibe-grid/docs/roadmap/slice-8-status.md)
 - [Slice 9 Productized Grid UX Design](C:/Users/kms/Desktop/dev/vibe-grid/docs/roadmap/slice-9-productized-grid-ux-design.md)

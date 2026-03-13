@@ -13,6 +13,8 @@ Before changing code, read these files in order:
 
 Minimum roadmap references:
 
+- current execution sequencing:
+  - `docs/roadmap/current-execution-plan.md`
 - interaction / selection / paste work:
   - `docs/roadmap/slice-8-range-selection-design.md`
   - `docs/roadmap/slice-8-status.md`
