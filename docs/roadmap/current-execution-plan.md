@@ -27,8 +27,6 @@ It is based on:
 
 ### Not Product-Complete Yet
 
-- filtered-column indicator polish
-- right-click header menu open
 - real-grid performance verification under combined features
 - persistence adapter productization
 - theme / i18n productization
@@ -139,6 +137,8 @@ Status:
 
 - completed on `2026-03-13`
 - header menu MVP now covers sort, pin, unpin, hide, and reset width actions with browser regression coverage
+- right-click header menu open is now supported
+- filtered-column indicator is now exposed on header cells
 
 Why next:
 
@@ -164,6 +164,8 @@ Acceptance:
 
 - users can perform core column actions from the header without side controls
 - pinned and sorted columns remain visually clear
+- filtered columns are visibly distinct in the header
+- right-click and click both open the same header menu surface
 
 Validation:
 

@@ -41,6 +41,28 @@ function getPinIndicator(pinState: false | "left" | "right") {
   return null;
 }
 
+function hasMeaningfulFilterValue(value: GridFilter["value"]) {
+  if (value == null) {
+    return false;
+  }
+
+  if (typeof value === "string") {
+    return value.trim() !== "";
+  }
+
+  return true;
+}
+
+function getColumnFilterCount(columnKey: string | undefined, filters?: GridFilter[]) {
+  if (!columnKey || !filters) {
+    return 0;
+  }
+
+  return filters.filter(
+    (filter) => filter.field === columnKey && hasMeaningfulFilterValue(filter.value),
+  ).length;
+}
+
 export function VibeGridTableHeader<Row extends RowRecord>({
   table,
   filters,
@@ -116,10 +138,14 @@ export function VibeGridTableHeader<Row extends RowRecord>({
             const canShowMenu = !headerMeta?.internal && !!columnKey;
             const isMenuOpen = !!columnKey && openColumnKey === columnKey;
             const pinIndicator = getPinIndicator(pinned);
+            const filterCount = getColumnFilterCount(columnKey, filters);
+            const isFiltered = filterCount > 0;
             const background = isMenuOpen
               ? "#eef6ff"
               : pinned
                 ? "#f0fdfa"
+                : isFiltered
+                  ? "#f5fbff"
                 : sorted
                   ? "#f8fffd"
                   : "#f8fafc";
@@ -195,7 +221,18 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                 data-testid={columnKey ? `header-cell-${columnKey}` : undefined}
                 data-column-key={columnKey}
                 data-column-pinned={pinned || "none"}
+                data-column-filtered={isFiltered ? "true" : "false"}
+                data-column-filter-count={filterCount}
                 data-header-menu-open={isMenuOpen ? "true" : "false"}
+                onContextMenu={
+                  canShowMenu
+                    ? (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setOpenColumnKey(columnKey);
+                      }
+                    : undefined
+                }
                 style={{
                   ...stickyStyle,
                   zIndex: isMenuOpen ? 40 : stickyStyle.zIndex,
@@ -276,6 +313,30 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                     >
                       {pinIndicator ?? " "}
                     </span>
+                    {canShowMenu ? (
+                      <span
+                        data-testid={`header-filter-indicator-${columnKey}`}
+                        aria-hidden="true"
+                        style={{
+                          minWidth: 18,
+                          height: 18,
+                          borderRadius: 999,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "0 6px",
+                          background: isFiltered ? "#dbeafe" : "transparent",
+                          color: isFiltered ? "#1d4ed8" : "#cbd5e1",
+                          fontSize: 10,
+                          fontWeight: 800,
+                          border: isFiltered
+                            ? "1px solid rgba(59,130,246,0.22)"
+                            : "1px solid transparent",
+                        }}
+                      >
+                        {isFiltered ? filterCount : " "}
+                      </span>
+                    ) : null}
                     {canShowMenu ? (
                       <button
                         ref={(node) => {

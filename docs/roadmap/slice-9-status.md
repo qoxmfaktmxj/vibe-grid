@@ -38,6 +38,10 @@
   - text filter apply
   - filter clear
   - select filter apply
+- Added filtered-column header state:
+  - per-column filtered data attributes
+  - in-header filter count indicator
+- Added right-click support for header menu open.
 
 ## Validation
 
@@ -48,12 +52,11 @@
 ## Notes
 
 - Slice 9A/9B/9C are now in place at MVP level.
-- Right-click menu open is still deferred.
-- Filtered-column indicator polish is still deferred.
+- Right-click menu open is implemented.
+- Filtered-column indicator polish is implemented at MVP level.
 
 ## Next Candidates
 
-1. filtered-column indicator polish
-2. right-click open support
-3. width reset and hide behavior edge-case coverage
-4. `Slice 8` range selection polish
+1. width reset and hide behavior edge-case coverage
+2. filtered and pinned header visual polish under heavy scroll
+3. `P6` product infrastructure
