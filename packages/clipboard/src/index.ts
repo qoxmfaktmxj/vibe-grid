@@ -1,4 +1,9 @@
 import type { GridActiveCell, VibeGridColumn } from "@vibe-grid/core";
+import {
+  defaultLocale,
+  formatGridMessage,
+  gridMessageKeys,
+} from "@vibe-grid/i18n";
 
 type RowRecord = Record<string, unknown>;
 
@@ -106,7 +111,15 @@ export function createClipboardSchema<Row extends RowRecord>(
       const issues: string[] = [];
 
       if (column.required && isEmptyValue(value)) {
-        issues.push(`${column.header} is required.`);
+        issues.push(
+          formatGridMessage(
+            gridMessageKeys.validationRequired,
+            {
+              columnHeader: column.header,
+            },
+            defaultLocale,
+          ),
+        );
       }
 
       for (const validator of column.validate ?? []) {
@@ -254,7 +267,13 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
           columnKey: column.key,
           input: value,
           messages: [
-            error instanceof Error ? error.message : "Failed to parse clipboard value.",
+            error instanceof Error
+              ? error.message
+              : formatGridMessage(
+                  gridMessageKeys.clipboardParseFailed,
+                  {},
+                  defaultLocale,
+                ),
           ],
         });
         return;

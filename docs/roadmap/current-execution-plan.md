@@ -281,6 +281,10 @@ Status:
   - header menu labels through `@vibe-grid/i18n`
   - header and menu state colors through `@vibe-grid/theme-shadcn`
   - browser regression for persisted hidden columns after reload
+- second-pass productization now also covers:
+  - Grid Lab status message normalization through `@vibe-grid/i18n`
+  - shared clipboard fallback validation copy through `@vibe-grid/i18n`
+  - placeholder-based grid message formatting
 
 Work items:
 

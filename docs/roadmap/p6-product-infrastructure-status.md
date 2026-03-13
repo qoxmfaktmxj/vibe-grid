@@ -11,6 +11,12 @@
 - Connected header and menu visual states to shared theme tokens.
 - Added browser regression coverage for persisted column visibility after reload.
 
+## Completed in the second pass
+
+- Normalized Grid Lab status copy through `@vibe-grid/i18n`.
+- Normalized shared clipboard fallback validation messages through `@vibe-grid/i18n`.
+- Added a shared message formatter for placeholder-based status and validation text.
+
 ## Validation
 
 - `npm run lint`
@@ -19,18 +25,18 @@
 
 ## Notes
 
-- P6 is started, not complete.
+- P6 is in progress, not complete.
 - This pass productizes the first visible edges:
   - persistence
   - menu labels
   - header/menu theme tokens
+-  - Grid Lab status and clipboard fallback messages
 - Remaining P6 work still includes:
-  - broader status/error message normalization
   - wider token adoption outside header/menu surfaces
   - locale strategy beyond the default catalog
 
 ## Next Candidates
 
-1. normalize Grid Lab status and validation copy through `@vibe-grid/i18n`
-2. expand persistence from column state to wider view preferences if needed
-3. continue token extraction for body, badges, and side panels
+1. expand persistence from column state to wider view preferences if needed
+2. continue token extraction for body, badges, and side panels
+3. move broader validation and lab copy into the shared catalog where it still leaks

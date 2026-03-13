@@ -53,6 +53,12 @@ import type {
   ClipboardSkipReason,
   ClipboardValidationError,
 } from "@vibe-grid/clipboard";
+import {
+  defaultLocale,
+  formatGridMessage,
+  gridMessageKeys,
+  type GridMessageValues,
+} from "@vibe-grid/i18n";
 import { VibeGrid } from "@vibe-grid/react";
 import {
   createBrowserGridPreferenceAdapter,
@@ -173,6 +179,13 @@ const gridPreferenceScope: GridPreferenceScope = {
   gridId: "grid-lab",
 };
 
+function getStatusMessage(
+  key: keyof typeof gridMessageKeys,
+  values?: GridMessageValues,
+) {
+  return formatGridMessage(gridMessageKeys[key], values, defaultLocale);
+}
+
 export function PlaygroundWorkbench() {
   const importInputId = useId();
   const [rows, setRows] = useState(initialRows);
@@ -184,7 +197,7 @@ export function PlaygroundWorkbench() {
     useState<SaveBundle<PlaygroundRow> | null>(null);
   const [pasteText, setPasteText] = useState("");
   const [statusMessage, setStatusMessage] = useState(
-    "Grid Lab에서 조회, 입력, 저장, 엑셀, 붙여넣기, 컬럼 상태를 함께 검증할 수 있습니다.",
+    getStatusMessage("statusGridLabReady"),
   );
   const [pasteSummary, setPasteSummary] = useState<PasteSummary | null>(null);
   const [pasteRowOverflowPolicy, setPasteRowOverflowPolicy] =
@@ -207,7 +220,7 @@ export function PlaygroundWorkbench() {
     createGridColumnState(playgroundColumns),
   );
 
-  const commands = createDefaultCommandRegistry("ko-KR");
+  const commands = createDefaultCommandRegistry(defaultLocale);
   const activeRowKey = selectionState.activeRowId;
   const activeRow =
     rows.find((row) => row.meta.rowKey === activeRowKey) ??
@@ -352,13 +365,19 @@ export function PlaygroundWorkbench() {
       });
       commitRows(nextRows, createDefaultSelection(nextRows));
       setStatusMessage(
-        `${reason}: 서버에서 ${result.rows.length}건을 불러왔습니다. 전체 ${result.totalCount}건, ${result.pageIndex + 1}/${result.pageCount} 페이지입니다.`,
+        getStatusMessage("statusLoadSuccess", {
+          reason,
+          rowCount: result.rows.length,
+          totalCount: result.totalCount,
+          pageNumber: result.pageIndex + 1,
+          pageCount: result.pageCount,
+        }),
       );
     } catch (error) {
       setStatusMessage(
-        `서버 조회에 실패했습니다. ${
-          error instanceof Error ? error.message : "알 수 없는 오류"
-        }`,
+        getStatusMessage("statusLoadError", {
+          error: error instanceof Error ? error.message : "알 수 없는 오류",
+        }),
       );
     } finally {
       setIsFetching(false);
@@ -399,30 +418,25 @@ export function PlaygroundWorkbench() {
 
     if (plan.appliedCellCount === 0 && plan.validationErrors.length === 0) {
       const firstReason = plan.skippedCells[0]?.reason;
-      setStatusMessage(
-        firstReason === "missingAnchorColumn"
-          ? "먼저 그리드에서 시작 셀을 선택해 주세요."
-          : firstReason === "missingAnchorRow"
-            ? "선택된 행이 없어 데이터를 적용할 수 없습니다."
-            : "적용 가능한 데이터가 없습니다.",
-      );
       if (firstReason === "missingAnchorColumn") {
-        setStatusMessage("Select a starting cell before applying pasted data.");
+        setStatusMessage(getStatusMessage("statusMissingAnchorCell"));
       } else if (firstReason === "missingAnchorRow") {
-        setStatusMessage("There is no selected row to receive pasted data.");
+        setStatusMessage(getStatusMessage("statusMissingAnchorRow"));
       } else if (firstReason === "rowOverflow" && plan.rowOverflowPolicy === "reject") {
-        setStatusMessage(
-          "Paste stopped at the loaded row boundary because the row overflow policy is set to reject.",
-        );
+        setStatusMessage(getStatusMessage("statusRowOverflowRejected"));
       } else {
-        setStatusMessage("There was no applicable clipboard data to apply.");
+        setStatusMessage(getStatusMessage("statusNoApplicableClipboardData"));
       }
       return;
     }
 
     if (plan.validationErrors.length > 0 && plan.appliedCellCount === 0) {
       setStatusMessage(
-        `${sourceLabel}: validation ${plan.validationErrors.length}, skipped ${plan.skippedCells.length}`,
+        getStatusMessage("statusPasteValidationOnly", {
+          sourceLabel,
+          validationCount: plan.validationErrors.length,
+          skippedCount: plan.skippedCells.length,
+        }),
       );
       return;
     }
@@ -446,13 +460,14 @@ export function PlaygroundWorkbench() {
     );
 
     commitRows([...nextRows, ...appendedRows]);
-    queueMicrotask(() => {
-      setStatusMessage(
-        `${sourceLabel}: applied ${plan.appliedCellCount} cells, appended ${plan.appendedRows.length} rows, skipped ${plan.skippedCells.length} cells (policy: ${plan.rowOverflowPolicy}).`,
-      );
-    });
     setStatusMessage(
-      `${sourceLabel}: ${plan.appliedCellCount}개 셀 반영, 신규 ${plan.appendedRows.length}행 추가, 건너뜀 ${plan.skippedCells.length}건`,
+      getStatusMessage("statusPasteApplied", {
+        sourceLabel,
+        appliedCellCount: plan.appliedCellCount,
+        appendedRowCount: plan.appendedRows.length,
+        skippedCount: plan.skippedCells.length,
+        rowOverflowPolicy: plan.rowOverflowPolicy,
+      }),
     );
   }
 
@@ -482,7 +497,7 @@ export function PlaygroundWorkbench() {
         },
       }),
     );
-    setStatusMessage("신규 행을 추가했습니다. 현재 페이지의 로컬 작업 상태입니다.");
+    setStatusMessage(getStatusMessage("statusInsertRowAdded"));
   }
 
   function handleCopyRow() {
@@ -490,7 +505,7 @@ export function PlaygroundWorkbench() {
     const sourceRow = rows.find((row) => row.meta.rowKey === sourceRowKey);
 
     if (!sourceRow) {
-      setStatusMessage("복사할 행을 먼저 선택해 주세요.");
+      setStatusMessage(getStatusMessage("statusCopyRowMissingSelection"));
       return;
     }
 
@@ -530,14 +545,14 @@ export function PlaygroundWorkbench() {
         },
       }),
     );
-    setStatusMessage("선택한 행을 복사했습니다.");
+    setStatusMessage(getStatusMessage("statusCopyRowSuccess"));
   }
 
   function handleToggleDelete() {
     const targetRowIds = [...selectionState.selectedRowIds];
 
     if (targetRowIds.length === 0) {
-      setStatusMessage("삭제 토글할 행을 먼저 선택해 주세요.");
+      setStatusMessage(getStatusMessage("statusToggleDeleteMissingSelection"));
       return;
     }
 
@@ -552,12 +567,16 @@ export function PlaygroundWorkbench() {
 
     setEditSession(null);
     commitRows(nextRows);
-    setStatusMessage(`${targetRowIds.length}개 행의 삭제 토글 상태를 바꿨습니다.`);
+    setStatusMessage(
+      getStatusMessage("statusToggleDeleteSuccess", {
+        rowCount: targetRowIds.length,
+      }),
+    );
   }
 
   function handleSave() {
     if (hasValidationIssues(rows)) {
-      setStatusMessage("검증 오류가 남아 있어 저장할 수 없습니다.");
+      setStatusMessage(getStatusMessage("statusSaveBlockedValidation"));
       return;
     }
 
@@ -568,7 +587,11 @@ export function PlaygroundWorkbench() {
     setEditSession(null);
     commitRows(nextRows, createDefaultSelection(nextRows));
     setStatusMessage(
-      `저장 번들을 만들었습니다. 입력 ${bundle.inserted.length}건, 수정 ${bundle.updated.length}건, 삭제 ${bundle.deleted.length}건`,
+      getStatusMessage("statusSaveSummary", {
+        insertedCount: bundle.inserted.length,
+        updatedCount: bundle.updated.length,
+        deletedCount: bundle.deleted.length,
+      }),
     );
   }
 
@@ -650,7 +673,7 @@ export function PlaygroundWorkbench() {
     });
 
     triggerDownload("vibe-grid-rows.xlsx", buffer as ArrayBuffer);
-    setStatusMessage("현재 그리드 데이터를 엑셀로 내보냈습니다.");
+    setStatusMessage(getStatusMessage("statusExportExcelSuccess"));
   }
 
   async function handleDownloadTemplate() {
@@ -661,7 +684,7 @@ export function PlaygroundWorkbench() {
     });
 
     triggerDownload("vibe-grid-template.xlsx", buffer as ArrayBuffer);
-    setStatusMessage("엑셀 양식을 다운로드했습니다.");
+    setStatusMessage(getStatusMessage("statusDownloadTemplateSuccess"));
   }
 
   function handleImportExcel() {
@@ -675,11 +698,9 @@ export function PlaygroundWorkbench() {
     try {
       const nextText = await navigator.clipboard.readText();
       setPasteText(nextText);
-      setStatusMessage("클립보드 내용을 가져왔습니다. 적용 버튼으로 반영해 주세요.");
+      setStatusMessage(getStatusMessage("statusClipboardReadSuccess"));
     } catch {
-      setStatusMessage(
-        "클립보드 권한이 없어 자동으로 읽지 못했습니다. 아래 영역에 직접 붙여넣어 주세요.",
-      );
+      setStatusMessage(getStatusMessage("statusClipboardReadDenied"));
     }
   }
 
@@ -699,8 +720,13 @@ export function PlaygroundWorkbench() {
     setPasteText(preview.text);
     setStatusMessage(
       preview.ok
-        ? `엑셀 미리보기 완료: ${preview.rows.length}행을 읽었습니다.`
-        : `엑셀 헤더 불일치: 누락 ${preview.missingHeaders.join(", ") || "-"}, 알 수 없는 헤더 ${preview.unknownHeaders.join(", ") || "-"}`,
+        ? getStatusMessage("statusImportPreviewSuccess", {
+            rowCount: preview.rows.length,
+          })
+        : getStatusMessage("statusImportPreviewHeaderMismatch", {
+            missingHeaders: preview.missingHeaders.join(", ") || "-",
+            unknownHeaders: preview.unknownHeaders.join(", ") || "-",
+          }),
     );
 
     event.target.value = "";
@@ -716,7 +742,7 @@ export function PlaygroundWorkbench() {
     }
 
     if (!importPreview.ok) {
-      setStatusMessage("헤더가 맞지 않아 업로드를 적용할 수 없습니다.");
+      setStatusMessage(getStatusMessage("statusImportApplyBlockedHeader"));
       return;
     }
 
