@@ -22,15 +22,12 @@ It is based on:
 
 ### Partially Implemented
 
-- `Slice 8` now has drag range, keyboard range, range copy, and invalid paste summary regression coverage.
-- Range overflow / append policy still needs a final product decision.
 - `P5` now has a real `VibeGrid` performance lab with row virtualization wired into the actual render path.
 
 ### Not Product-Complete Yet
 
 - filtered-column indicator polish
 - right-click header menu open
-- range overflow / append policy finalization
 - real-grid performance verification under combined features
 - persistence adapter productization
 - theme / i18n productization
@@ -205,9 +202,9 @@ Validation:
 
 Status:
 
-- in progress on `2026-03-13`
-- drag range, keyboard range, range summary, range copy, and invalid paste summary are implemented
-- overflow / append behavior still needs a final product decision before P4 can be called complete
+- completed on `2026-03-13`
+- drag range, keyboard range, range summary, range copy, invalid paste summary, and overflow policy behavior are implemented
+- default row overflow policy is now `reject`, with explicit `append` opt-in in Grid Lab
 
 Why here:
 
@@ -229,6 +226,7 @@ Acceptance:
 - copy exports only the selected rectangle
 - paste updates only the target rectangle
 - invalid cells produce visible summary feedback
+- row overflow behavior is explicit and regression-tested
 
 Validation:
 
@@ -322,9 +320,9 @@ Do not prioritize these until the earlier items move:
 
 If work continues immediately, execute in this order:
 
-1. `P4` drag-range stabilization in a real browser loop
-2. `P5` combined-feature performance validation and policy cleanup
-3. `P6` product infrastructure
+1. `P5` combined-feature performance validation
+2. `P6` product infrastructure
+3. `P7` test and release hardening
 
 That order keeps the next work focused on business-facing UX now that the runtime split is in place.
 

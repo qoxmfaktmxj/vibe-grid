@@ -49,6 +49,7 @@ import {
   type SaveBundle,
 } from "@vibe-grid/core";
 import type {
+  ClipboardRowOverflowPolicy,
   ClipboardSkipReason,
   ClipboardValidationError,
 } from "@vibe-grid/clipboard";
@@ -82,6 +83,8 @@ type FilterDraft = {
 
 type PasteSummary = {
   sourceLabel: string;
+  rowOverflowPolicy: ClipboardRowOverflowPolicy;
+  rowOverflowCellCount: number;
   appliedCellCount: number;
   appendedRowCount: number;
   skippedCounts: Record<ClipboardSkipReason, number>;
@@ -175,6 +178,8 @@ export function PlaygroundWorkbench() {
     "Grid Lab에서 조회, 입력, 저장, 엑셀, 붙여넣기, 컬럼 상태를 함께 검증할 수 있습니다.",
   );
   const [pasteSummary, setPasteSummary] = useState<PasteSummary | null>(null);
+  const [pasteRowOverflowPolicy, setPasteRowOverflowPolicy] =
+    useState<ClipboardRowOverflowPolicy>("reject");
   const [importPreview, setImportPreview] =
     useState<GridExcelImportPreview<PlaygroundRow> | null>(null);
   const [query, setQuery] = useState<GridQuery>(initialServerResult.query);
@@ -356,13 +361,15 @@ export function PlaygroundWorkbench() {
         rowOrder,
         visibleClipboardColumns.map((column) => column.key),
       ),
-      allowAppendRows: true,
+      rowOverflowPolicy: pasteRowOverflowPolicy,
       rowsByKey: new Map(rows.map((row) => [row.meta.rowKey, row.row])),
       createAppendedRow: (absoluteRowIndex) => createBlankRow(absoluteRowIndex + 1),
     });
 
     setPasteSummary({
       sourceLabel,
+      rowOverflowPolicy: plan.rowOverflowPolicy,
+      rowOverflowCellCount: plan.rowOverflowCellCount,
       appliedCellCount: plan.appliedCellCount,
       appendedRowCount: plan.appendedRows.length,
       skippedCounts: plan.skippedCells.reduce(
@@ -384,6 +391,17 @@ export function PlaygroundWorkbench() {
             ? "선택된 행이 없어 데이터를 적용할 수 없습니다."
             : "적용 가능한 데이터가 없습니다.",
       );
+      if (firstReason === "missingAnchorColumn") {
+        setStatusMessage("Select a starting cell before applying pasted data.");
+      } else if (firstReason === "missingAnchorRow") {
+        setStatusMessage("There is no selected row to receive pasted data.");
+      } else if (firstReason === "rowOverflow" && plan.rowOverflowPolicy === "reject") {
+        setStatusMessage(
+          "Paste stopped at the loaded row boundary because the row overflow policy is set to reject.",
+        );
+      } else {
+        setStatusMessage("There was no applicable clipboard data to apply.");
+      }
       return;
     }
 
@@ -413,6 +431,11 @@ export function PlaygroundWorkbench() {
     );
 
     commitRows([...nextRows, ...appendedRows]);
+    queueMicrotask(() => {
+      setStatusMessage(
+        `${sourceLabel}: applied ${plan.appliedCellCount} cells, appended ${plan.appendedRows.length} rows, skipped ${plan.skippedCells.length} cells (policy: ${plan.rowOverflowPolicy}).`,
+      );
+    });
     setStatusMessage(
       `${sourceLabel}: ${plan.appliedCellCount}개 셀 반영, 신규 ${plan.appendedRows.length}행 추가, 건너뜀 ${plan.skippedCells.length}건`,
     );
@@ -1142,6 +1165,22 @@ export function PlaygroundWorkbench() {
             </div>
 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <label style={{ ...fieldLabelStyle, minWidth: 280 }}>
+                Paste row overflow
+                <select
+                  data-testid="paste-row-overflow-policy"
+                  value={pasteRowOverflowPolicy}
+                  onChange={(event) =>
+                    setPasteRowOverflowPolicy(
+                      event.target.value as ClipboardRowOverflowPolicy,
+                    )
+                  }
+                  style={compactInputStyle}
+                >
+                  <option value="reject">Reject rows beyond the loaded range</option>
+                  <option value="append">Append new rows when overflow happens</option>
+                </select>
+              </label>
               <button
                 type="button"
                 data-testid="clipboard-read"
@@ -1253,10 +1292,24 @@ export function PlaygroundWorkbench() {
             >
               {pasteSummary ? (
                 <>
-                  <div>source: {pasteSummary.sourceLabel}</div>
-                  <div>applied: {pasteSummary.appliedCellCount}</div>
-                  <div>appended rows: {pasteSummary.appendedRowCount}</div>
-                  <div>validation errors: {pasteSummary.validationErrors.length}</div>
+                  <div data-testid="paste-summary-source">
+                    source: {pasteSummary.sourceLabel}
+                  </div>
+                  <div data-testid="paste-summary-policy">
+                    row overflow policy: {pasteSummary.rowOverflowPolicy}
+                  </div>
+                  <div data-testid="paste-summary-applied">
+                    applied: {pasteSummary.appliedCellCount}
+                  </div>
+                  <div data-testid="paste-summary-appended">
+                    appended rows: {pasteSummary.appendedRowCount}
+                  </div>
+                  <div data-testid="paste-summary-row-overflow">
+                    row overflow cells: {pasteSummary.rowOverflowCellCount}
+                  </div>
+                  <div data-testid="paste-summary-validation">
+                    validation errors: {pasteSummary.validationErrors.length}
+                  </div>
                   <div>
                     skipped:{" "}
                     {Object.entries(pasteSummary.skippedCounts)

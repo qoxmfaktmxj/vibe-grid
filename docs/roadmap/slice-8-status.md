@@ -27,9 +27,15 @@
 - Added paste summary surface with:
   - applied cell count
   - appended row count
+  - explicit row overflow policy
+  - explicit row overflow cell count
   - skipped-cell counts
   - validation error summary
 - Added clipboard validation-aware planning so invalid cells are skipped and reported.
+- Finalized row overflow policy behavior:
+  - default policy is `reject`
+  - labs can opt into `append`
+  - overflow cells are counted and reported in the paste summary
 - Added Playwright browser coverage for:
   - drag range selection
   - `Shift + Arrow` range selection
@@ -45,13 +51,11 @@
 ## Notes
 
 - Slice 8 is no longer foundation-only.
-- Drag range selection, keyboard range selection, range-aware copy, and invalid paste summaries are implemented and regression-tested.
+- Drag range selection, keyboard range selection, range-aware copy, invalid paste summaries, and overflow policy behavior are implemented and regression-tested.
 - Slice 8 is now at product-usable level for selection and clipboard behavior.
-- The remaining open item is policy work: overflow/append behavior should be finalized before we call the range pipeline fully closed.
 
 ## Next Candidates
 
-1. finalize overflow / append policy for range paste
-2. continue performance verification under combined pinning + range states
-3. decide when row virtualization enters the actual `VibeGrid` path
-4. extend copy / paste regression to wider filtered and pinned states
+1. continue performance verification under combined pinning + range states
+2. extend copy / paste regression to wider filtered and pinned states
+3. productize persistence / theme / i18n surfaces around the finished clipboard path

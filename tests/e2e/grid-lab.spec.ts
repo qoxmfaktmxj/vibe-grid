@@ -4,36 +4,49 @@ test.describe("Grid Lab", () => {
   test("runs the core row workflow", async ({ page }) => {
     await page.goto("/labs/grid");
 
-    await expect(page.getByTestId("status-panel")).toBeVisible();
+    const grid = page.getByTestId("vibe-grid");
+    const initialRowCount = Number(
+      (await grid.getAttribute("data-total-row-count")) ?? "0",
+    );
 
     await page.getByTestId("command-insert").click();
-    await expect(page.getByTestId("status-panel")).toContainText(/입력|신규/);
+    await expect(grid).toHaveAttribute(
+      "data-total-row-count",
+      String(initialRowCount + 1),
+    );
 
     await page.getByTestId("command-copyRow").click();
-    await expect(page.getByTestId("status-panel")).toContainText(/복사/);
+    await expect(grid).toHaveAttribute(
+      "data-total-row-count",
+      String(initialRowCount + 2),
+    );
 
     await page.getByTestId("command-save").click();
     await expect(page.getByTestId("save-bundle-preview")).toContainText("inserted");
   });
 
-  test("applies server filtering and paste flow", async ({ page }) => {
+  test("applies append paste flow at the loaded row boundary", async ({ page }) => {
     await page.goto("/labs/grid");
 
-    await page.getByTestId("filter-keyword").fill("HR-001");
-    await page.getByTestId("server-search").click();
-    await expect(page.getByTestId("status-panel")).toContainText(/서버|조건 조회/);
-
+    await page.getByTestId("grid-cell-HR-012-sampleCode").click();
+    await page.getByTestId("paste-row-overflow-policy").selectOption("append");
     await page
       .getByTestId("paste-textarea")
       .fill(
         [
-          "HR-901\t테스트행\t인사운영팀\t사원\tY\t901\t자동테스트",
-          "HR-902\t테스트행2\t평가보상팀\t책임\tN\t902\t붙여넣기",
+          "HR-901\tAlpha\tPeople Ops\tStaff\tY\t901\tAppend row one",
+          "HR-902\tBeta\tRewards\tLead\tN\t902\tAppend row two",
         ].join("\n"),
       );
     await page.getByTestId("paste-apply").click();
 
-    await expect(page.getByTestId("status-panel")).toContainText(/붙여넣기|반영/);
+    await expect(page.getByTestId("paste-summary-policy")).toContainText("append");
+    await expect(page.getByTestId("paste-summary-appended")).toContainText(
+      "appended rows: 1",
+    );
+    await expect(page.getByTestId("paste-summary-row-overflow")).toContainText(
+      "row overflow cells: 0",
+    );
   });
 
   test("applies and clears the in-grid filter row", async ({ page }) => {
@@ -79,7 +92,9 @@ test.describe("Grid Lab", () => {
     await page.getByTestId("paste-textarea").fill("abc");
     await page.getByTestId("paste-apply").click();
 
-    await expect(page.getByTestId("paste-summary")).toContainText("validation errors: 1");
+    await expect(page.getByTestId("paste-summary-validation")).toContainText(
+      "validation errors: 1",
+    );
     await expect(page.getByTestId("paste-summary")).toContainText("sortOrder");
     await expect(page.getByTestId("grid-cell-HR-001-sortOrder")).toHaveText("1");
   });
@@ -134,5 +149,29 @@ test.describe("Grid Lab", () => {
     expect(copiedText.split("\n").every((row) => row.split("\t").length === 2)).toBeTruthy();
     expect(copiedText).toContain("HR-001");
     expect(copiedText).toContain("HR-002");
+  });
+
+  test("rejects overflow rows when the policy is reject", async ({ page }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-012-sampleCode").click();
+    await page.getByTestId("paste-row-overflow-policy").selectOption("reject");
+    await page
+      .getByTestId("paste-textarea")
+      .fill(
+        [
+          "HR-901\tAlpha\tPeople Ops\tStaff\tY\t901\tOverflow one",
+          "HR-902\tBeta\tRewards\tLead\tN\t902\tOverflow two",
+        ].join("\n"),
+      );
+    await page.getByTestId("paste-apply").click();
+
+    await expect(page.getByTestId("paste-summary-policy")).toContainText("reject");
+    await expect(page.getByTestId("paste-summary-appended")).toContainText(
+      "appended rows: 0",
+    );
+    await expect(page.getByTestId("paste-summary-row-overflow")).toContainText(
+      "row overflow cells: 7",
+    );
   });
 });

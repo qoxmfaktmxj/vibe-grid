@@ -103,7 +103,7 @@ Recommended default row overflow policy:
 
 - visible loaded rows first
 - if pasted range exceeds bottom:
-  - append rows only when `allowAppendRows` is enabled
+  - append rows only when `rowOverflowPolicy: "append"` is enabled
   - otherwise reject overflow cells and report them
 
 ## Proposed Core Contract Changes
