@@ -273,6 +273,15 @@ Acceptance:
 
 This is the next layer after pilot-readiness.
 
+Status:
+
+- in progress on `2026-03-13`
+- first-pass productization now covers:
+  - scoped column-state persistence adapter
+  - header menu labels through `@vibe-grid/i18n`
+  - header and menu state colors through `@vibe-grid/theme-shadcn`
+  - browser regression for persisted hidden columns after reload
+
 Work items:
 
 - persistence adapter

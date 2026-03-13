@@ -55,6 +55,10 @@ import type {
 } from "@vibe-grid/clipboard";
 import { VibeGrid } from "@vibe-grid/react";
 import {
+  createBrowserGridPreferenceAdapter,
+  type GridPreferenceScope,
+} from "@vibe-grid/persistence";
+import {
   buildGridLabServerResult,
   buildGridQuerySearchParams,
   createBlankRow,
@@ -163,6 +167,11 @@ function triggerDownload(filename: string, buffer: ArrayBuffer) {
 }
 
 const initialRows = createLoadedRows(initialServerResult.rows);
+const gridPreferenceScope: GridPreferenceScope = {
+  appId: "playground",
+  userId: "demo-admin",
+  gridId: "grid-lab",
+};
 
 export function PlaygroundWorkbench() {
   const importInputId = useId();
@@ -256,28 +265,34 @@ export function PlaygroundWorkbench() {
       }),
     [columnState],
   );
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem("vibe-grid:playground:columns");
-      if (!raw) {
-        return;
-      }
-
-      setColumnState(
-        sanitizeGridColumnState(playgroundColumns, JSON.parse(raw) as GridColumnState),
-      );
-    } catch {
-      // ignore invalid local prefs in the lab
+  const gridPreferenceAdapter = useMemo(() => {
+    if (typeof window === "undefined") {
+      return null;
     }
+
+    return createBrowserGridPreferenceAdapter(window.localStorage);
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      "vibe-grid:playground:columns",
-      JSON.stringify(columnState),
-    );
-  }, [columnState]);
+    if (!gridPreferenceAdapter) {
+      return;
+    }
+
+    const savedColumnState = gridPreferenceAdapter.getColumnState(gridPreferenceScope);
+    if (!savedColumnState) {
+      return;
+    }
+
+    setColumnState(sanitizeGridColumnState(playgroundColumns, savedColumnState));
+  }, [gridPreferenceAdapter]);
+
+  useEffect(() => {
+    if (!gridPreferenceAdapter) {
+      return;
+    }
+
+    gridPreferenceAdapter.setColumnState(gridPreferenceScope, columnState);
+  }, [columnState, gridPreferenceAdapter]);
 
   useEffect(() => {
     const keywordFilter = query.filters.find((filter) => filter.field === "keyword");

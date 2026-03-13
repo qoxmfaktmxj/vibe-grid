@@ -1,6 +1,8 @@
 import type { GridFilter } from "@vibe-grid/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flexRender, type Table } from "@tanstack/react-table";
+import { defaultLocale, getGridMessage, gridMessageKeys } from "@vibe-grid/i18n";
+import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import {
   VibeGridHeaderMenu,
   type GridHeaderMenuAction,
@@ -141,30 +143,57 @@ export function VibeGridTableHeader<Row extends RowRecord>({
             const filterCount = getColumnFilterCount(columnKey, filters);
             const isFiltered = filterCount > 0;
             const background = isMenuOpen
-              ? "#eef6ff"
+              ? vibeGridThemeTokens.header.menuOpenBackground
               : pinned
-                ? "#f0fdfa"
+                ? vibeGridThemeTokens.header.pinnedBackground
                 : isFiltered
-                  ? "#f5fbff"
-                : sorted
-                  ? "#f8fffd"
-                  : "#f8fafc";
+                  ? vibeGridThemeTokens.header.filteredBackground
+                  : sorted
+                    ? vibeGridThemeTokens.header.sortedBackground
+                    : vibeGridThemeTokens.header.idleBackground;
             const stickyStyle = getStickyCellStyle(headerColumn, background, true);
 
             const menuItems: MenuActionItem[] = columnKey
               ? [
-                  { id: "sortAsc", label: "Sort ascending", disabled: !canSort },
-                  { id: "sortDesc", label: "Sort descending", disabled: !canSort },
-                  { id: "clearSort", label: "Clear sort", disabled: !sorted },
-                  { id: "pinLeft", label: "Pin left", disabled: pinned === "left" },
-                  { id: "pinRight", label: "Pin right", disabled: pinned === "right" },
-                  { id: "unpin", label: "Unpin", disabled: !pinned },
+                  {
+                    id: "sortAsc",
+                    label: getGridMessage(gridMessageKeys.headerMenuSortAsc, defaultLocale),
+                    disabled: !canSort,
+                  },
+                  {
+                    id: "sortDesc",
+                    label: getGridMessage(gridMessageKeys.headerMenuSortDesc, defaultLocale),
+                    disabled: !canSort,
+                  },
+                  {
+                    id: "clearSort",
+                    label: getGridMessage(gridMessageKeys.headerMenuClearSort, defaultLocale),
+                    disabled: !sorted,
+                  },
+                  {
+                    id: "pinLeft",
+                    label: getGridMessage(gridMessageKeys.headerMenuPinLeft, defaultLocale),
+                    disabled: pinned === "left",
+                  },
+                  {
+                    id: "pinRight",
+                    label: getGridMessage(gridMessageKeys.headerMenuPinRight, defaultLocale),
+                    disabled: pinned === "right",
+                  },
+                  {
+                    id: "unpin",
+                    label: getGridMessage(gridMessageKeys.headerMenuUnpin, defaultLocale),
+                    disabled: !pinned,
+                  },
                   {
                     id: "hide",
-                    label: "Hide column",
+                    label: getGridMessage(gridMessageKeys.headerMenuHide, defaultLocale),
                     disabled: visibleBusinessColumnCount <= 1,
                   },
-                  { id: "resetWidth", label: "Reset width" },
+                  {
+                    id: "resetWidth",
+                    label: getGridMessage(gridMessageKeys.headerMenuResetWidth, defaultLocale),
+                  },
                 ]
               : [];
 
@@ -237,8 +266,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                   ...stickyStyle,
                   zIndex: isMenuOpen ? 40 : stickyStyle.zIndex,
                   overflow: "visible",
-                  borderBottom: "1px solid #d9e4f1",
-                  color: "#0f172a",
+                  borderBottom: `1px solid ${vibeGridThemeTokens.header.borderColor}`,
+                  color: vibeGridThemeTokens.header.textColor,
                   fontSize: 13,
                   fontWeight: 800,
                   padding: "0 16px",
@@ -272,7 +301,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         padding: 0,
                         font: "inherit",
                         fontWeight: 800,
-                        color: "#0f172a",
+                        color: vibeGridThemeTokens.header.textColor,
                         cursor: "pointer",
                       }}
                     >
@@ -296,7 +325,9 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         minWidth: 16,
                         textAlign: "center",
                         fontSize: 11,
-                        color: sorted ? "#0f766e" : "#94a3b8",
+                        color: sorted
+                          ? vibeGridThemeTokens.indicator.sortedText
+                          : vibeGridThemeTokens.indicator.idleText,
                       }}
                     >
                       {getSortIndicator(sorted)}
@@ -308,7 +339,9 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         textAlign: "center",
                         fontSize: 10,
                         fontWeight: 800,
-                        color: pinIndicator ? "#0f766e" : "#cbd5e1",
+                        color: pinIndicator
+                          ? vibeGridThemeTokens.indicator.pinnedText
+                          : vibeGridThemeTokens.indicator.idleText,
                       }}
                     >
                       {pinIndicator ?? " "}
@@ -325,12 +358,16 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                           alignItems: "center",
                           justifyContent: "center",
                           padding: "0 6px",
-                          background: isFiltered ? "#dbeafe" : "transparent",
-                          color: isFiltered ? "#1d4ed8" : "#cbd5e1",
+                          background: isFiltered
+                            ? vibeGridThemeTokens.indicator.filteredBackground
+                            : "transparent",
+                          color: isFiltered
+                            ? vibeGridThemeTokens.indicator.filteredText
+                            : vibeGridThemeTokens.indicator.idleText,
                           fontSize: 10,
                           fontWeight: 800,
                           border: isFiltered
-                            ? "1px solid rgba(59,130,246,0.22)"
+                            ? `1px solid ${vibeGridThemeTokens.indicator.filteredBorder}`
                             : "1px solid transparent",
                         }}
                       >
@@ -360,10 +397,12 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                           height: 28,
                           borderRadius: 10,
                           border: isMenuOpen
-                            ? "1px solid rgba(14,165,233,0.3)"
-                            : "1px solid rgba(203, 213, 225, 0.8)",
-                          background: isMenuOpen ? "#eff6ff" : "rgba(255,255,255,0.92)",
-                          color: "#334155",
+                            ? vibeGridThemeTokens.menu.triggerOpenBorder
+                            : vibeGridThemeTokens.menu.triggerIdleBorder,
+                          background: isMenuOpen
+                            ? vibeGridThemeTokens.menu.triggerOpenBackground
+                            : vibeGridThemeTokens.menu.triggerIdleBackground,
+                          color: vibeGridThemeTokens.menu.textColor,
                           fontSize: 12,
                           fontWeight: 800,
                           cursor: "pointer",

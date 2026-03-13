@@ -44,5 +44,8 @@ test.describe("Grid Header Menu", () => {
     await page.getByTestId("header-menu-trigger-note").click();
     await page.getByTestId("header-menu-action-note-hide").click();
     await expect(page.getByTestId("header-cell-note")).toHaveCount(0);
+
+    await page.reload();
+    await expect(page.getByTestId("header-cell-note")).toHaveCount(0);
   });
 });

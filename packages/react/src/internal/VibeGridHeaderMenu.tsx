@@ -1,4 +1,6 @@
 import type { CSSProperties } from "react";
+import { defaultLocale, getGridMessage, gridMessageKeys } from "@vibe-grid/i18n";
+import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 
 export type GridHeaderMenuAction =
   | "sortAsc"
@@ -29,9 +31,9 @@ const menuStyle: CSSProperties = {
   minWidth: 180,
   padding: 8,
   borderRadius: 16,
-  border: "1px solid rgba(148, 163, 184, 0.28)",
-  background: "rgba(255,255,255,0.98)",
-  boxShadow: "0 18px 36px rgba(15, 23, 42, 0.16)",
+  border: `1px solid ${vibeGridThemeTokens.menu.borderColor}`,
+  background: vibeGridThemeTokens.menu.background,
+  boxShadow: vibeGridThemeTokens.menu.shadow,
   backdropFilter: "blur(10px)",
   zIndex: 30,
 };
@@ -46,7 +48,7 @@ const menuItemStyle: CSSProperties = {
   font: "inherit",
   fontSize: 13,
   fontWeight: 700,
-  color: "#0f172a",
+  color: vibeGridThemeTokens.header.textColor,
   cursor: "pointer",
 };
 
@@ -64,7 +66,7 @@ export function VibeGridHeaderMenu({
   return (
     <div
       role="menu"
-      aria-label={`${columnKey} header menu`}
+      aria-label={`${columnKey} ${getGridMessage(gridMessageKeys.headerMenuAriaLabel, defaultLocale)}`}
       data-testid={`header-menu-${columnKey}`}
       style={menuStyle}
     >
