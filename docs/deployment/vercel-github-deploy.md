@@ -2,7 +2,7 @@
 
 ## Recommended target
 
-- GitHub owner: `minseok91`
+- GitHub owner: `qoxmfaktmxj`
 - Repository: `vibe-grid`
 - Vercel app root: `apps/playground`
 - Public domain: `grid.minseok91.cloud`
@@ -10,9 +10,10 @@
 ## Current local status
 
 - Local git repo exists
-- No remote is configured yet
-- `gh` is installed but not logged in
-- `vercel` CLI is not installed locally yet
+- Git remote is configured as `origin`
+- Current remote: `https://github.com/qoxmfaktmxj/vibe-grid.git`
+- Vercel deployment is already connected
+- Current public domain is `grid.minseok91.cloud`
 - The deployable app is `apps/playground`
 
 ## Why deploy `apps/playground`
@@ -25,7 +26,7 @@
 
 This lets one Vercel project cover both stakeholder demos and technical regression checks.
 
-## Step 1. Create and push the GitHub repository
+## Step 1. Create or connect the GitHub repository
 
 Authenticate once:
 
@@ -33,10 +34,10 @@ Authenticate once:
 gh auth login
 ```
 
-Create the remote repository from the repo root:
+If you need to create the repository from the repo root:
 
 ```bash
-gh repo create minseok91/vibe-grid --private --source=. --remote=origin
+gh repo create qoxmfaktmxj/vibe-grid --private --source=. --remote=origin
 ```
 
 Then push:
@@ -54,7 +55,7 @@ If you prefer a public repository, replace `--private` with `--public`.
 Recommended path: use the Vercel dashboard Git import flow.
 
 1. Open Vercel and choose **Add New > Project**
-2. Select the `minseok91/vibe-grid` repository
+2. Select the `qoxmfaktmxj/vibe-grid` repository
 3. Set **Root Directory** to `apps/playground`
 4. In the Root Directory settings, enable **Include source files outside of the Root Directory in the Build Step**
 5. Keep the detected package manager from the monorepo root

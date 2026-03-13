@@ -78,7 +78,7 @@ Required:
 
 Why first:
 
-- current docs still mix `minseok91/vibe-grid` and `qoxmfaktmxj/vibe-grid`
+- repo, deployment, and slice metadata must stay aligned with the current workspace state
 - roadmap and deployment metadata should not drift before more contributors touch the repo
 
 Tasks:

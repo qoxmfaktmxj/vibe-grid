@@ -78,7 +78,7 @@ Here, Playwright validation means real browser click and event verification, inc
 
 ## Deployment shape
 
-- Git repository target: `minseok91/vibe-grid`
+- Git repository target: `qoxmfaktmxj/vibe-grid`
 - Vercel project root directory: `apps/playground`
 - Custom domain target: `grid.minseok91.cloud`
 
