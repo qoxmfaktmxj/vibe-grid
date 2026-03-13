@@ -76,6 +76,10 @@ Required:
 
 ### P0. Metadata and Repo Consistency
 
+Status:
+
+- completed on `2026-03-13`
+
 Why first:
 
 - repo, deployment, and slice metadata must stay aligned with the current workspace state
@@ -93,6 +97,11 @@ Acceptance:
 - working docs point to the actual current deployment and source location
 
 ### P1. VibeGrid Runtime Decomposition
+
+Status:
+
+- completed on `2026-03-13`
+- `VibeGrid.tsx` header rendering, body rendering, inline editor, and range/sticky utilities were split into internal modules
 
 Why now:
 
@@ -289,11 +298,11 @@ Do not prioritize these until the earlier items move:
 
 If work continues immediately, execute in this order:
 
-1. `P0` metadata consistency cleanup
-2. `P1` VibeGrid runtime decomposition
-3. `P2` header menu MVP
+1. `P2` header menu MVP
+2. `P3` filter row MVP
+3. `P4` stable range selection / copy / paste polish
 
-That order reduces architectural drag before more UI behavior is added.
+That order keeps the next work focused on business-facing UX now that the runtime split is in place.
 
 ## Required Validation Policy
 
