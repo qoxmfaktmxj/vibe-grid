@@ -22,15 +22,15 @@ It is based on:
 
 ### Partially Implemented
 
-- `Slice 8` now has keyboard range extension, range summary, and invalid paste summary.
-- Drag-range behavior is still not stable enough to promote as product-complete.
+- `Slice 8` now has drag range, keyboard range, range copy, and invalid paste summary regression coverage.
+- Range overflow / append policy still needs a final product decision.
 - `P5` now has a real `VibeGrid` performance baseline lab, but it is still capped below the raw virtualization bench limits.
 
 ### Not Product-Complete Yet
 
 - filtered-column indicator polish
 - right-click header menu open
-- range copy / paste error summary
+- range overflow / append policy finalization
 - real-grid performance verification under combined features
 - persistence adapter productization
 - theme / i18n productization
@@ -206,8 +206,8 @@ Validation:
 Status:
 
 - in progress on `2026-03-13`
-- keyboard range extension, range summary, and invalid paste summary are implemented
-- drag-range polish remains open before P4 can be called complete
+- drag range, keyboard range, range summary, range copy, and invalid paste summary are implemented
+- overflow / append behavior still needs a final product decision before P4 can be called complete
 
 Why here:
 
@@ -232,8 +232,8 @@ Acceptance:
 
 Validation:
 
-- Playwright keyboard range, copy, paste, and invalid-input scenarios
-- manual browser pass for drag and sticky behavior until drag is stable enough for CI
+- Playwright drag, keyboard range, copy, paste, and invalid-input scenarios
+- manual browser pass for sticky and pinned behavior remains recommended
 
 ### P5. Real-Grid Performance Verification
 

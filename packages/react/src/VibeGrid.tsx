@@ -56,6 +56,13 @@ function buildDragSelectionState(
   );
 }
 
+function areSameCell(
+  left: GridActiveCellLike | undefined,
+  right: GridActiveCellLike | undefined,
+) {
+  return !!left && !!right && left.rowKey === right.rowKey && left.columnKey === right.columnKey;
+}
+
 export type VibeGridProps<Row extends RowRecord> = {
   gridId: string;
   rows: ManagedGridRow<Row>[];
@@ -118,6 +125,7 @@ export function VibeGrid<Row extends RowRecord>({
   const dragRangeRef = useRef<{
     anchor: GridActiveCellLike;
     moved: boolean;
+    lastFocus?: GridActiveCellLike;
   } | null>(null);
   const suppressClickRef = useRef(false);
   const resolvedSelectionState =
@@ -334,6 +342,52 @@ export function VibeGrid<Row extends RowRecord>({
     : 0;
 
   useEffect(() => {
+    const resolvePointerCell = (clientX: number, clientY: number) => {
+      const eventTarget = document.elementFromPoint(clientX, clientY);
+      const cell = eventTarget?.closest("td[data-row-key][data-column-key]");
+      const rowKey = cell?.getAttribute("data-row-key");
+      const columnKey = cell?.getAttribute("data-column-key");
+
+      if (!rowKey || !columnKey) {
+        return undefined;
+      }
+
+      return {
+        rowKey,
+        columnKey,
+      } satisfies GridActiveCellLike;
+    };
+
+    const applyDragTarget = (dragState: {
+      anchor: GridActiveCellLike;
+      moved: boolean;
+      lastFocus?: GridActiveCellLike;
+    }, clientX: number, clientY: number) => {
+      const nextFocus = resolvePointerCell(clientX, clientY);
+
+      if (
+        !nextFocus ||
+        areSameCell(nextFocus, dragState.anchor) ||
+        areSameCell(nextFocus, dragState.lastFocus)
+      ) {
+        return;
+      }
+
+      dragState.moved = true;
+      dragState.lastFocus = nextFocus;
+      onSelectionStateChange?.(buildDragSelectionState(dragState.anchor, nextFocus));
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const dragState = dragRangeRef.current;
+
+      if (!dragState || (event.buttons & 1) !== 1) {
+        return;
+      }
+
+      applyDragTarget(dragState, event.clientX, event.clientY);
+    };
+
     const handleMouseUp = (event: MouseEvent) => {
       const dragState = dragRangeRef.current;
 
@@ -341,35 +395,16 @@ export function VibeGrid<Row extends RowRecord>({
         return;
       }
 
-      const eventTarget =
-        event.target instanceof Element
-          ? event.target
-          : document.elementFromPoint(event.clientX, event.clientY);
-      const cell = eventTarget?.closest("td[data-row-key][data-column-key]");
-      const rowKey = cell?.getAttribute("data-row-key");
-      const columnKey = cell?.getAttribute("data-column-key");
-
-      if (
-        rowKey &&
-        columnKey &&
-        (rowKey !== dragState.anchor.rowKey ||
-          columnKey !== dragState.anchor.columnKey)
-      ) {
-        dragState.moved = true;
-        onSelectionStateChange?.(
-          buildDragSelectionState(dragState.anchor, {
-            rowKey,
-            columnKey,
-          }),
-        );
-      }
+      applyDragTarget(dragState, event.clientX, event.clientY);
 
       suppressClickRef.current = dragState.moved;
       dragRangeRef.current = null;
     };
 
+    window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
     return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [onSelectionStateChange]);

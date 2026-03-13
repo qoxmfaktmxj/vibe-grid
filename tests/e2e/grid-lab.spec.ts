@@ -83,4 +83,56 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("paste-summary")).toContainText("sortOrder");
     await expect(page.getByTestId("grid-cell-HR-001-sortOrder")).toHaveText("1");
   });
+
+  test("supports drag range selection and range copy", async ({ page }) => {
+    await page.addInitScript(() => {
+      const state = { copiedText: "" };
+
+      Object.defineProperty(window, "__vibeGridClipboardState", {
+        configurable: true,
+        value: state,
+      });
+
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: {
+          writeText: async (text: string) => {
+            state.copiedText = text;
+          },
+          readText: async () => state.copiedText,
+        },
+      });
+    });
+
+    await page.goto("/labs/grid");
+
+    const startCell = page.getByTestId("grid-cell-HR-001-sampleCode");
+    const endCell = page.getByTestId("grid-cell-HR-002-sampleName");
+
+    await startCell.hover();
+    await page.mouse.down();
+    await endCell.hover();
+    await page.mouse.up();
+
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute("data-range-rows", "2");
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute(
+      "data-range-columns",
+      "2",
+    );
+    await expect(page.getByTestId("range-summary")).toContainText("2 x 2");
+
+    await page.keyboard.press("Control+C");
+
+    const copiedText = await page.evaluate(() => {
+      return (
+        (window as Window & { __vibeGridClipboardState?: { copiedText?: string } })
+          .__vibeGridClipboardState?.copiedText ?? ""
+      );
+    });
+
+    expect(copiedText.split("\n")).toHaveLength(2);
+    expect(copiedText.split("\n").every((row) => row.split("\t").length === 2)).toBeTruthy();
+    expect(copiedText).toContain("HR-001");
+    expect(copiedText).toContain("HR-002");
+  });
 });

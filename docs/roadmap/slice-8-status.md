@@ -31,7 +31,9 @@
   - validation error summary
 - Added clipboard validation-aware planning so invalid cells are skipped and reported.
 - Added Playwright browser coverage for:
+  - drag range selection
   - `Shift + Arrow` range selection
+  - range copy serialization
   - invalid paste summary reporting
 
 ## Validation
@@ -43,13 +45,13 @@
 ## Notes
 
 - Slice 8 is no longer foundation-only.
-- Keyboard-based range selection, range-aware paste anchors, and invalid paste summaries are implemented and regression-tested.
-- Drag range selection still needs one more focused browser polish pass before it should be treated as stable product UX.
-- The official CI regression path for Slice 8 is currently keyboard range selection plus invalid paste validation.
+- Drag range selection, keyboard range selection, range-aware copy, and invalid paste summaries are implemented and regression-tested.
+- Slice 8 is now at product-usable level for selection and clipboard behavior.
+- The remaining open item is policy work: overflow/append behavior should be finalized before we call the range pipeline fully closed.
 
 ## Next Candidates
 
-1. stabilize real browser drag-range interaction in `VibeGrid`
-2. add automated range-copy verification
-3. decide whether drag becomes a required CI path or remains manual-browser verification
-4. continue performance verification under combined pinning + range states
+1. finalize overflow / append policy for range paste
+2. continue performance verification under combined pinning + range states
+3. decide when row virtualization enters the actual `VibeGrid` path
+4. extend copy / paste regression to wider filtered and pinned states

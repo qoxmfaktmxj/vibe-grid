@@ -47,6 +47,7 @@ type VibeGridTableBodyProps<Row extends RowRecord> = {
   dragRangeRef: MutableRefObject<{
     anchor: GridActiveCellLike;
     moved: boolean;
+    lastFocus?: GridActiveCellLike;
   } | null>;
   suppressClickRef: MutableRefObject<boolean>;
 };
@@ -66,19 +67,6 @@ function buildShiftRangeState(
         activeCell: selectionState.activeCell,
       }),
       selectionState.activeCell,
-    ),
-    nextCell,
-  );
-}
-
-function buildDragRangeState(anchor: GridActiveCellLike, nextCell: GridActiveCellLike) {
-  return updateRangeSelection(
-    beginRangeSelection(
-      createSelectionState({
-        activeRowId: anchor.rowKey,
-        activeCell: anchor,
-      }),
-      anchor,
     ),
     nextCell,
   );
@@ -198,85 +186,8 @@ export function VibeGridTableBody<Row extends RowRecord>({
                         columnKey: columnMeta.columnKey,
                       },
                       moved: false,
+                      lastFocus: undefined,
                     };
-                  }}
-                  onMouseEnter={() => {
-                    const dragState = dragRangeRef.current;
-
-                    if (
-                      !dragState ||
-                      columnMeta?.internal ||
-                      !columnMeta?.columnKey
-                    ) {
-                      return;
-                    }
-
-                    if (
-                      dragState.anchor.rowKey === row.id &&
-                      dragState.anchor.columnKey === columnMeta.columnKey
-                    ) {
-                      return;
-                    }
-
-                    dragState.moved = true;
-                    onSelectionStateChange?.(
-                      buildDragRangeState(dragState.anchor, {
-                        rowKey: row.id,
-                        columnKey: columnMeta.columnKey,
-                      }),
-                    );
-                  }}
-                  onMouseMove={() => {
-                    const dragState = dragRangeRef.current;
-
-                    if (
-                      !dragState ||
-                      columnMeta?.internal ||
-                      !columnMeta?.columnKey
-                    ) {
-                      return;
-                    }
-
-                    if (
-                      dragState.anchor.rowKey === row.id &&
-                      dragState.anchor.columnKey === columnMeta.columnKey
-                    ) {
-                      return;
-                    }
-
-                    dragState.moved = true;
-                    onSelectionStateChange?.(
-                      buildDragRangeState(dragState.anchor, {
-                        rowKey: row.id,
-                        columnKey: columnMeta.columnKey,
-                      }),
-                    );
-                  }}
-                  onMouseUp={() => {
-                    const dragState = dragRangeRef.current;
-
-                    if (
-                      !dragState ||
-                      columnMeta?.internal ||
-                      !columnMeta?.columnKey
-                    ) {
-                      return;
-                    }
-
-                    if (
-                      dragState.anchor.rowKey === row.id &&
-                      dragState.anchor.columnKey === columnMeta.columnKey
-                    ) {
-                      return;
-                    }
-
-                    dragState.moved = true;
-                    onSelectionStateChange?.(
-                      buildDragRangeState(dragState.anchor, {
-                        rowKey: row.id,
-                        columnKey: columnMeta.columnKey,
-                      }),
-                    );
                   }}
                   onClick={(event) => {
                     if (suppressClickRef.current) {
