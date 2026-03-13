@@ -13,12 +13,14 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import {
+  beginRangeSelection,
   createSelectionState,
   extendRangeByArrow,
   getNormalizedCellRange,
   hasRangeSelection,
   moveActiveCellByArrow,
   sanitizeGridColumnState,
+  updateRangeSelection,
   type GridColumnState,
   type GridEditSession,
   type GridFilter,
@@ -37,6 +39,22 @@ import type {
   RowRecord,
 } from "./internal/vibe-grid-types";
 import { resolveUpdater } from "./internal/vibe-grid-utils";
+
+function buildDragSelectionState(
+  anchor: GridActiveCellLike,
+  focus: GridActiveCellLike,
+) {
+  return updateRangeSelection(
+    beginRangeSelection(
+      createSelectionState({
+        activeRowId: anchor.rowKey,
+        activeCell: anchor,
+      }),
+      anchor,
+    ),
+    focus,
+  );
+}
 
 export type VibeGridProps<Row extends RowRecord> = {
   gridId: string;
@@ -316,12 +334,37 @@ export function VibeGrid<Row extends RowRecord>({
     : 0;
 
   useEffect(() => {
-    const handleMouseUp = () => {
-      if (!dragRangeRef.current) {
+    const handleMouseUp = (event: MouseEvent) => {
+      const dragState = dragRangeRef.current;
+
+      if (!dragState) {
         return;
       }
 
-      suppressClickRef.current = dragRangeRef.current.moved;
+      const eventTarget =
+        event.target instanceof Element
+          ? event.target
+          : document.elementFromPoint(event.clientX, event.clientY);
+      const cell = eventTarget?.closest("td[data-row-key][data-column-key]");
+      const rowKey = cell?.getAttribute("data-row-key");
+      const columnKey = cell?.getAttribute("data-column-key");
+
+      if (
+        rowKey &&
+        columnKey &&
+        (rowKey !== dragState.anchor.rowKey ||
+          columnKey !== dragState.anchor.columnKey)
+      ) {
+        dragState.moved = true;
+        onSelectionStateChange?.(
+          buildDragSelectionState(dragState.anchor, {
+            rowKey,
+            columnKey,
+          }),
+        );
+      }
+
+      suppressClickRef.current = dragState.moved;
       dragRangeRef.current = null;
     };
 
@@ -329,7 +372,7 @@ export function VibeGrid<Row extends RowRecord>({
     return () => {
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, []);
+  }, [onSelectionStateChange]);
 
   const focusGridSurface = () => {
     gridRef.current?.focus({ preventScroll: true });

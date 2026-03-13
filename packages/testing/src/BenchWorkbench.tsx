@@ -6,6 +6,7 @@ import {
   defaultVirtualizationPreset,
   useVirtualRows,
 } from "@vibe-grid/virtualization";
+import { RealGridPerformanceLab } from "./RealGridPerformanceLab";
 
 const SCENARIOS = [10_000, 50_000, 100_000] as const;
 
@@ -177,6 +178,8 @@ export function BenchWorkbench() {
           </div>
         </article>
       </section>
+
+      <RealGridPerformanceLab />
     </section>
   );
 }

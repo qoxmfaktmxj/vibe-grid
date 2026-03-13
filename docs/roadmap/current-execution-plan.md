@@ -22,9 +22,9 @@ It is based on:
 
 ### Partially Implemented
 
-- `Slice 8` range selection is at foundation stage.
-- Range contracts and range-aware paste anchor logic exist.
-- Real browser drag and shift range behavior are not yet stable enough to call product-complete.
+- `Slice 8` now has keyboard range extension, range summary, and invalid paste summary.
+- Drag-range behavior is still not stable enough to promote as product-complete.
+- `P5` now has a real `VibeGrid` performance baseline lab, but it is still capped below the raw virtualization bench limits.
 
 ### Not Product-Complete Yet
 
@@ -237,6 +237,12 @@ Validation:
 
 ### P5. Real-Grid Performance Verification
 
+Status:
+
+- in progress on `2026-03-13`
+- `Bench` now includes a real `VibeGrid` performance lab with column pinning, filter row, and range interaction
+- current baseline is capped at `1,000 / 2,500 / 5,000` visible rows until row virtualization lands in the actual grid path
+
 Why separate from Bench:
 
 - Bench is useful, but the decision point is the real `VibeGrid` render path
@@ -256,6 +262,7 @@ Acceptance:
 
 - no obvious freeze in typical business interactions
 - pinned and sticky behavior remain stable under load
+- the team can compare raw virtualization numbers against actual `VibeGrid` render-path numbers in one screen
 
 ### P6. Product Infrastructure
 
@@ -314,9 +321,9 @@ Do not prioritize these until the earlier items move:
 
 If work continues immediately, execute in this order:
 
-1. `P3` filter row MVP
-2. `P4` stable range selection / copy / paste polish
-3. `P5` real-grid performance verification
+1. `P4` drag-range stabilization in a real browser loop
+2. `P5` raise the actual-grid benchmark ceiling or wire row virtualization into `VibeGrid`
+3. `P6` product infrastructure
 
 That order keeps the next work focused on business-facing UX now that the runtime split is in place.
 

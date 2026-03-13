@@ -200,12 +200,11 @@ export function VibeGridTableBody<Row extends RowRecord>({
                       moved: false,
                     };
                   }}
-                  onMouseEnter={(event) => {
+                  onMouseEnter={() => {
                     const dragState = dragRangeRef.current;
 
                     if (
                       !dragState ||
-                      event.buttons !== 1 ||
                       columnMeta?.internal ||
                       !columnMeta?.columnKey
                     ) {
