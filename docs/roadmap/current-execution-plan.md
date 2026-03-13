@@ -137,6 +137,11 @@ Validation:
 
 ### P2. Slice 9A and 9B: Productized Header and Header Menu
 
+Status:
+
+- completed on `2026-03-13`
+- header menu MVP now covers sort, pin, unpin, hide, and reset width actions with browser regression coverage
+
 Why next:
 
 - header UX is the most obvious product gap today
@@ -298,9 +303,9 @@ Do not prioritize these until the earlier items move:
 
 If work continues immediately, execute in this order:
 
-1. `P2` header menu MVP
-2. `P3` filter row MVP
-3. `P4` stable range selection / copy / paste polish
+1. `P3` filter row MVP
+2. `P4` stable range selection / copy / paste polish
+3. `P5` real-grid performance verification
 
 That order keeps the next work focused on business-facing UX now that the runtime split is in place.
 

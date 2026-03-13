@@ -20,6 +20,7 @@ Minimum roadmap references:
   - `docs/roadmap/slice-8-status.md`
 - header / filter / productized grid shell work:
   - `docs/roadmap/slice-9-productized-grid-ux-design.md`
+  - `docs/roadmap/slice-9-status.md`
 
 ## Product Boundaries
 

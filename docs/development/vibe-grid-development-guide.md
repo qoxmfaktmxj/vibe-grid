@@ -21,6 +21,7 @@ Current high-priority references:
 - [Slice 8 Range Selection Design](C:/Users/kms/Desktop/dev/vibe-grid/docs/roadmap/slice-8-range-selection-design.md)
 - [Slice 8 Status](C:/Users/kms/Desktop/dev/vibe-grid/docs/roadmap/slice-8-status.md)
 - [Slice 9 Productized Grid UX Design](C:/Users/kms/Desktop/dev/vibe-grid/docs/roadmap/slice-9-productized-grid-ux-design.md)
+- [Slice 9 Status](C:/Users/kms/Desktop/dev/vibe-grid/docs/roadmap/slice-9-status.md)
 
 ## Working Agreement
 

@@ -36,6 +36,7 @@ Current active references:
 - `docs/roadmap/slice-8-range-selection-design.md`
 - `docs/roadmap/slice-8-status.md`
 - `docs/roadmap/slice-9-productized-grid-ux-design.md`
+- `docs/roadmap/slice-9-status.md`
 
 ## Local commands
 
