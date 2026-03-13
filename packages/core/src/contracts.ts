@@ -139,6 +139,8 @@ export type GridInputParser<Row> = (
   row: Row,
 ) => unknown;
 
+export type GridEditableRule<Row> = boolean | ((row: Row) => boolean);
+
 export type VibeGridColumn<Row> = {
   key: string;
   header: string;
@@ -149,7 +151,7 @@ export type VibeGridColumn<Row> = {
   sortable?: boolean;
   filterable?: boolean;
   filterEditor?: GridFilterEditorSpec;
-  editable?: boolean;
+  editable?: GridEditableRule<Row>;
   hidden?: boolean;
   required?: boolean;
   meta?: Record<string, unknown>;

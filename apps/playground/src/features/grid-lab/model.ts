@@ -203,7 +203,7 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
     header: "비고",
     width: 260,
     minWidth: 180,
-    editable: true,
+    editable: (row) => row.useYn === "Y",
     filterable: true,
     editor: {
       type: "textarea",

@@ -17,6 +17,7 @@ These areas are expected to remain compatible unless a roadmap document explicit
 - selection state shape
 - filter and sorting query contracts
 - column state shape used by the shared persistence adapter
+- row-aware cell editability rules through column configuration
 
 ### `@vibe-grid/react`
 
@@ -30,6 +31,7 @@ These areas are expected to remain compatible unless a roadmap document explicit
 - filter row MVP
 - range selection, range copy, and paste overflow policy behavior
 - row virtualization toggle through the published prop
+- cell-level editable versus readonly rendering behavior driven by the shared contract
 
 ### Product Validation Rules
 

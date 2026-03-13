@@ -28,6 +28,7 @@ import {
   getSelectionAnchorCell,
   getPrimarySelectedRowId,
   getRowStateCounts,
+  isGridCellEditable,
   hasValidationIssues,
   markRowsSaved,
   moveGridColumn,
@@ -600,6 +601,11 @@ export function PlaygroundWorkbench() {
     value: PlaygroundRow[Field],
   ) {
     if (!activeRow) {
+      return;
+    }
+
+    const column = playgroundColumns.find((item) => item.key === field);
+    if (column && !isGridCellEditable(column.editable, activeRow.row)) {
       return;
     }
 
@@ -1187,6 +1193,7 @@ export function PlaygroundWorkbench() {
                     {renderSideEditor({
                       column,
                       row: activeRow.row,
+                      editable: isGridCellEditable(column.editable, activeRow.row),
                       onChange: (rawValue) =>
                         handleFieldChange(
                           column.key as keyof PlaygroundRow,
@@ -1388,12 +1395,21 @@ export function PlaygroundWorkbench() {
 function renderSideEditor(input: {
   column: (typeof playgroundColumns)[number];
   row: PlaygroundRow;
+  editable: boolean;
   onChange: (value: string) => void;
 }) {
-  const { column, row, onChange } = input;
+  const { column, row, editable, onChange } = input;
   const rawValue = row[column.key as keyof PlaygroundRow];
   const displayValue = String(rawValue ?? "");
   const editor = column.editor ?? { type: "text" as const };
+  const sharedStyle = editable
+    ? fullInputStyle
+    : {
+        ...fullInputStyle,
+        opacity: 0.6,
+        background: "#f8fafc",
+        cursor: "not-allowed",
+      };
 
   if (editor.type === "select") {
     const options =
@@ -1401,9 +1417,11 @@ function renderSideEditor(input: {
 
     return (
       <select
+        data-testid={`side-editor-${column.key}`}
+        disabled={!editable}
         value={displayValue}
         onChange={(event) => onChange(event.target.value)}
-        style={fullInputStyle}
+        style={sharedStyle}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -1417,12 +1435,14 @@ function renderSideEditor(input: {
   if (editor.type === "textarea") {
     return (
       <textarea
+        data-testid={`side-editor-${column.key}`}
+        disabled={!editable}
         value={displayValue}
         rows={editor.rows ?? 4}
         placeholder={editor.placeholder}
         onChange={(event) => onChange(event.target.value)}
         style={{
-          ...fullInputStyle,
+          ...sharedStyle,
           resize: "vertical",
           minHeight: 96,
         }}
@@ -1433,24 +1453,28 @@ function renderSideEditor(input: {
   if (editor.type === "number") {
     return (
       <input
+        data-testid={`side-editor-${column.key}`}
         type="number"
+        disabled={!editable}
         min={editor.min}
         max={editor.max}
         step={editor.step}
         value={displayValue}
         placeholder={editor.placeholder}
         onChange={(event) => onChange(event.target.value)}
-        style={fullInputStyle}
+        style={sharedStyle}
       />
     );
   }
 
   return (
     <input
+      data-testid={`side-editor-${column.key}`}
+      disabled={!editable}
       value={displayValue}
       placeholder={editor.placeholder}
       onChange={(event) => onChange(event.target.value)}
-      style={fullInputStyle}
+      style={sharedStyle}
     />
   );
 }

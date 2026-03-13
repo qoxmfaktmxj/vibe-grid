@@ -1,4 +1,9 @@
-import type { GridActiveCell, VibeGridColumn } from "@vibe-grid/core";
+import {
+  isGridCellEditable,
+  type GridActiveCell,
+  type GridEditableRule,
+  type VibeGridColumn,
+} from "@vibe-grid/core";
 import {
   defaultLocale,
   formatGridMessage,
@@ -9,7 +14,7 @@ type RowRecord = Record<string, unknown>;
 
 export type ClipboardColumn<Row extends RowRecord> = {
   key: Extract<keyof Row, string>;
-  editable?: boolean;
+  editable?: GridEditableRule<Row>;
   hidden?: boolean;
   parse?: (value: string) => Row[Extract<keyof Row, string>];
   validate?: (
@@ -99,7 +104,7 @@ export function createClipboardSchema<Row extends RowRecord>(
 ): ClipboardColumn<Row>[] {
   return columns.map((column) => ({
     key: column.key as Extract<keyof Row, string>,
-    editable: column.editable ?? true,
+    editable: column.editable ?? false,
     hidden: column.hidden ?? false,
     parse:
       parsers?.[column.key as Extract<keyof Row, string>] ??
@@ -233,7 +238,25 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
         return;
       }
 
-      if (column.editable === false) {
+      const targetRowIndex = anchorRowIndex + rowOffset;
+      const rowKey =
+        targetRowIndex < input.rowOrder.length
+          ? input.rowOrder[targetRowIndex]
+          : undefined;
+      const contextRow =
+        targetRowIndex < input.rowOrder.length
+          ? ({
+              ...(input.rowsByKey?.get(input.rowOrder[targetRowIndex]) ?? ({} as Row)),
+              ...(patchMap.get(input.rowOrder[targetRowIndex]) ?? {}),
+            } as Row)
+          : ({
+              ...(input.createAppendedRow
+                ? input.createAppendedRow(targetRowIndex)
+                : ({} as Row)),
+              ...(appendedRowMap.get(targetRowIndex - input.rowOrder.length) ?? {}),
+            } as Row);
+
+      if (!isGridCellEditable(column.editable, contextRow)) {
         skippedCells.push({
           rowOffset,
           columnOffset,
@@ -241,12 +264,6 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
         });
         return;
       }
-
-      const targetRowIndex = anchorRowIndex + rowOffset;
-      const rowKey =
-        targetRowIndex < input.rowOrder.length
-          ? input.rowOrder[targetRowIndex]
-          : undefined;
 
       let nextValue: Row[Extract<keyof Row, string>];
 

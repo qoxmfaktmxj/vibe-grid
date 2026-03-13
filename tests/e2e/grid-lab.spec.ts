@@ -174,4 +174,31 @@ test.describe("Grid Lab", () => {
       "row overflow cells: 7",
     );
   });
+
+  test("applies cell-level editability to side editors and paste targets", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    const editableCell = page.getByTestId("grid-cell-HR-001-note");
+    const readonlyCell = page.getByTestId("grid-cell-HR-002-note");
+
+    await expect(editableCell).toHaveAttribute("data-cell-editable", "true");
+    await expect(readonlyCell).toHaveAttribute("data-cell-editable", "false");
+
+    await page.getByTestId("grid-cell-HR-001-sampleCode").click();
+    await expect(page.getByTestId("side-editor-note")).toBeEnabled();
+
+    await page.getByTestId("grid-cell-HR-002-sampleCode").click();
+    await expect(page.getByTestId("side-editor-note")).toBeDisabled();
+
+    const readonlyNoteBefore = await readonlyCell.textContent();
+
+    await readonlyCell.click();
+    await page.getByTestId("paste-textarea").fill("Readonly note should skip");
+    await page.getByTestId("paste-apply").click();
+
+    await expect(page.getByTestId("paste-summary")).toContainText("readonly 1");
+    await expect(readonlyCell).toHaveText((readonlyNoteBefore ?? "").trim());
+  });
 });

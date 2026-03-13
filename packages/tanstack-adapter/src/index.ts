@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { VibeGridColumn } from "@vibe-grid/core";
+import type { GridEditableRule, VibeGridColumn } from "@vibe-grid/core";
 
 export function createTanStackColumns<Row extends object>(
   columns: ReadonlyArray<VibeGridColumn<Row>>,
@@ -18,7 +18,7 @@ export function createTanStackColumns<Row extends object>(
     meta: {
       ...column.meta,
       columnKey: column.key,
-      editable: column.editable ?? false,
+      editable: (column.editable ?? false) as GridEditableRule<Row>,
       filterable: column.filterable ?? false,
       filterEditor: column.filterEditor,
       hidden: column.hidden ?? false,

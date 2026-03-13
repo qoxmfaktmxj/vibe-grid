@@ -6,6 +6,7 @@ import {
   beginRangeSelection,
   clearRangeSelection,
   createSelectionState,
+  isGridCellEditable,
   isEditingCell,
   setActiveCell,
   toggleRowSelection,
@@ -161,6 +162,10 @@ export function VibeGridTableBody<Row extends RowRecord>({
               const isActiveCell =
                 selectionState.activeCell?.rowKey === row.id &&
                 selectionState.activeCell.columnKey === columnMeta?.columnKey;
+              const isEditableCell =
+                !columnMeta?.internal &&
+                !!columnMeta?.columnKey &&
+                isGridCellEditable(columnMeta.editable, row.original);
               const editing =
                 !!columnMeta?.columnKey &&
                 isEditingCell(editSession, row.id, columnMeta.columnKey);
@@ -188,6 +193,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                   data-column-key={columnMeta?.columnKey}
                   data-range-selected={rangeState.inRange ? "true" : "false"}
                   data-active-cell={isActiveCell ? "true" : "false"}
+                  data-cell-editable={isEditableCell ? "true" : "false"}
                   onMouseDown={(event) => {
                     focusGridSurface();
 
@@ -274,7 +280,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                     if (
                       columnMeta?.internal ||
                       !columnMeta?.columnKey ||
-                      columnMeta.editable === false
+                      !isEditableCell
                     ) {
                       return;
                     }

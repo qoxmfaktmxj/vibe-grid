@@ -1,10 +1,14 @@
-import type { GridEditorSpec, GridFilterEditorSpec } from "@vibe-grid/core";
+import type {
+  GridEditableRule,
+  GridEditorSpec,
+  GridFilterEditorSpec,
+} from "@vibe-grid/core";
 
 export type RowRecord = Record<string, unknown>;
 
 export type InternalColumnMeta<Row extends RowRecord = RowRecord> = {
   columnKey?: string;
-  editable?: boolean;
+  editable?: GridEditableRule<Row>;
   filterable?: boolean;
   filterEditor?: GridFilterEditorSpec;
   internal?: boolean;

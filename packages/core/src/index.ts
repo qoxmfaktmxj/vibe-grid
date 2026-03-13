@@ -9,6 +9,7 @@ export type {
   GridCommandContext,
   GridCommandId,
   GridCommandScope,
+  GridEditableRule,
   GridEditorOption,
   GridFilterEditorSpec,
   GridEditorSpec,
@@ -62,6 +63,9 @@ export {
   markRowsSaved,
   toggleRowDeleted,
 } from "./row-state";
+export {
+  isGridCellEditable,
+} from "./editability";
 export {
   beginEditSession,
   clearEditSession,

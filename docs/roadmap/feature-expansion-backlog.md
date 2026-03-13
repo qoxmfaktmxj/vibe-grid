@@ -249,15 +249,19 @@ Reason:
 
 ## Recommended First Slice To Start
 
-Start with:
+Status:
 
-- `FE-3a cell-level editability contract`
+- `FE-3a cell-level editability contract` is implemented on `2026-03-13`
+- current demo rule:
+  - `note` is editable only when `useYn === "Y"`
+- current coverage:
+  - cell-level editability attribute in the grid body
+  - side editor disabled state
+  - paste skips readonly targets and reports `readonly` in the summary
 
-Why:
+Next recommended slice:
 
-- it unlocks requested item 2 and item 3 cleanly
-- it avoids reworking paste later
-- it gives a correct foundation for date editor and future code-help editors
+- `FE-1 dedicated delete check column`
 
 ## Acceptance Before Calling Feature Expansion Successful
 

@@ -10,6 +10,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Stable vs experimental boundary documentation.
 - Hub smoke regression coverage.
 - Scoped persistence adapter and initial product infrastructure.
+- Row-aware cell editability as a shared grid contract.
 
 ### Changed
 
@@ -17,6 +18,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Grid status and clipboard fallback copy now flow through `@vibe-grid/i18n`.
 - Theme token coverage now includes grid surface, body, row-state badges, inline editors, and sticky/range visuals.
 - Playwright CI now records HTML reports and uploads artifacts.
+- Grid body cells, side editors, and paste application now share the same editable/readonly rule evaluation.
 
 ### Notes
 
