@@ -39,6 +39,7 @@ Current active references:
 - `docs/roadmap/slice-8-status.md`
 - `docs/roadmap/slice-9-productized-grid-ux-design.md`
 - `docs/roadmap/slice-9-status.md`
+- `docs/roadmap/feature-expansion-backlog.md`
 
 ## Stability Boundary
 

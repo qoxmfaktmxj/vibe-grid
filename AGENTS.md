@@ -23,6 +23,7 @@ Read these files in order before making changes:
    - `docs/roadmap/p5-performance-status.md`
    - `docs/roadmap/p6-product-infrastructure-status.md`
    - `docs/roadmap/p7-test-release-status.md`
+   - `docs/roadmap/feature-expansion-backlog.md`
 7. release discipline docs:
    - `docs/release/public-api-stability.md`
    - `docs/release/release-routine.md`
@@ -364,6 +365,7 @@ At the time of this document:
 
 - P6 still has optional cleanup around broader persistence scope and remaining catalog cleanup
 - P7 still has optional expansion around regression depth, release routine maturity, and possible cross-browser smoke policy
+- feature expansion should start from `docs/roadmap/feature-expansion-backlog.md`
 
 After those are sufficiently closed, feature expansion can resume.
 

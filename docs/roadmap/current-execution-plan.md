@@ -352,11 +352,11 @@ Do not prioritize these until the earlier items move:
 
 If work continues immediately, execute in this order:
 
-1. `P5` combined-feature performance validation
-2. `P6` product infrastructure
-3. `P7` test and release hardening
+1. `FE-3a` cell-level editability contract
+2. `FE-1` dedicated delete check column
+3. `FE-2` single-click edit activation option
 
-That order keeps the next work focused on business-facing UX now that the runtime split is in place.
+Use `docs/roadmap/feature-expansion-backlog.md` as the entry point for this next stage.
 
 ## Required Validation Policy
 
