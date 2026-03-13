@@ -352,9 +352,9 @@ Do not prioritize these until the earlier items move:
 
 If work continues immediately, execute in this order:
 
-1. `FE-2` single-click edit activation option
-2. `FE-3b` paste summary and skip reporting polish on top of the cell-level editability contract
-3. `FE-4` date editor foundation
+1. `FE-3b` paste summary and skip reporting polish on top of the cell-level editability contract
+2. `FE-4` date editor foundation
+3. holiday-aware date policy wiring for business-calendar consumers
 
 Use `docs/roadmap/feature-expansion-backlog.md` as the entry point for this next stage.
 

@@ -180,6 +180,17 @@ Single-click edit should only start when:
 - range selection still works
 - paste anchor behavior does not regress
 
+### Status
+
+- implemented on `2026-03-13`
+- shared `VibeGrid` now exposes `editActivation?: "doubleClick" | "singleClick"`
+- default remains `doubleClick`
+- Grid Lab exposes an opt-in mode switch for browser verification
+- current browser coverage verifies:
+  - default click does not immediately open an inline editor
+  - `singleClick` opens inline edit on editable cells
+  - readonly cells still do not enter edit mode
+
 ## FE-3. Paste Should Update Only Editable Cells
 
 ### Goal
@@ -263,6 +274,7 @@ Status:
 
 - `FE-3a cell-level editability contract` is implemented on `2026-03-13`
 - `FE-1 dedicated delete check column` is implemented on `2026-03-13`
+- `FE-2 single-click edit activation option` is implemented on `2026-03-13`
 - current demo rule:
   - `note` is editable only when `useYn === "Y"`
 - current coverage:
@@ -270,10 +282,11 @@ Status:
   - side editor disabled state
   - paste skips readonly targets and reports `readonly` in the summary
   - dedicated delete checkbox marks and restores loaded rows
+  - edit activation can switch between `doubleClick` and `singleClick`
 
 Next recommended slice:
 
-- `FE-1 dedicated delete check column`
+- `FE-3b paste summary and skip reporting polish`
 
 ## Acceptance Before Calling Feature Expansion Successful
 

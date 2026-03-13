@@ -33,6 +33,7 @@ These areas are expected to remain compatible unless a roadmap document explicit
 - row virtualization toggle through the published prop
 - cell-level editable versus readonly rendering behavior driven by the shared contract
 - dedicated delete-check control column behavior driven through the shared React surface
+- edit activation option through the shared React surface with `doubleClick` default
 
 ### Product Validation Rules
 

@@ -220,4 +220,28 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("paste-summary")).toContainText("readonly 1");
     await expect(readonlyCell).toHaveText((readonlyNoteBefore ?? "").trim());
   });
+
+  test("supports single-click edit activation as an opt-in mode", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-001-sampleCode").click();
+    await expect(page.getByTestId("inline-editor-HR-001-sampleCode")).toHaveCount(0);
+
+    await page.getByTestId("edit-activation-mode").selectOption("singleClick");
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute(
+      "data-edit-activation",
+      "singleClick",
+    );
+
+    await page.getByTestId("grid-cell-HR-001-sampleCode").click();
+    await expect(page.getByTestId("inline-editor-HR-001-sampleCode")).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("inline-editor-HR-001-sampleCode")).toHaveCount(0);
+
+    await page.getByTestId("grid-cell-HR-002-note").click();
+    await expect(page.getByTestId("inline-editor-HR-002-note")).toHaveCount(0);
+  });
 });

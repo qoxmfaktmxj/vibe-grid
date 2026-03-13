@@ -97,6 +97,7 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
     return (
       <select
         {...commonProps}
+        data-testid={`inline-editor-${rowId}-${columnKey}`}
         onKeyDown={onKeyDown}
         onChange={(event) => {
           onEditSessionChange?.(
@@ -118,6 +119,7 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
     return (
       <textarea
         {...commonProps}
+        data-testid={`inline-editor-${rowId}-${columnKey}`}
         rows={editor.rows ?? 4}
         placeholder={editor.placeholder}
         onKeyDown={onKeyDown}
@@ -139,6 +141,7 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
     return (
       <input
         {...commonProps}
+        data-testid={`inline-editor-${rowId}-${columnKey}`}
         type="number"
         min={editor.min}
         max={editor.max}
@@ -157,6 +160,7 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
   return (
     <input
       {...commonProps}
+      data-testid={`inline-editor-${rowId}-${columnKey}`}
       type="text"
       placeholder={editor?.placeholder}
       onKeyDown={onKeyDown}

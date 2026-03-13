@@ -56,6 +56,8 @@ export type GridCellRangeSelection = {
 
 export type GridSelectionMode = "row" | "range";
 
+export type GridEditActivation = "doubleClick" | "singleClick";
+
 export type GridSelectionState = {
   activeRowId?: string;
   selectedRowIds: Set<string>;

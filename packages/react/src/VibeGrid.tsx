@@ -23,6 +23,7 @@ import {
   sanitizeGridColumnState,
   updateRangeSelection,
   type GridColumnState,
+  type GridEditActivation,
   type GridEditSession,
   type GridFilter,
   type GridSelectionState,
@@ -79,6 +80,7 @@ export type VibeGridProps<Row extends RowRecord> = {
     draftValue: string;
   }) => void;
   onDeleteCheckToggle?: (rowKey: string) => void;
+  editActivation?: GridEditActivation;
   columnState?: GridColumnState;
   onColumnStateChange?: (state: GridColumnState) => void;
   sorting?: GridSortRule[];
@@ -119,6 +121,7 @@ export function VibeGrid<Row extends RowRecord>({
   onEditSessionChange,
   onCellEditCommit,
   onDeleteCheckToggle,
+  editActivation = "doubleClick",
   columnState,
   onColumnStateChange,
   sorting,
@@ -546,6 +549,7 @@ export function VibeGrid<Row extends RowRecord>({
       data-total-row-count={tableRows.length}
       data-rendered-row-count={renderedRows.length}
       data-filter-count={filters?.length ?? 0}
+      data-edit-activation={editActivation}
       data-pinned-left-count={columnPinningState.left?.length ?? 0}
       data-pinned-right-count={columnPinningState.right?.length ?? 0}
       onKeyDown={(event) => {
@@ -630,6 +634,7 @@ export function VibeGrid<Row extends RowRecord>({
             onSelectionStateChange={onSelectionStateChange}
             onEditSessionChange={onEditSessionChange}
             onCellEditCommit={onCellEditCommit}
+            editActivation={editActivation}
             emptyMessage={emptyMessage}
             inputId={inputId}
             rowIndexByKey={rowIndexByKey}

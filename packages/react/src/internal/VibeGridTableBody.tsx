@@ -11,6 +11,7 @@ import {
   setActiveCell,
   toggleRowSelection,
   updateRangeSelection,
+  type GridEditActivation,
   type GridEditSession,
   type GridSelectionState,
 } from "@vibe-grid/core";
@@ -42,6 +43,7 @@ type VibeGridTableBodyProps<Row extends RowRecord> = {
     columnKey: string;
     draftValue: string;
   }) => void;
+  editActivation: GridEditActivation;
   emptyMessage: string;
   inputId: string;
   rowIndexByKey: Map<string, number>;
@@ -89,6 +91,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
   onSelectionStateChange,
   onEditSessionChange,
   onCellEditCommit,
+  editActivation,
   emptyMessage,
   inputId,
   rowIndexByKey,
@@ -181,6 +184,23 @@ export function VibeGridTableBody<Row extends RowRecord>({
               const rangeBackground = rangeState.inRange
                 ? vibeGridThemeTokens.body.rangeBackground
                 : undefined;
+              const openEditSession = () => {
+                if (
+                  columnMeta?.internal ||
+                  !columnMeta?.columnKey ||
+                  !isEditableCell
+                ) {
+                  return;
+                }
+
+                onEditSessionChange?.(
+                  beginEditSession({
+                    rowKey: row.id,
+                    columnKey: columnMeta.columnKey,
+                    value: baseValue,
+                  }),
+                );
+              };
 
               return (
                 <td
@@ -280,26 +300,21 @@ export function VibeGridTableBody<Row extends RowRecord>({
                           );
 
                     onSelectionStateChange?.(nextState);
+
+                    if (
+                      editActivation === "singleClick" &&
+                      !preserveSelection &&
+                      !event.shiftKey &&
+                      !rangeState.inRange
+                    ) {
+                      openEditSession();
+                    }
                   }}
                   onDoubleClick={() => {
-                    if (
-                      columnMeta?.internal ||
-                      !columnMeta?.columnKey ||
-                      !isEditableCell
-                    ) {
-                      if (isDeleteCheckCell) {
-                        return;
-                      }
+                    if (isDeleteCheckCell) {
                       return;
                     }
-
-                    onEditSessionChange?.(
-                      beginEditSession({
-                        rowKey: row.id,
-                        columnKey: columnMeta.columnKey,
-                        value: baseValue,
-                      }),
-                    );
+                    openEditSession();
                   }}
                   style={{
                     ...getStickyCellStyle(

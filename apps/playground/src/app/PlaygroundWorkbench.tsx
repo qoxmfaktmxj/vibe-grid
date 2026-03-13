@@ -39,6 +39,7 @@ import {
   setGridColumnWidth,
   toggleRowDeleted,
   validateManagedRows,
+  type GridEditActivation,
   type GridColumnState,
   type GridEditSession,
   type GridFilter,
@@ -194,6 +195,8 @@ export function PlaygroundWorkbench() {
     createDefaultSelection(initialRows),
   );
   const [editSession, setEditSession] = useState<GridEditSession | null>(null);
+  const [editActivation, setEditActivation] =
+    useState<GridEditActivation>("doubleClick");
   const [lastSaveBundle, setLastSaveBundle] =
     useState<SaveBundle<PlaygroundRow> | null>(null);
   const [pasteText, setPasteText] = useState("");
@@ -899,6 +902,35 @@ export function PlaygroundWorkbench() {
                 value={isFetching ? "조회 중" : "준비됨"}
                 tone={isFetching ? "amber" : "teal"}
               />
+              <MetricCard
+                label="편집 진입"
+                value={editActivation === "singleClick" ? "single click" : "double click"}
+                tone="slate"
+              />
+            </div>
+          </section>
+
+          <section style={cardStyle}>
+            <div style={sectionHeaderStyle}>
+              <div>
+                <strong style={{ fontSize: 18, color: "#0f172a" }}>
+                  편집 진입 모드
+                </strong>
+                <div style={{ marginTop: 6, color: "#64748b" }}>
+                  기본은 double click이고, single click은 편집 중심 화면에서만 opt-in 합니다.
+                </div>
+              </div>
+              <select
+                data-testid="edit-activation-mode"
+                value={editActivation}
+                onChange={(event) =>
+                  setEditActivation(event.target.value as GridEditActivation)
+                }
+                style={compactInputStyle}
+              >
+                <option value="doubleClick">doubleClick</option>
+                <option value="singleClick">singleClick</option>
+              </select>
             </div>
           </section>
 
@@ -912,6 +944,7 @@ export function PlaygroundWorkbench() {
             onEditSessionChange={setEditSession}
             onCellEditCommit={handleCellEditCommit}
             onDeleteCheckToggle={handleDeleteCheckToggle}
+            editActivation={editActivation}
             columnState={columnState}
             onColumnStateChange={setColumnState}
             sorting={query.sorting}
