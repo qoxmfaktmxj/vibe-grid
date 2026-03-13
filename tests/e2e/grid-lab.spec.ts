@@ -59,12 +59,20 @@ test.describe("Grid Lab", () => {
       );
     await page.getByTestId("paste-apply").click();
 
+    await expect(page.getByTestId("paste-summary-matrix")).toContainText("2 x 7");
     await expect(page.getByTestId("paste-summary-policy")).toContainText("append");
     await expect(page.getByTestId("paste-summary-appended")).toContainText(
       "appended rows: 1",
     );
     await expect(page.getByTestId("paste-summary-row-overflow")).toContainText(
       "row overflow cells: 0",
+    );
+    await expect(page.getByTestId("paste-summary-skipped-total")).toContainText(
+      "skipped total: 1",
+    );
+    await expect(page.getByTestId("paste-summary-skipped-readonly")).toContainText("1");
+    await expect(page.getByTestId("paste-summary-first-skipped")).toContainText(
+      "readonly",
     );
   });
 
@@ -114,6 +122,10 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("paste-summary-validation")).toContainText(
       "validation errors: 1",
     );
+    await expect(page.getByTestId("paste-summary-first-validation")).toContainText(
+      "sortOrder",
+    );
+    await expect(page.getByTestId("paste-summary-skipped-validation")).toContainText("1");
     await expect(page.getByTestId("paste-summary")).toContainText("sortOrder");
     await expect(page.getByTestId("grid-cell-HR-001-sortOrder")).toHaveText("1");
   });
@@ -192,6 +204,10 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("paste-summary-row-overflow")).toContainText(
       "row overflow cells: 7",
     );
+    await expect(page.getByTestId("paste-summary-skipped-rowOverflow")).toContainText("7");
+    await expect(page.getByTestId("paste-summary-first-skipped")).toContainText(
+      "rowOverflow",
+    );
   });
 
   test("applies cell-level editability to side editors and paste targets", async ({
@@ -217,7 +233,10 @@ test.describe("Grid Lab", () => {
     await page.getByTestId("paste-textarea").fill("Readonly note should skip");
     await page.getByTestId("paste-apply").click();
 
-    await expect(page.getByTestId("paste-summary")).toContainText("readonly 1");
+    await expect(page.getByTestId("paste-summary-skipped-readonly")).toContainText("1");
+    await expect(page.getByTestId("paste-summary-first-skipped")).toContainText(
+      "readonly",
+    );
     await expect(readonlyCell).toHaveText((readonlyNoteBefore ?? "").trim());
   });
 

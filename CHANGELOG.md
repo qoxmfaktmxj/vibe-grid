@@ -13,6 +13,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Row-aware cell editability as a shared grid contract.
 - Dedicated delete-check control column with shared browser-tested delete-toggle behavior.
 - Single-click edit activation as an opt-in shared grid behavior.
+- Paste summary and skip reporting polish with shared clipboard-plan summarization.
 
 ### Changed
 

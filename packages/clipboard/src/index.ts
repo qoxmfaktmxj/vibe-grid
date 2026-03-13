@@ -37,6 +37,8 @@ export type ClipboardSkippedCell = {
   rowOffset: number;
   columnOffset: number;
   reason: ClipboardSkipReason;
+  rowKey?: string;
+  columnKey?: string;
 };
 
 export type ClipboardValidationError = {
@@ -65,6 +67,22 @@ export type RectangularPastePlan<Row extends RowRecord> = {
   validationErrors: ClipboardValidationError[];
 };
 
+export type ClipboardSkipSummary = Record<ClipboardSkipReason, number>;
+
+export type ClipboardPlanSummary = {
+  matrixRowCount: number;
+  matrixColumnCount: number;
+  appliedCellCount: number;
+  appendedRowCount: number;
+  skippedCellCount: number;
+  rowOverflowPolicy: ClipboardRowOverflowPolicy;
+  rowOverflowCellCount: number;
+  skippedCounts: ClipboardSkipSummary;
+  validationErrorCount: number;
+  firstValidationError?: ClipboardValidationError;
+  firstSkippedCell?: ClipboardSkippedCell;
+};
+
 type RectangularPastePlanInput<Row extends RowRecord> = {
   text: string;
   columns: ReadonlyArray<ClipboardColumn<Row>>;
@@ -75,6 +93,17 @@ type RectangularPastePlanInput<Row extends RowRecord> = {
   rowsByKey?: ReadonlyMap<string, Row>;
   createAppendedRow?: (absoluteRowIndex: number) => Row;
 };
+
+export const clipboardSkipReasonOrder: ClipboardSkipReason[] = [
+  "emptyMatrix",
+  "missingAnchorRow",
+  "missingAnchorColumn",
+  "columnOverflow",
+  "rowOverflow",
+  "hidden",
+  "readonly",
+  "validation",
+];
 
 function isEmptyValue(value: unknown) {
   return (
@@ -218,6 +247,11 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
 
   matrix.forEach((rowValues, rowOffset) => {
     rowValues.forEach((value, columnOffset) => {
+      const targetRowIndex = anchorRowIndex + rowOffset;
+      const rowKey =
+        targetRowIndex < input.rowOrder.length
+          ? input.rowOrder[targetRowIndex]
+          : undefined;
       const column = input.columns[anchorColumnIndex + columnOffset];
 
       if (!column) {
@@ -225,6 +259,7 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
           rowOffset,
           columnOffset,
           reason: "columnOverflow",
+          rowKey,
         });
         return;
       }
@@ -234,15 +269,11 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
           rowOffset,
           columnOffset,
           reason: "hidden",
+          rowKey,
+          columnKey: column.key,
         });
         return;
       }
-
-      const targetRowIndex = anchorRowIndex + rowOffset;
-      const rowKey =
-        targetRowIndex < input.rowOrder.length
-          ? input.rowOrder[targetRowIndex]
-          : undefined;
       const contextRow =
         targetRowIndex < input.rowOrder.length
           ? ({
@@ -261,6 +292,8 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
           rowOffset,
           columnOffset,
           reason: "readonly",
+          rowKey,
+          columnKey: column.key,
         });
         return;
       }
@@ -276,6 +309,8 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
           rowOffset,
           columnOffset,
           reason: "validation",
+          rowKey,
+          columnKey: column.key,
         });
         validationErrors.push({
           rowOffset,
@@ -312,6 +347,8 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
             rowOffset,
             columnOffset,
             reason: "validation",
+            rowKey: existingRowKey,
+            columnKey: column.key,
           });
           validationErrors.push({
             rowOffset,
@@ -335,6 +372,7 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
           rowOffset,
           columnOffset,
           reason: "rowOverflow",
+          columnKey: column.key,
         });
         return;
       }
@@ -356,6 +394,7 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
           rowOffset,
           columnOffset,
           reason: "validation",
+          columnKey: column.key,
         });
         validationErrors.push({
           rowOffset,
@@ -388,5 +427,40 @@ export function buildRectangularPastePlan<Row extends RowRecord>(
     rowOverflowCellCount: countSkippedCellsByReason(skippedCells, "rowOverflow"),
     skippedCells,
     validationErrors,
+  };
+}
+
+export function summarizeRectangularPastePlan<Row extends RowRecord>(
+  plan: RectangularPastePlan<Row>,
+): ClipboardPlanSummary {
+  const skippedCounts = plan.skippedCells.reduce<ClipboardSkipSummary>(
+    (summary, cell) => ({
+      ...summary,
+      [cell.reason]: (summary[cell.reason] ?? 0) + 1,
+    }),
+    {
+      emptyMatrix: 0,
+      missingAnchorRow: 0,
+      missingAnchorColumn: 0,
+      columnOverflow: 0,
+      rowOverflow: 0,
+      hidden: 0,
+      readonly: 0,
+      validation: 0,
+    },
+  );
+
+  return {
+    matrixRowCount: plan.matrix.length,
+    matrixColumnCount: Math.max(0, ...plan.matrix.map((row) => row.length)),
+    appliedCellCount: plan.appliedCellCount,
+    appendedRowCount: plan.appendedRows.length,
+    skippedCellCount: plan.skippedCells.length,
+    rowOverflowPolicy: plan.rowOverflowPolicy,
+    rowOverflowCellCount: plan.rowOverflowCellCount,
+    skippedCounts,
+    validationErrorCount: plan.validationErrors.length,
+    firstValidationError: plan.validationErrors[0],
+    firstSkippedCell: plan.skippedCells[0],
   };
 }

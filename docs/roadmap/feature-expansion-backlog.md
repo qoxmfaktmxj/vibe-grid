@@ -252,6 +252,22 @@ to all use the same rule.
 - summary shows skipped readonly cells
 - invalid values still report validation errors
 
+### Status
+
+- implemented on `2026-03-13`
+- shared clipboard module now exposes a paste-plan summary helper
+- Grid Lab now shows:
+  - matrix size
+  - skipped total
+  - per-reason skipped counts
+  - first skipped cell summary
+  - first validation error summary
+- current browser coverage verifies:
+  - append mode summary
+  - reject overflow summary
+  - readonly skip summary
+  - validation summary
+
 ## Recommended Implementation Order
 
 1. `FE-3a` shared cell-level editability contract
@@ -275,6 +291,7 @@ Status:
 - `FE-3a cell-level editability contract` is implemented on `2026-03-13`
 - `FE-1 dedicated delete check column` is implemented on `2026-03-13`
 - `FE-2 single-click edit activation option` is implemented on `2026-03-13`
+- `FE-3b paste summary and skip reporting polish` is implemented on `2026-03-13`
 - current demo rule:
   - `note` is editable only when `useYn === "Y"`
 - current coverage:
@@ -283,10 +300,11 @@ Status:
   - paste skips readonly targets and reports `readonly` in the summary
   - dedicated delete checkbox marks and restores loaded rows
   - edit activation can switch between `doubleClick` and `singleClick`
+  - paste summary exposes matrix, skipped-total, per-reason, and first-error details
 
 Next recommended slice:
 
-- `FE-3b paste summary and skip reporting polish`
+- `FE-4 date editor foundation`
 
 ## Acceptance Before Calling Feature Expansion Successful
 

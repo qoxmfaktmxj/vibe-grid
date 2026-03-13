@@ -10,7 +10,9 @@ import {
 } from "react";
 import {
   buildRectangularPastePlan,
+  clipboardSkipReasonOrder,
   createClipboardSchema,
+  summarizeRectangularPastePlan,
 } from "@vibe-grid/clipboard";
 import {
   applyRowPatch,
@@ -51,9 +53,9 @@ import {
   type SaveBundle,
 } from "@vibe-grid/core";
 import type {
+  ClipboardPlanSummary,
   ClipboardRowOverflowPolicy,
   ClipboardSkipReason,
-  ClipboardValidationError,
 } from "@vibe-grid/clipboard";
 import {
   defaultLocale,
@@ -95,12 +97,18 @@ type FilterDraft = {
 
 type PasteSummary = {
   sourceLabel: string;
-  rowOverflowPolicy: ClipboardRowOverflowPolicy;
-  rowOverflowCellCount: number;
-  appliedCellCount: number;
-  appendedRowCount: number;
-  skippedCounts: Record<ClipboardSkipReason, number>;
-  validationErrors: ClipboardValidationError[];
+  summary: ClipboardPlanSummary;
+};
+
+const pasteSkipReasonLabels: Record<ClipboardSkipReason, string> = {
+  emptyMatrix: "빈 매트릭스",
+  missingAnchorRow: "anchor row 없음",
+  missingAnchorColumn: "anchor column 없음",
+  columnOverflow: "컬럼 초과",
+  rowOverflow: "행 초과",
+  hidden: "숨김 컬럼",
+  readonly: "읽기 전용",
+  validation: "검증 오류",
 };
 
 const initialServerResult = buildGridLabServerResult(defaultGridQuery);
@@ -403,24 +411,14 @@ export function PlaygroundWorkbench() {
       rowsByKey: new Map(rows.map((row) => [row.meta.rowKey, row.row])),
       createAppendedRow: (absoluteRowIndex) => createBlankRow(absoluteRowIndex + 1),
     });
+    const summary = summarizeRectangularPastePlan(plan);
 
     setPasteSummary({
       sourceLabel,
-      rowOverflowPolicy: plan.rowOverflowPolicy,
-      rowOverflowCellCount: plan.rowOverflowCellCount,
-      appliedCellCount: plan.appliedCellCount,
-      appendedRowCount: plan.appendedRows.length,
-      skippedCounts: plan.skippedCells.reduce(
-        (summary, cell) => ({
-          ...summary,
-          [cell.reason]: (summary[cell.reason] ?? 0) + 1,
-        }),
-        {} as Record<ClipboardSkipReason, number>,
-      ),
-      validationErrors: plan.validationErrors,
+      summary,
     });
 
-    if (plan.appliedCellCount === 0 && plan.validationErrors.length === 0) {
+    if (summary.appliedCellCount === 0 && summary.validationErrorCount === 0) {
       const firstReason = plan.skippedCells[0]?.reason;
       if (firstReason === "missingAnchorColumn") {
         setStatusMessage(getStatusMessage("statusMissingAnchorCell"));
@@ -434,12 +432,12 @@ export function PlaygroundWorkbench() {
       return;
     }
 
-    if (plan.validationErrors.length > 0 && plan.appliedCellCount === 0) {
+    if (summary.validationErrorCount > 0 && summary.appliedCellCount === 0) {
       setStatusMessage(
         getStatusMessage("statusPasteValidationOnly", {
           sourceLabel,
-          validationCount: plan.validationErrors.length,
-          skippedCount: plan.skippedCells.length,
+          validationCount: summary.validationErrorCount,
+          skippedCount: summary.skippedCellCount,
         }),
       );
       return;
@@ -465,13 +463,19 @@ export function PlaygroundWorkbench() {
 
     commitRows([...nextRows, ...appendedRows]);
     setStatusMessage(
-      getStatusMessage("statusPasteApplied", {
-        sourceLabel,
-        appliedCellCount: plan.appliedCellCount,
-        appendedRowCount: plan.appendedRows.length,
-        skippedCount: plan.skippedCells.length,
-        rowOverflowPolicy: plan.rowOverflowPolicy,
-      }),
+      getStatusMessage(
+        summary.validationErrorCount > 0 || summary.skippedCellCount > 0
+          ? "statusPasteAppliedWithIssues"
+          : "statusPasteApplied",
+        {
+          sourceLabel,
+          appliedCellCount: summary.appliedCellCount,
+          appendedRowCount: summary.appendedRowCount,
+          skippedCount: summary.skippedCellCount,
+          validationCount: summary.validationErrorCount,
+          rowOverflowPolicy: summary.rowOverflowPolicy,
+        },
+      ),
     );
   }
 
@@ -1396,31 +1400,62 @@ export function PlaygroundWorkbench() {
                   <div data-testid="paste-summary-source">
                     source: {pasteSummary.sourceLabel}
                   </div>
+                  <div data-testid="paste-summary-matrix">
+                    matrix: {pasteSummary.summary.matrixRowCount} x{" "}
+                    {pasteSummary.summary.matrixColumnCount}
+                  </div>
                   <div data-testid="paste-summary-policy">
-                    row overflow policy: {pasteSummary.rowOverflowPolicy}
+                    row overflow policy: {pasteSummary.summary.rowOverflowPolicy}
                   </div>
                   <div data-testid="paste-summary-applied">
-                    applied: {pasteSummary.appliedCellCount}
+                    applied: {pasteSummary.summary.appliedCellCount}
                   </div>
                   <div data-testid="paste-summary-appended">
-                    appended rows: {pasteSummary.appendedRowCount}
+                    appended rows: {pasteSummary.summary.appendedRowCount}
                   </div>
                   <div data-testid="paste-summary-row-overflow">
-                    row overflow cells: {pasteSummary.rowOverflowCellCount}
+                    row overflow cells: {pasteSummary.summary.rowOverflowCellCount}
                   </div>
                   <div data-testid="paste-summary-validation">
-                    validation errors: {pasteSummary.validationErrors.length}
+                    validation errors: {pasteSummary.summary.validationErrorCount}
+                  </div>
+                  <div data-testid="paste-summary-skipped-total">
+                    skipped total: {pasteSummary.summary.skippedCellCount}
                   </div>
                   <div>
                     skipped:{" "}
-                    {Object.entries(pasteSummary.skippedCounts)
-                      .map(([reason, count]) => `${reason} ${count}`)
+                    {clipboardSkipReasonOrder
+                      .filter((reason) => pasteSummary.summary.skippedCounts[reason] > 0)
+                      .map(
+                        (reason) =>
+                          `${pasteSkipReasonLabels[reason]} ${pasteSummary.summary.skippedCounts[reason]}`,
+                      )
                       .join(", ") || "none"}
                   </div>
-                  {pasteSummary.validationErrors.length > 0 ? (
-                    <div style={{ marginTop: 8 }}>
-                      first error: {pasteSummary.validationErrors[0].columnKey} /{" "}
-                      {pasteSummary.validationErrors[0].messages.join("; ")}
+                  {clipboardSkipReasonOrder.map((reason) => (
+                    <div
+                      key={reason}
+                      data-testid={`paste-summary-skipped-${reason}`}
+                    >
+                      {pasteSkipReasonLabels[reason]}:{" "}
+                      {pasteSummary.summary.skippedCounts[reason]}
+                    </div>
+                  ))}
+                  {pasteSummary.summary.firstSkippedCell ? (
+                    <div data-testid="paste-summary-first-skipped" style={{ marginTop: 8 }}>
+                      first skipped: {pasteSummary.summary.firstSkippedCell.reason}
+                      {pasteSummary.summary.firstSkippedCell.columnKey
+                        ? ` / ${pasteSummary.summary.firstSkippedCell.columnKey}`
+                        : ""}
+                      {pasteSummary.summary.firstSkippedCell.rowKey
+                        ? ` / ${pasteSummary.summary.firstSkippedCell.rowKey}`
+                        : ""}
+                    </div>
+                  ) : null}
+                  {pasteSummary.summary.firstValidationError ? (
+                    <div data-testid="paste-summary-first-validation" style={{ marginTop: 8 }}>
+                      first error: {pasteSummary.summary.firstValidationError.columnKey} /{" "}
+                      {pasteSummary.summary.firstValidationError.messages.join("; ")}
                     </div>
                   ) : null}
                 </>

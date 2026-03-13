@@ -29,6 +29,7 @@ export const gridMessageKeys = {
   statusNoApplicableClipboardData: "grid.status.noApplicableClipboardData",
   statusPasteValidationOnly: "grid.status.pasteValidationOnly",
   statusPasteApplied: "grid.status.pasteApplied",
+  statusPasteAppliedWithIssues: "grid.status.pasteAppliedWithIssues",
   statusInsertRowAdded: "grid.status.insertRowAdded",
   statusCopyRowMissingSelection: "grid.status.copyRowMissingSelection",
   statusCopyRowSuccess: "grid.status.copyRowSuccess",
@@ -89,6 +90,8 @@ const gridMessages: Record<GridLocale, Record<GridMessageKey, string>> = {
       "{sourceLabel}: 검증 오류 {validationCount}건, 건너뜀 {skippedCount}건",
     [gridMessageKeys.statusPasteApplied]:
       "{sourceLabel}: {appliedCellCount}개 셀 반영, 신규 {appendedRowCount}행 추가, 건너뜀 {skippedCount}건 (정책: {rowOverflowPolicy})",
+    [gridMessageKeys.statusPasteAppliedWithIssues]:
+      "{sourceLabel}: {appliedCellCount}개 셀 반영, 신규 {appendedRowCount}행 추가, 건너뜀 {skippedCount}건, 검증 오류 {validationCount}건 (정책: {rowOverflowPolicy})",
     [gridMessageKeys.statusInsertRowAdded]:
       "신규 행을 추가했습니다. 현재 페이지의 로컬 작업 상태입니다.",
     [gridMessageKeys.statusCopyRowMissingSelection]:
@@ -157,6 +160,8 @@ const gridMessages: Record<GridLocale, Record<GridMessageKey, string>> = {
       "{sourceLabel}: validation {validationCount}, skipped {skippedCount}",
     [gridMessageKeys.statusPasteApplied]:
       "{sourceLabel}: applied {appliedCellCount} cells, appended {appendedRowCount} rows, skipped {skippedCount} cells (policy: {rowOverflowPolicy}).",
+    [gridMessageKeys.statusPasteAppliedWithIssues]:
+      "{sourceLabel}: applied {appliedCellCount} cells, appended {appendedRowCount} rows, skipped {skippedCount} cells, validation {validationCount} (policy: {rowOverflowPolicy}).",
     [gridMessageKeys.statusInsertRowAdded]:
       "Inserted a new row into the current page-local working set.",
     [gridMessageKeys.statusCopyRowMissingSelection]:
