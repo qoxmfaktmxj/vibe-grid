@@ -1,11 +1,11 @@
-import type {
-  GridDateBadge,
-  GridEditorOption,
-  GridFilter,
-  GridQuery,
-  GridServerResult,
-  GridSortRule,
-  VibeGridColumn,
+import {
+  createGridDatePolicy,
+  type GridEditorOption,
+  type GridFilter,
+  type GridQuery,
+  type GridServerResult,
+  type GridSortRule,
+  type VibeGridColumn,
 } from "@vibe-grid/core";
 
 export type PlaygroundRow = {
@@ -64,6 +64,7 @@ const noteCatalog = [
 ];
 
 const blockedDates = new Set(["2026-03-16", "2026-03-23"]);
+const specialDates = new Set(["2026-03-15"]);
 const effectiveDateCatalog = [
   "2026-03-03",
   "2026-03-04",
@@ -79,35 +80,20 @@ const effectiveDateCatalog = [
 
 export const firstEditableColumnKey: keyof PlaygroundRow = "sampleCode";
 
-function isIsoDateValue(value: unknown): value is string {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
-function isWeekendDate(value: string) {
-  const date = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(date.getTime())) {
-    return false;
-  }
-
-  const day = date.getDay();
-  return day === 0 || day === 6;
-}
-
-function resolveDateBadge(value: string): GridDateBadge | undefined {
-  if (blockedDates.has(value)) {
-    return "holiday";
-  }
-
-  if (isWeekendDate(value)) {
-    return "weekend";
-  }
-
-  if (value.endsWith("-15")) {
-    return "special";
-  }
-
-  return undefined;
-}
+const effectiveDatePolicy = createGridDatePolicy<PlaygroundRow>({
+  placeholder: "YYYY-MM-DD",
+  minDate: "2026-03-01",
+  maxDate: "2026-04-30",
+  disableWeekends: true,
+  disabledDates: blockedDates,
+  holidayDates: blockedDates,
+  specialDates,
+  messages: {
+    invalidDate: "기준일은 YYYY-MM-DD 형식이어야 합니다.",
+    disabledDate: "선택할 수 없는 기준일입니다.",
+    outOfRangeDate: "기준일이 허용 범위를 벗어났습니다.",
+  },
+});
 
 export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
   {
@@ -270,32 +256,13 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
     sortable: true,
     filterable: true,
     parse: (value) => value.trim(),
-    editor: {
-      type: "date",
-      placeholder: "YYYY-MM-DD",
-      minDate: "2026-03-01",
-      maxDate: "2026-04-30",
-      disabledDate: (date) => isWeekendDate(date) || blockedDates.has(date),
-      dateBadge: (date) => resolveDateBadge(date),
-    },
+    editor: effectiveDatePolicy.editor,
     filterEditor: {
       type: "text",
       placeholder: "기준일 검색",
       op: "eq",
     },
-    validate: [
-      (value) =>
-        isIsoDateValue(value) ? null : "기준일은 YYYY-MM-DD 형식이어야 합니다.",
-      (value) => {
-        if (!isIsoDateValue(value)) {
-          return null;
-        }
-
-        return isWeekendDate(value) || blockedDates.has(value)
-          ? "선택할 수 없는 기준일입니다."
-          : null;
-      },
-    ],
+    validate: effectiveDatePolicy.validators,
   },
 ];
 

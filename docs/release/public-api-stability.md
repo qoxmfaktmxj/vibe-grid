@@ -35,6 +35,10 @@ These areas are expected to remain compatible unless a roadmap document explicit
 - dedicated delete-check control column behavior driven through the shared React surface
 - edit activation option through the shared React surface with `doubleClick` default
 - date editor foundation through the shared React surface with host-provided date policy callbacks
+- shared host-calendar helpers through `@vibe-grid/core`:
+  - `createGridDatePolicy`
+  - `createGridDateEditorSpec`
+  - `createGridDateValidators`
 
 ### Product Validation Rules
 

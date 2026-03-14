@@ -352,9 +352,9 @@ Do not prioritize these until the earlier items move:
 
 If work continues immediately, execute in this order:
 
-1. holiday-aware date policy wiring for business-calendar consumers
-2. date editor host-integration examples
-3. the next editor family after date foundation
+1. date editor host-integration examples
+2. the next editor family after date foundation
+3. holiday-aware date policy documentation for consuming apps
 
 Use `docs/roadmap/feature-expansion-backlog.md` as the entry point for this next stage.
 

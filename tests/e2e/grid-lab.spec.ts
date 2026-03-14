@@ -280,6 +280,7 @@ test.describe("Grid Lab", () => {
     ).toBeVisible();
 
     await expect(page.getByTestId("date-editor-day-2026-03-07")).toBeDisabled();
+    await expect(page.getByTestId("date-editor-day-2026-03-16")).toBeDisabled();
     await page.getByTestId("date-editor-day-2026-03-10").click();
 
     await expect(

@@ -98,4 +98,16 @@ export {
   validateRow,
   withRowValidation,
 } from "./validation";
+export type {
+  GridDatePolicy,
+  GridDatePolicyConfig,
+  GridDatePolicyMessages,
+} from "./date-policy";
+export {
+  createGridDateEditorSpec,
+  createGridDatePolicy,
+  createGridDateValidators,
+  isIsoGridDateValue,
+  isWeekendGridDate,
+} from "./date-policy";
 export { getScaffoldStatus } from "./scaffold";

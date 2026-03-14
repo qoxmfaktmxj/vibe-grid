@@ -330,6 +330,7 @@ Add a shared date editor surface that supports:
 
 - implemented on `2026-03-14`
 - current Grid Lab demo adds `effectiveDate`
+- host-calendar wiring was raised into `@vibe-grid/core` on `2026-03-14` through `createGridDatePolicy`
 - current inline editor supports:
   - native date input
   - calendar popover
@@ -339,11 +340,12 @@ Add a shared date editor surface that supports:
 - current browser coverage verifies:
   - calendar popover opens
   - blocked weekend dates are disabled
+  - blocked holiday dates are disabled
   - allowed dates commit back into the cell and side editor
 
 Next recommended slice:
 
-- holiday-aware date policy wiring for host apps
+- date editor host-integration examples
 
 ## Acceptance Before Calling Feature Expansion Successful
 

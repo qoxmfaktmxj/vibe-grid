@@ -15,6 +15,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Single-click edit activation as an opt-in shared grid behavior.
 - Paste summary and skip reporting polish with shared clipboard-plan summarization.
 - Date editor foundation with calendar popover, disabled-date rules, and badge-aware day rendering.
+- Shared date-policy helpers in `@vibe-grid/core` for host-provided holiday and business-calendar wiring.
 
 ### Changed
 
