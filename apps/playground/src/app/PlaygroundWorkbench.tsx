@@ -41,6 +41,7 @@ import {
   setGridColumnWidth,
   toggleRowDeleted,
   validateManagedRows,
+  type GridActiveCell,
   type GridEditActivation,
   type GridColumnState,
   type GridEditSession,
@@ -63,7 +64,7 @@ import {
   gridMessageKeys,
   type GridMessageValues,
 } from "@vibe-grid/i18n";
-import { VibeGrid } from "@vibe-grid/react";
+import { VibeGrid, type GridClipboardPasteInput } from "@vibe-grid/react";
 import {
   createBrowserGridPreferenceAdapter,
   type GridPreferenceScope,
@@ -396,17 +397,38 @@ export function PlaygroundWorkbench() {
     }
   }
 
-  function applyTabularText(text: string, sourceLabel: string) {
+  function resolveVisibleClipboardColumns(visibleColumnKeys: readonly string[]) {
+    return visibleColumnKeys.flatMap((columnKey) => {
+      const column = clipboardSchema.find((item) => item.key === columnKey);
+      return column ? [column] : [];
+    });
+  }
+
+  function applyTabularText(
+    text: string,
+    sourceLabel: string,
+    options?: {
+      anchorCell?: GridActiveCell;
+      visibleColumnKeys?: readonly string[];
+    },
+  ) {
     const rowOrder = rows.map((row) => row.meta.rowKey);
+    const resolvedVisibleColumnKeys =
+      options?.visibleColumnKeys ?? visibleClipboardColumns.map((column) => column.key);
+    const resolvedClipboardColumns = resolveVisibleClipboardColumns(
+      resolvedVisibleColumnKeys,
+    );
     const plan = buildRectangularPastePlan({
       text,
-      columns: visibleClipboardColumns,
+      columns: resolvedClipboardColumns,
       rowOrder,
-      anchor: getSelectionAnchorCell(
-        selectionState,
-        rowOrder,
-        visibleClipboardColumns.map((column) => column.key),
-      ),
+      anchor:
+        options?.anchorCell ??
+        getSelectionAnchorCell(
+          selectionState,
+          rowOrder,
+          resolvedVisibleColumnKeys,
+        ),
       rowOverflowPolicy: pasteRowOverflowPolicy,
       rowsByKey: new Map(rows.map((row) => [row.meta.rowKey, row.row])),
       createAppendedRow: (absoluteRowIndex) => createBlankRow(absoluteRowIndex + 1),
@@ -768,6 +790,18 @@ export function PlaygroundWorkbench() {
     applyTabularText(pasteText, "붙여넣기");
   }
 
+  function handleGridClipboardPaste({
+    text,
+    anchorCell,
+    visibleColumnKeys,
+  }: GridClipboardPasteInput) {
+    setPasteText(text);
+    applyTabularText(text, "그리드 직접 붙여넣기", {
+      anchorCell,
+      visibleColumnKeys,
+    });
+  }
+
   function handleApplyImportPreview() {
     if (!importPreview) {
       return;
@@ -947,6 +981,7 @@ export function PlaygroundWorkbench() {
             editSession={editSession}
             onEditSessionChange={setEditSession}
             onCellEditCommit={handleCellEditCommit}
+            onClipboardPaste={handleGridClipboardPaste}
             onDeleteCheckToggle={handleDeleteCheckToggle}
             editActivation={editActivation}
             columnState={columnState}

@@ -182,6 +182,40 @@ test.describe("Grid Lab", () => {
     expect(copiedText).toContain("HR-002");
   });
 
+  test("supports direct in-grid paste from the current anchor cell", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-001-sampleName").click();
+    await page.evaluate((text) => {
+      const grid = document.querySelector('[data-testid="vibe-grid"]');
+
+      if (!(grid instanceof HTMLElement)) {
+        throw new Error("Grid root was not found.");
+      }
+
+      const event = new Event("paste", { bubbles: true, cancelable: true });
+      Object.defineProperty(event, "clipboardData", {
+        value: {
+          getData: (type: string) => (type === "text/plain" ? text : ""),
+        },
+      });
+      grid.dispatchEvent(event);
+    }, ["Alpha", "People Ops", "Lead"].join("\t"));
+
+    await expect(page.getByTestId("paste-summary-source")).toContainText(
+      "그리드 직접 붙여넣기",
+    );
+    await expect(page.getByTestId("paste-summary-matrix")).toContainText("1 x 3");
+    await expect(page.getByTestId("paste-summary-applied")).toContainText("applied: 3");
+    await expect(page.getByTestId("grid-cell-HR-001-sampleName")).toHaveText("Alpha");
+    await expect(page.getByTestId("grid-cell-HR-001-department")).toHaveText(
+      "People Ops",
+    );
+    await expect(page.getByTestId("grid-cell-HR-001-jobTitle")).toHaveText("Lead");
+  });
+
   test("rejects overflow rows when the policy is reject", async ({ page }) => {
     await page.goto("/labs/grid");
 

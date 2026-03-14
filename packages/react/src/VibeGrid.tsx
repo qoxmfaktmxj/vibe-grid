@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef } from "react";
+import type { ClipboardEvent as ReactClipboardEvent } from "react";
 import {
   getCoreRowModel,
   useReactTable,
@@ -18,10 +19,12 @@ import {
   createSelectionState,
   extendRangeByArrow,
   getNormalizedCellRange,
+  getSelectionAnchorCell,
   hasRangeSelection,
   moveActiveCellByArrow,
   sanitizeGridColumnState,
   updateRangeSelection,
+  type GridActiveCell,
   type GridColumnState,
   type GridEditActivation,
   type GridEditSession,
@@ -66,6 +69,24 @@ function areSameCell(
   return !!left && !!right && left.rowKey === right.rowKey && left.columnKey === right.columnKey;
 }
 
+function shouldIgnoreClipboardPasteTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (target.isContentEditable) {
+    return true;
+  }
+
+  return target.closest("input, textarea, select, [contenteditable='true']") != null;
+}
+
+export type GridClipboardPasteInput = {
+  text: string;
+  anchorCell?: GridActiveCell;
+  visibleColumnKeys: string[];
+};
+
 export type VibeGridProps<Row extends RowRecord> = {
   gridId: string;
   rows: ManagedGridRow<Row>[];
@@ -79,6 +100,7 @@ export type VibeGridProps<Row extends RowRecord> = {
     columnKey: string;
     draftValue: string;
   }) => void;
+  onClipboardPaste?: (input: GridClipboardPasteInput) => void;
   onDeleteCheckToggle?: (rowKey: string) => void;
   editActivation?: GridEditActivation;
   columnState?: GridColumnState;
@@ -120,6 +142,7 @@ export function VibeGrid<Row extends RowRecord>({
   editSession,
   onEditSessionChange,
   onCellEditCommit,
+  onClipboardPaste,
   onDeleteCheckToggle,
   editActivation = "doubleClick",
   columnState,
@@ -421,6 +444,11 @@ export function VibeGrid<Row extends RowRecord>({
     rowOrder,
     visibleBusinessColumnKeys,
   );
+  const selectionAnchorCell = getSelectionAnchorCell(
+    resolvedSelectionState,
+    rowOrder,
+    visibleBusinessColumnKeys,
+  );
   const rangeRowCount = normalizedRange
     ? normalizedRange.endRowIndex - normalizedRange.startRowIndex + 1
     : 0;
@@ -536,6 +564,25 @@ export function VibeGrid<Row extends RowRecord>({
     }
   };
 
+  const handleGridPaste = (event: ReactClipboardEvent<HTMLDivElement>) => {
+    if (!onClipboardPaste || shouldIgnoreClipboardPasteTarget(event.target)) {
+      return;
+    }
+
+    const text = event.clipboardData.getData("text/plain");
+
+    if (!text) {
+      return;
+    }
+
+    event.preventDefault();
+    onClipboardPaste({
+      text,
+      anchorCell: selectionAnchorCell,
+      visibleColumnKeys: visibleBusinessColumnKeys,
+    });
+  };
+
   return (
     <div
       ref={gridRef}
@@ -552,6 +599,7 @@ export function VibeGrid<Row extends RowRecord>({
       data-edit-activation={editActivation}
       data-pinned-left-count={columnPinningState.left?.length ?? 0}
       data-pinned-right-count={columnPinningState.right?.length ?? 0}
+      onPaste={handleGridPaste}
       onKeyDown={(event) => {
         if (event.key === "Escape" && hasRangeSelection(resolvedSelectionState)) {
           event.preventDefault();

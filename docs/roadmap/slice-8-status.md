@@ -41,6 +41,7 @@
   - `Shift + Arrow` range selection
   - range copy serialization
   - invalid paste summary reporting
+  - direct in-grid clipboard paste from the active anchor cell
 
 ## Validation
 
