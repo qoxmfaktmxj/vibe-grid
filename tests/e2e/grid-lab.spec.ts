@@ -263,4 +263,32 @@ test.describe("Grid Lab", () => {
     await page.getByTestId("grid-cell-HR-002-note").click();
     await expect(page.getByTestId("inline-editor-HR-002-note")).toHaveCount(0);
   });
+
+  test("supports the date editor foundation with calendar constraints", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-001-effectiveDate").dblclick();
+    await expect(
+      page.getByTestId("inline-editor-HR-001-effectiveDate"),
+    ).toBeVisible();
+
+    await page.getByTestId("date-editor-toggle-HR-001-effectiveDate").click();
+    await expect(
+      page.getByTestId("date-editor-popover-HR-001-effectiveDate"),
+    ).toBeVisible();
+
+    await expect(page.getByTestId("date-editor-day-2026-03-07")).toBeDisabled();
+    await page.getByTestId("date-editor-day-2026-03-10").click();
+
+    await expect(
+      page.getByTestId("grid-cell-HR-001-effectiveDate"),
+    ).toContainText("2026-03-10");
+
+    await page.getByTestId("grid-cell-HR-001-sampleCode").click();
+    await expect(page.getByTestId("side-editor-effectiveDate")).toHaveValue(
+      "2026-03-10",
+    );
+  });
 });

@@ -1555,6 +1555,21 @@ function renderSideEditor(input: {
     );
   }
 
+  if (editor.type === "date") {
+    return (
+      <input
+        data-testid={`side-editor-${column.key}`}
+        type="date"
+        disabled={!editable}
+        min={editor.minDate}
+        max={editor.maxDate}
+        value={displayValue}
+        onChange={(event) => onChange(event.target.value)}
+        style={sharedStyle}
+      />
+    );
+  }
+
   return (
     <input
       data-testid={`side-editor-${column.key}`}

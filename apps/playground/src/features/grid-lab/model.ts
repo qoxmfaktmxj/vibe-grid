@@ -1,4 +1,5 @@
 import type {
+  GridDateBadge,
   GridEditorOption,
   GridFilter,
   GridQuery,
@@ -15,6 +16,7 @@ export type PlaygroundRow = {
   useYn: "Y" | "N";
   sortOrder: number;
   note: string;
+  effectiveDate: string;
 };
 
 export const departmentOptions: GridEditorOption[] = [
@@ -56,12 +58,56 @@ const noteCatalog = [
   "기본 마스터 검증 시나리오",
   "저장 payload 분리 체크",
   "엑셀 업로드 헤더 검증용",
-  "삭제 체크 후 저장 흐름 확인",
+  "삭제 체크와 저장 흐름 확인",
   "클립보드 붙여넣기 테스트",
   "서버 정렬 및 필터 테스트 데이터",
 ];
 
+const blockedDates = new Set(["2026-03-16", "2026-03-23"]);
+const effectiveDateCatalog = [
+  "2026-03-03",
+  "2026-03-04",
+  "2026-03-05",
+  "2026-03-06",
+  "2026-03-10",
+  "2026-03-11",
+  "2026-03-12",
+  "2026-03-13",
+  "2026-03-17",
+  "2026-03-18",
+];
+
 export const firstEditableColumnKey: keyof PlaygroundRow = "sampleCode";
+
+function isIsoDateValue(value: unknown): value is string {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function isWeekendDate(value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  const day = date.getDay();
+  return day === 0 || day === 6;
+}
+
+function resolveDateBadge(value: string): GridDateBadge | undefined {
+  if (blockedDates.has(value)) {
+    return "holiday";
+  }
+
+  if (isWeekendDate(value)) {
+    return "weekend";
+  }
+
+  if (value.endsWith("-15")) {
+    return "special";
+  }
+
+  return undefined;
+}
 
 export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
   {
@@ -215,6 +261,42 @@ export const playgroundColumns: VibeGridColumn<PlaygroundRow>[] = [
       placeholder: "비고 검색",
     },
   },
+  {
+    key: "effectiveDate",
+    header: "기준일",
+    width: 150,
+    minWidth: 132,
+    editable: true,
+    sortable: true,
+    filterable: true,
+    parse: (value) => value.trim(),
+    editor: {
+      type: "date",
+      placeholder: "YYYY-MM-DD",
+      minDate: "2026-03-01",
+      maxDate: "2026-04-30",
+      disabledDate: (date) => isWeekendDate(date) || blockedDates.has(date),
+      dateBadge: (date) => resolveDateBadge(date),
+    },
+    filterEditor: {
+      type: "text",
+      placeholder: "기준일 검색",
+      op: "eq",
+    },
+    validate: [
+      (value) =>
+        isIsoDateValue(value) ? null : "기준일은 YYYY-MM-DD 형식이어야 합니다.",
+      (value) => {
+        if (!isIsoDateValue(value)) {
+          return null;
+        }
+
+        return isWeekendDate(value) || blockedDates.has(value)
+          ? "선택할 수 없는 기준일입니다."
+          : null;
+      },
+    ],
+  },
 ];
 
 export const defaultGridQuery: GridQuery = {
@@ -233,6 +315,7 @@ export function createBlankRow(sequence: number): PlaygroundRow {
     useYn: "Y",
     sortOrder: sequence,
     note: "입력 전 기본 데이터입니다.",
+    effectiveDate: "2026-03-10",
   };
 }
 
@@ -248,8 +331,12 @@ export function buildGridQuerySearchParams(query: GridQuery) {
 export function parseGridQuerySearchParams(
   searchParams: URLSearchParams,
 ): GridQuery {
-  const pageIndex = Number(searchParams.get("pageIndex") ?? defaultGridQuery.pageIndex);
-  const pageSize = Number(searchParams.get("pageSize") ?? defaultGridQuery.pageSize);
+  const pageIndex = Number(
+    searchParams.get("pageIndex") ?? defaultGridQuery.pageIndex,
+  );
+  const pageSize = Number(
+    searchParams.get("pageSize") ?? defaultGridQuery.pageSize,
+  );
 
   return {
     pageIndex: Number.isFinite(pageIndex) && pageIndex >= 0 ? pageIndex : 0,
@@ -301,6 +388,8 @@ function createPlaygroundDataset(count: number) {
     const jobTitle = jobTitleOptions[index % jobTitleOptions.length].value;
     const useYn = useYnOptions[index % useYnOptions.length].value as "Y" | "N";
     const note = noteCatalog[index % noteCatalog.length];
+    const effectiveDate =
+      effectiveDateCatalog[index % effectiveDateCatalog.length];
 
     return {
       sampleCode: `HR-${String(sequence).padStart(3, "0")}`,
@@ -310,6 +399,7 @@ function createPlaygroundDataset(count: number) {
       useYn,
       sortOrder: sequence,
       note: `${note} #${sequence}`,
+      effectiveDate,
     } satisfies PlaygroundRow;
   });
 }
@@ -332,6 +422,7 @@ function applyFilters(rows: PlaygroundRow[], filters: GridFilter[]) {
           row.department,
           row.jobTitle,
           row.note,
+          row.effectiveDate,
         ].some((value) => value.toLowerCase().includes(keyword)),
       );
     }
@@ -346,7 +437,9 @@ function applyFilters(rows: PlaygroundRow[], filters: GridFilter[]) {
       return currentRows;
     }
 
-    return currentRows.filter((row) => matchesFilter(row[field], rawValue, filter.op));
+    return currentRows.filter((row) =>
+      matchesFilter(row[field], rawValue, filter.op),
+    );
   }, rows);
 }
 
@@ -359,6 +452,7 @@ function isPlaygroundField(field: string): field is keyof PlaygroundRow {
     "useYn",
     "sortOrder",
     "note",
+    "effectiveDate",
   ].includes(field);
 }
 

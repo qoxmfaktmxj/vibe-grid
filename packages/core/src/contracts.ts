@@ -87,6 +87,8 @@ export type GridEditorOption = {
   value: string;
 };
 
+export type GridDateBadge = "holiday" | "weekend" | "special";
+
 export type GridFilterEditorSpec =
   | {
       type?: "text";
@@ -129,6 +131,14 @@ export type GridEditorSpec<Row> =
         | GridEditorOption[]
         | ((row: Row) => GridEditorOption[]);
       placeholder?: string;
+    }
+  | {
+      type: "date";
+      placeholder?: string;
+      minDate?: string;
+      maxDate?: string;
+      disabledDate?: (date: string, row: Row) => boolean;
+      dateBadge?: (date: string, row: Row) => GridDateBadge | undefined;
     };
 
 export type GridValidator<Row> = (

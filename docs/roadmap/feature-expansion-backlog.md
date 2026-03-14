@@ -302,9 +302,48 @@ Status:
   - edit activation can switch between `doubleClick` and `singleClick`
   - paste summary exposes matrix, skipped-total, per-reason, and first-error details
 
+## FE-4. Date Editor Foundation
+
+### Goal
+
+Add a shared date editor surface that supports:
+
+- ISO date values
+- manual date input
+- calendar popover selection
+- host-provided date disable rules
+- host-provided badge rules for special dates
+
+### Product boundary
+
+- `@vibe-grid/core`
+  - date editor contract
+  - serializable date values
+- `@vibe-grid/react`
+  - actual inline date editor UI
+  - calendar popover rendering
+- host app
+  - holiday/business-calendar data
+  - date policy callbacks
+
+### Status
+
+- implemented on `2026-03-14`
+- current Grid Lab demo adds `effectiveDate`
+- current inline editor supports:
+  - native date input
+  - calendar popover
+  - min/max date range
+  - disabled dates
+  - holiday/weekend/special badge styling
+- current browser coverage verifies:
+  - calendar popover opens
+  - blocked weekend dates are disabled
+  - allowed dates commit back into the cell and side editor
+
 Next recommended slice:
 
-- `FE-4 date editor foundation`
+- holiday-aware date policy wiring for host apps
 
 ## Acceptance Before Calling Feature Expansion Successful
 

@@ -14,6 +14,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Dedicated delete-check control column with shared browser-tested delete-toggle behavior.
 - Single-click edit activation as an opt-in shared grid behavior.
 - Paste summary and skip reporting polish with shared clipboard-plan summarization.
+- Date editor foundation with calendar popover, disabled-date rules, and badge-aware day rendering.
 
 ### Changed
 

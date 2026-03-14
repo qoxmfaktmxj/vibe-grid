@@ -5,6 +5,7 @@ import {
   type GridEditSession,
 } from "@vibe-grid/core";
 import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import { VibeGridDateEditor } from "./VibeGridDateEditor";
 import type { RowRecord } from "./vibe-grid-types";
 
 type VibeGridInlineEditorProps<Row extends RowRecord> = {
@@ -87,6 +88,16 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
     autoFocus: true,
     value: editSession.draftValue,
     onBlur: () => commit(),
+    onClick: (event: React.MouseEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >) => {
+      event.stopPropagation();
+    },
+    onMouseDown: (event: React.MouseEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >) => {
+      event.stopPropagation();
+    },
     style: commonStyle,
   } as const;
 
@@ -153,6 +164,21 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
             updateEditSessionDraft(editSession, event.target.value),
           );
         }}
+      />
+    );
+  }
+
+  if (editor?.type === "date") {
+    return (
+      <VibeGridDateEditor
+        inputId={inputId}
+        rowId={rowId}
+        columnKey={columnKey}
+        editor={editor}
+        row={row}
+        editSession={editSession}
+        onEditSessionChange={onEditSessionChange}
+        onCellEditCommit={onCellEditCommit}
       />
     );
   }

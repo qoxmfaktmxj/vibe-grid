@@ -345,7 +345,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                   }}
                 >
                   {editing ? (
-                    <label htmlFor={`${inputId}-${row.id}-${columnMeta?.columnKey}`}>
+                    <div style={{ display: "grid" }}>
                       <span style={{ display: "none" }}>{columnMeta?.columnKey}</span>
                       <VibeGridInlineEditor
                         inputId={inputId}
@@ -357,7 +357,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                         onEditSessionChange={onEditSessionChange}
                         onCellEditCommit={onCellEditCommit}
                       />
-                    </label>
+                    </div>
                   ) : (
                     flexRender(cell.column.columnDef.cell, cell.getContext())
                   )}

@@ -9,6 +9,7 @@ export type {
   GridCommandContext,
   GridCommandId,
   GridCommandScope,
+  GridDateBadge,
   GridEditActivation,
   GridEditableRule,
   GridEditorOption,
