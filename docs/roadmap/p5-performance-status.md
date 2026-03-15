@@ -22,6 +22,11 @@
   - range selection
   - filter row interaction
   - header menu open and pin-right action
+- Removed repeated linear index lookups from shared selection navigation and range normalization when React already has row/column index maps.
+- Limited drag-range selection commits to animation-frame cadence instead of pushing React state on every mousemove.
+- Switched shared column resize persistence commits from continuous `onChange` updates to end-of-drag `onEnd` commits.
+- Kept control-column metadata reads off the column-definition memo path so row meta changes do not recreate the internal control column definitions.
+- Replaced filter-row key remount sync with effect-based draft synchronization so filter apply/clear paths do not recreate the full filter-row subtree.
 
 ## Validation
 

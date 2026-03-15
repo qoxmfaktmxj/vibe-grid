@@ -97,6 +97,22 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("query-preview")).toContainText('"value": "N"');
   });
 
+  test("keeps filter input focus after Enter applies a text filter", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    const filterInput = page.getByTestId("filter-input-sampleCode");
+    await filterInput.click();
+    await filterInput.fill("HR-012");
+    await filterInput.press("Enter");
+
+    await expect(page.getByTestId("query-preview")).toContainText('"field": "sampleCode"');
+    await expect(page.getByTestId("query-preview")).toContainText('"value": "HR-012"');
+    await expect(filterInput).toHaveValue("HR-012");
+    await expect(filterInput).toBeFocused();
+  });
+
   test("reports keyboard range selection and invalid paste summary", async ({
     page,
   }) => {
@@ -128,6 +144,21 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("paste-summary-skipped-validation")).toContainText("1");
     await expect(page.getByTestId("paste-summary")).toContainText("sortOrder");
     await expect(page.getByTestId("grid-cell-HR-001-sortOrder")).toHaveText("1");
+  });
+
+  test("moves the active cell with arrow keys without creating a range", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-001-sampleCode").click();
+    await page.keyboard.press("ArrowRight");
+
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute("data-range-rows", "0");
+    await expect(page.getByTestId("grid-cell-HR-001-sampleName")).toHaveAttribute(
+      "data-active-cell",
+      "true",
+    );
   });
 
   test("supports drag range selection and range copy", async ({ page }) => {

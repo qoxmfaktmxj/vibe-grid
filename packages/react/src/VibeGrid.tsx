@@ -163,7 +163,9 @@ export function VibeGrid<Row extends RowRecord>({
     anchor: GridActiveCellLike;
     moved: boolean;
     lastFocus?: GridActiveCellLike;
+    pendingFocus?: GridActiveCellLike;
   } | null>(null);
+  const dragFrameRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
   const resolvedSelectionState =
     selectionState ?? createSelectionState({ activeRowId: rows[0]?.meta.rowKey });
@@ -175,6 +177,8 @@ export function VibeGrid<Row extends RowRecord>({
     () => new Map(rows.map((managedRow) => [managedRow.meta.rowKey, managedRow.meta])),
     [rows],
   );
+  const rowMetaByKeyRef = useRef(rowMetaByKey);
+  rowMetaByKeyRef.current = rowMetaByKey;
   const tableData = useMemo(() => rows.map((managedRow) => managedRow.row), [rows]);
 
   const businessColumns = useMemo<ColumnDef<Row>[]>(() => {
@@ -198,7 +202,7 @@ export function VibeGrid<Row extends RowRecord>({
         id: "__deleteCheck",
         header: "삭제",
         cell: ({ row }) => {
-          const isChecked = rowMetaByKey.get(row.id)?.state === "D";
+          const isChecked = rowMetaByKeyRef.current.get(row.id)?.state === "D";
 
           return (
             <span
@@ -243,7 +247,7 @@ export function VibeGrid<Row extends RowRecord>({
         id: "__rowState",
         header: "상태",
         cell: ({ row }) => {
-          const state = rowMetaByKey.get(row.id)?.state ?? "N";
+          const state = rowMetaByKeyRef.current.get(row.id)?.state ?? "N";
           const palette = rowStateColor[state];
 
           return (
@@ -277,7 +281,7 @@ export function VibeGrid<Row extends RowRecord>({
       },
       ...createTanStackColumns(columns),
     ];
-  }, [columns, onDeleteCheckToggle, rowMetaByKey]);
+  }, [columns, onDeleteCheckToggle]);
 
   const visibilityState = useMemo<VisibilityState>(() => {
     const visibility: VisibilityState = {};
@@ -318,7 +322,7 @@ export function VibeGrid<Row extends RowRecord>({
     getRowId: (_row, index) => rows[index]?.meta.rowKey ?? `${gridId}-${index}`,
     getCoreRowModel: getCoreRowModel(),
     manualSorting: true,
-    columnResizeMode: "onChange",
+    columnResizeMode: "onEnd",
     enableColumnPinning: true,
     enableColumnResizing: true,
     enableMultiSort: false,
@@ -443,11 +447,19 @@ export function VibeGrid<Row extends RowRecord>({
     resolvedSelectionState,
     rowOrder,
     visibleBusinessColumnKeys,
+    {
+      rowIndexByKey,
+      columnIndexByKey,
+    },
   );
   const selectionAnchorCell = getSelectionAnchorCell(
     resolvedSelectionState,
     rowOrder,
     visibleBusinessColumnKeys,
+    {
+      rowIndexByKey,
+      columnIndexByKey,
+    },
   );
   const rangeRowCount = normalizedRange
     ? normalizedRange.endRowIndex - normalizedRange.startRowIndex + 1
@@ -473,24 +485,59 @@ export function VibeGrid<Row extends RowRecord>({
       } satisfies GridActiveCellLike;
     };
 
-    const applyDragTarget = (dragState: {
+    const flushPendingDragTarget = (dragState: {
       anchor: GridActiveCellLike;
       moved: boolean;
       lastFocus?: GridActiveCellLike;
-    }, clientX: number, clientY: number) => {
-      const nextFocus = resolvePointerCell(clientX, clientY);
+      pendingFocus?: GridActiveCellLike;
+    }) => {
+      const nextFocus = dragState.pendingFocus;
 
       if (
         !nextFocus ||
         areSameCell(nextFocus, dragState.anchor) ||
         areSameCell(nextFocus, dragState.lastFocus)
       ) {
+        dragState.pendingFocus = undefined;
         return;
       }
 
+      dragState.pendingFocus = undefined;
       dragState.moved = true;
       dragState.lastFocus = nextFocus;
       onSelectionStateChange?.(buildDragSelectionState(dragState.anchor, nextFocus));
+    };
+
+    const queueDragTarget = (dragState: {
+      anchor: GridActiveCellLike;
+      moved: boolean;
+      lastFocus?: GridActiveCellLike;
+      pendingFocus?: GridActiveCellLike;
+    }, clientX: number, clientY: number) => {
+      const nextFocus = resolvePointerCell(clientX, clientY);
+
+      if (
+        !nextFocus ||
+        areSameCell(nextFocus, dragState.anchor) ||
+        areSameCell(nextFocus, dragState.lastFocus) ||
+        areSameCell(nextFocus, dragState.pendingFocus)
+      ) {
+        return;
+      }
+
+      dragState.pendingFocus = nextFocus;
+
+      if (dragFrameRef.current != null) {
+        return;
+      }
+
+      dragFrameRef.current = window.requestAnimationFrame(() => {
+        dragFrameRef.current = null;
+
+        if (dragRangeRef.current) {
+          flushPendingDragTarget(dragRangeRef.current);
+        }
+      });
     };
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -500,7 +547,7 @@ export function VibeGrid<Row extends RowRecord>({
         return;
       }
 
-      applyDragTarget(dragState, event.clientX, event.clientY);
+      queueDragTarget(dragState, event.clientX, event.clientY);
     };
 
     const handleMouseUp = (event: MouseEvent) => {
@@ -510,7 +557,14 @@ export function VibeGrid<Row extends RowRecord>({
         return;
       }
 
-      applyDragTarget(dragState, event.clientX, event.clientY);
+      queueDragTarget(dragState, event.clientX, event.clientY);
+
+      if (dragFrameRef.current != null) {
+        window.cancelAnimationFrame(dragFrameRef.current);
+        dragFrameRef.current = null;
+      }
+
+      flushPendingDragTarget(dragState);
 
       suppressClickRef.current = dragState.moved;
       dragRangeRef.current = null;
@@ -519,6 +573,11 @@ export function VibeGrid<Row extends RowRecord>({
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
     return () => {
+      if (dragFrameRef.current != null) {
+        window.cancelAnimationFrame(dragFrameRef.current);
+        dragFrameRef.current = null;
+      }
+
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
@@ -623,12 +682,20 @@ export function VibeGrid<Row extends RowRecord>({
                 event.key,
                 rowOrder,
                 visibleBusinessColumnKeys,
+                {
+                  rowIndexByKey,
+                  columnIndexByKey,
+                },
               )
             : moveActiveCellByArrow(
                 resolvedSelectionState,
                 event.key,
                 rowOrder,
                 visibleBusinessColumnKeys,
+                {
+                  rowIndexByKey,
+                  columnIndexByKey,
+                },
               );
 
           if (nextState) {

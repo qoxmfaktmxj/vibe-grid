@@ -19,6 +19,11 @@ type GridArrowDirection =
   | "ArrowLeft"
   | "ArrowRight";
 
+type GridSelectionIndexMaps = {
+  rowIndexByKey?: ReadonlyMap<string, number>;
+  columnIndexByKey?: ReadonlyMap<string, number>;
+};
+
 function clampIndex(value: number, maxIndex: number) {
   return Math.min(Math.max(value, 0), maxIndex);
 }
@@ -38,14 +43,27 @@ function getOffsetByDirection(direction: GridArrowDirection) {
   }
 }
 
+function getIndexForKey(
+  key: string,
+  order: readonly string[],
+  indexByKey?: ReadonlyMap<string, number>,
+) {
+  return indexByKey?.get(key) ?? order.indexOf(key);
+}
+
 function moveCellByDirection(
   cell: GridActiveCell,
   direction: GridArrowDirection,
   rowOrder: readonly string[],
   columnOrder: readonly string[],
+  indexMaps?: GridSelectionIndexMaps,
 ) {
-  const rowIndex = rowOrder.indexOf(cell.rowKey);
-  const columnIndex = columnOrder.indexOf(cell.columnKey);
+  const rowIndex = getIndexForKey(cell.rowKey, rowOrder, indexMaps?.rowIndexByKey);
+  const columnIndex = getIndexForKey(
+    cell.columnKey,
+    columnOrder,
+    indexMaps?.columnIndexByKey,
+  );
 
   if (rowIndex === -1 || columnIndex === -1) {
     return undefined;
@@ -240,15 +258,32 @@ export function getNormalizedCellRange(
   selection: GridSelectionState,
   rowOrder: readonly string[],
   columnOrder: readonly string[],
+  indexMaps?: GridSelectionIndexMaps,
 ): GridNormalizedRange | undefined {
   if (!selection.range) {
     return undefined;
   }
 
-  const anchorRowIndex = rowOrder.indexOf(selection.range.anchor.rowKey);
-  const focusRowIndex = rowOrder.indexOf(selection.range.focus.rowKey);
-  const anchorColumnIndex = columnOrder.indexOf(selection.range.anchor.columnKey);
-  const focusColumnIndex = columnOrder.indexOf(selection.range.focus.columnKey);
+  const anchorRowIndex = getIndexForKey(
+    selection.range.anchor.rowKey,
+    rowOrder,
+    indexMaps?.rowIndexByKey,
+  );
+  const focusRowIndex = getIndexForKey(
+    selection.range.focus.rowKey,
+    rowOrder,
+    indexMaps?.rowIndexByKey,
+  );
+  const anchorColumnIndex = getIndexForKey(
+    selection.range.anchor.columnKey,
+    columnOrder,
+    indexMaps?.columnIndexByKey,
+  );
+  const focusColumnIndex = getIndexForKey(
+    selection.range.focus.columnKey,
+    columnOrder,
+    indexMaps?.columnIndexByKey,
+  );
 
   if (
     anchorRowIndex === -1 ||
@@ -273,9 +308,15 @@ export function getSelectionAnchorCell(
   selection: GridSelectionState,
   rowOrder?: readonly string[],
   columnOrder?: readonly string[],
+  indexMaps?: GridSelectionIndexMaps,
 ): GridActiveCell | undefined {
   if (selection.range && rowOrder && columnOrder) {
-    const normalizedRange = getNormalizedCellRange(selection, rowOrder, columnOrder);
+    const normalizedRange = getNormalizedCellRange(
+      selection,
+      rowOrder,
+      columnOrder,
+      indexMaps,
+    );
 
     if (normalizedRange) {
       return {
@@ -333,6 +374,7 @@ export function moveActiveCellByArrow(
   direction: GridArrowDirection,
   rowOrder: readonly string[],
   columnOrder: readonly string[],
+  indexMaps?: GridSelectionIndexMaps,
 ): GridSelectionState | undefined {
   if (!selection.activeCell || rowOrder.length === 0 || columnOrder.length === 0) {
     return undefined;
@@ -343,6 +385,7 @@ export function moveActiveCellByArrow(
     direction,
     rowOrder,
     columnOrder,
+    indexMaps,
   );
 
   if (!nextCell) {
@@ -357,6 +400,7 @@ export function extendRangeByArrow(
   direction: GridArrowDirection,
   rowOrder: readonly string[],
   columnOrder: readonly string[],
+  indexMaps?: GridSelectionIndexMaps,
 ): GridSelectionState | undefined {
   const originCell = selection.range?.focus ?? selection.activeCell;
 
@@ -364,7 +408,13 @@ export function extendRangeByArrow(
     return undefined;
   }
 
-  const nextFocus = moveCellByDirection(originCell, direction, rowOrder, columnOrder);
+  const nextFocus = moveCellByDirection(
+    originCell,
+    direction,
+    rowOrder,
+    columnOrder,
+    indexMaps,
+  );
 
   if (!nextFocus) {
     return undefined;

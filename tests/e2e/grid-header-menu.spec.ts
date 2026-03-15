@@ -62,6 +62,12 @@ test.describe("Grid Header Menu", () => {
     );
     expect(afterWidth).toBeGreaterThanOrEqual(beforeWidth);
 
+    await resizeHandle.dblclick();
+    await expect(page.getByTestId("header-cell-sampleCode")).toHaveAttribute(
+      "data-column-width",
+      String(beforeWidth),
+    );
+
     await page.getByTestId("header-menu-trigger-sampleCode").click();
     await page.getByTestId("header-menu-action-sampleCode-sortDesc").click();
     await expect(page.locator('td[data-column-key="sampleCode"]').first()).toHaveText(

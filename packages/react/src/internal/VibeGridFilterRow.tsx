@@ -15,17 +15,12 @@ type VibeGridFilterRowProps<Row extends RowRecord> = {
   onFiltersChange?: (filters: GridFilter[]) => void;
 };
 
-type VibeGridFilterRowInnerProps<Row extends RowRecord> =
-  VibeGridFilterRowProps<Row> & {
-    initialDrafts: Record<string, string>;
-  };
-
 function buildFilterSyncSignature<Row extends RowRecord>(
-  table: Table<Row>,
+  visibleColumns: ReturnType<Table<Row>["getVisibleLeafColumns"]>,
   filters: GridFilter[],
 ) {
   return JSON.stringify({
-    columns: table.getVisibleLeafColumns().map((column) => column.id),
+    columns: visibleColumns.map((column) => column.id),
     filters: filters.map((filter) => ({
       field: filter.field,
       op: filter.op,
@@ -79,12 +74,12 @@ function getFilterDraftValue(filters: GridFilter[], field: string) {
 }
 
 function createDraftMap<Row extends RowRecord>(
-  table: Table<Row>,
+  visibleColumns: ReturnType<Table<Row>["getVisibleLeafColumns"]>,
   filters: GridFilter[],
 ) {
   const nextDrafts: Record<string, string> = {};
 
-  for (const column of table.getVisibleLeafColumns()) {
+  for (const column of visibleColumns) {
     const meta = column.columnDef.meta as InternalColumnMeta<Row> | undefined;
     if (!meta?.columnKey) {
       continue;
@@ -151,26 +146,15 @@ export function VibeGridFilterRow<Row extends RowRecord>({
   filters = [],
   onFiltersChange,
 }: VibeGridFilterRowProps<Row>) {
-  const syncSignature = buildFilterSyncSignature(table, filters);
-
-  return (
-    <VibeGridFilterRowInner
-      key={syncSignature}
-      table={table}
-      filters={filters}
-      onFiltersChange={onFiltersChange}
-      initialDrafts={createDraftMap(table, filters)}
-    />
-  );
-}
-
-function VibeGridFilterRowInner<Row extends RowRecord>({
-  table,
-  filters = [],
-  onFiltersChange,
-  initialDrafts,
-}: VibeGridFilterRowInnerProps<Row>) {
-  const [drafts, setDrafts] = useState<Record<string, string>>(initialDrafts);
+  const visibleColumns = table.getVisibleLeafColumns();
+  const syncSignature = buildFilterSyncSignature(visibleColumns, filters);
+  const synchronizedDrafts = createDraftMap(visibleColumns, filters);
+  const [draftState, setDraftState] = useState(() => ({
+    signature: syncSignature,
+    drafts: synchronizedDrafts,
+  }));
+  const drafts =
+    draftState.signature === syncSignature ? draftState.drafts : synchronizedDrafts;
 
   if (!onFiltersChange) {
     return null;
@@ -178,7 +162,7 @@ function VibeGridFilterRowInner<Row extends RowRecord>({
 
   return (
     <tr data-testid="grid-filter-row">
-      {table.getVisibleLeafColumns().map((column) => {
+      {visibleColumns.map((column) => {
         const meta = column.columnDef.meta as InternalColumnMeta<Row> | undefined;
         const filterEditor = resolveFilterEditor(meta);
         const columnKey = meta?.columnKey;
@@ -206,7 +190,13 @@ function VibeGridFilterRowInner<Row extends RowRecord>({
             return;
           }
 
-          setDrafts((current) => ({ ...current, [columnKey]: "" }));
+          setDraftState({
+            signature: syncSignature,
+            drafts: {
+              ...drafts,
+              [columnKey]: "",
+            },
+          });
           onFiltersChange(createNextFilters(filters, columnKey));
         };
 
@@ -247,10 +237,13 @@ function VibeGridFilterRowInner<Row extends RowRecord>({
                     value={draftValue}
                     onChange={(event) => {
                       const nextValue = event.target.value;
-                      setDrafts((current) => ({
-                        ...current,
-                        [columnKey]: nextValue,
-                      }));
+                      setDraftState({
+                        signature: syncSignature,
+                        drafts: {
+                          ...drafts,
+                          [columnKey]: nextValue,
+                        },
+                      });
                       onFiltersChange(
                         createNextFilters(
                           filters,
@@ -286,10 +279,13 @@ function VibeGridFilterRowInner<Row extends RowRecord>({
                     placeholder={filterEditor.placeholder}
                     onChange={(event) => {
                       const nextValue = event.target.value;
-                      setDrafts((current) => ({
-                        ...current,
-                        [columnKey]: nextValue,
-                      }));
+                      setDraftState({
+                        signature: syncSignature,
+                        drafts: {
+                          ...drafts,
+                          [columnKey]: nextValue,
+                        },
+                      });
                     }}
                     onKeyDown={onTextKeyDown}
                     style={{

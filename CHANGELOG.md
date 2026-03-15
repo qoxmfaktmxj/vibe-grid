@@ -25,6 +25,9 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Theme token coverage now includes grid surface, body, row-state badges, inline editors, and sticky/range visuals.
 - Playwright CI now records HTML reports and uploads artifacts.
 - Grid body cells, side editors, and paste application now share the same editable/readonly rule evaluation.
+- Shared selection navigation now reuses row/column index maps, drag-range updates commit at frame cadence, and column resize state persists on drag end instead of every move.
+- Internal control-column renderers now read row meta through a ref-backed lookup instead of recreating column definitions on every row-meta change.
+- Filter-row draft synchronization now avoids key-based remounts when visible columns or active filters change.
 
 ### Notes
 

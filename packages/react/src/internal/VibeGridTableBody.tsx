@@ -54,6 +54,7 @@ type VibeGridTableBodyProps<Row extends RowRecord> = {
     anchor: GridActiveCellLike;
     moved: boolean;
     lastFocus?: GridActiveCellLike;
+    pendingFocus?: GridActiveCellLike;
   } | null>;
   suppressClickRef: MutableRefObject<boolean>;
   topSpacerHeight?: number;
