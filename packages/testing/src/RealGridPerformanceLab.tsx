@@ -2,13 +2,13 @@
 
 import {
   startTransition,
-  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import {
+  applyRowPatch,
   createBenchmarkRows,
   createGridColumnState,
   createLoadedRow,
@@ -23,6 +23,12 @@ import {
   type ManagedGridRow,
   type VibeGridColumn,
 } from "@vibe-grid/core";
+import {
+  buildRectangularPastePlan,
+  createClipboardSchema,
+  summarizeRectangularPastePlan,
+  type ClipboardPlanSummary,
+} from "@vibe-grid/clipboard";
 import { VibeGrid } from "@vibe-grid/react";
 
 const REAL_GRID_SCENARIOS = [10_000, 50_000, 100_000] as const;
@@ -68,7 +74,11 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     minWidth: 150,
     sortable: true,
     filterable: true,
-    editable: false,
+    editable: true,
+    editor: {
+      type: "text",
+      placeholder: "Employee name",
+    },
     filterEditor: {
       type: "text",
       placeholder: "Search employee name",
@@ -81,7 +91,14 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     minWidth: 150,
     sortable: true,
     filterable: true,
-    editable: false,
+    editable: true,
+    editor: {
+      type: "select",
+      options: [
+        { label: "HR Operations", value: "HR Operations" },
+        { label: "People Platform", value: "People Platform" },
+      ],
+    },
     filterEditor: {
       type: "select",
       emptyLabel: "All",
@@ -98,7 +115,15 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     minWidth: 130,
     sortable: true,
     filterable: true,
-    editable: false,
+    editable: true,
+    editor: {
+      type: "select",
+      options: [
+        { label: "Manager", value: "Manager" },
+        { label: "Lead", value: "Lead" },
+        { label: "Staff", value: "Staff" },
+      ],
+    },
     filterEditor: {
       type: "select",
       emptyLabel: "All",
@@ -116,7 +141,14 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     minWidth: 110,
     sortable: true,
     filterable: true,
-    editable: false,
+    editable: true,
+    editor: {
+      type: "select",
+      options: [
+        { label: "Y", value: "Y" },
+        { label: "N", value: "N" },
+      ],
+    },
     filterEditor: {
       type: "select",
       emptyLabel: "All",
@@ -133,7 +165,18 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     minWidth: 110,
     sortable: true,
     filterable: true,
-    editable: false,
+    editable: true,
+    parse: (value) => Number(value),
+    validate: [
+      (value) =>
+        Number.isFinite(value) ? null : "Sort Order must be numeric",
+    ],
+    editor: {
+      type: "number",
+      min: 0,
+      step: 1,
+      placeholder: "Sort order",
+    },
     filterEditor: {
       type: "number",
       placeholder: "Exact sort order",
@@ -141,6 +184,8 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     },
   },
 ];
+
+const benchmarkClipboardSchema = createClipboardSchema(realGridColumns);
 
 function now() {
   return typeof performance !== "undefined" ? performance.now() : Date.now();
@@ -276,6 +321,9 @@ function createSelectionFingerprint(selection: GridSelectionState) {
 
 export function RealGridPerformanceLab() {
   const [rowCount, setRowCount] = useState<number>(10_000);
+  const [baseRows, setBaseRows] = useState<ManagedGridRow<GridBenchmarkRow>[]>(() =>
+    createBenchmarkRows(10_000).map((row) => createLoadedRow(row.rowKey, row)),
+  );
   const [selectionState, setSelectionState] = useState<GridSelectionState>(
     createSelectionState(),
   );
@@ -292,20 +340,16 @@ export function RealGridPerformanceLab() {
   );
   const [interactionMetrics, setInteractionMetrics] =
     useState<InteractionMetrics>(INITIAL_METRICS);
-  const deferredRowCount = useDeferredValue(rowCount);
+  const [pasteSummary, setPasteSummary] = useState<ClipboardPlanSummary | null>(null);
   const interactionStartRef = useRef<Partial<Record<MetricKey, number>>>({});
 
-  const materialized = useMemo(() => {
-    const startedAt = now();
-    const nextRows = createBenchmarkRows(deferredRowCount).map((row) =>
-      createLoadedRow(row.rowKey, row),
-    );
-
-    return {
-      rows: nextRows,
-      durationMs: now() - startedAt,
-    };
-  }, [deferredRowCount]);
+  const materialized = useMemo(
+    () => ({
+      rows: baseRows,
+      durationMs: 0,
+    }),
+    [baseRows],
+  );
 
   const shaped = useMemo(() => {
     const startedAt = now();
@@ -361,8 +405,10 @@ export function RealGridPerformanceLab() {
   }
 
   useEffect(() => {
-    measureAfterPaint("scenario");
-  }, [deferredRowCount, shaped.rows.length]);
+    if (interactionStartRef.current.scenario != null) {
+      measureAfterPaint("scenario");
+    }
+  }, [rowCount, shaped.rows.length]);
 
   useEffect(() => {
     measureAfterPaint("selection");
@@ -379,6 +425,86 @@ export function RealGridPerformanceLab() {
   useEffect(() => {
     measureAfterPaint("columns");
   }, [columnFingerprint]);
+
+  function applyScenario(nextRowCount: number) {
+    const startedAt = now();
+    const nextRows = createBenchmarkRows(nextRowCount).map((row) =>
+      createLoadedRow(row.rowKey, row),
+    );
+
+    setRowCount(nextRowCount);
+    setBaseRows(nextRows);
+    setSelectionState(createDefaultSelection(nextRows));
+    setPasteSummary(null);
+    setInteractionMetrics((current) => ({
+      ...current,
+      scenario: Math.max(0, now() - startedAt),
+    }));
+  }
+
+  function handleCellEditCommit(input: {
+    rowKey: string;
+    columnKey: string;
+    draftValue: string;
+  }) {
+    const column = realGridColumns.find((item) => item.key === input.columnKey);
+    if (!column) {
+      return;
+    }
+
+    setBaseRows((currentRows) =>
+      currentRows.map((managedRow) => {
+        if (managedRow.meta.rowKey !== input.rowKey) {
+          return managedRow;
+        }
+
+        const parsedValue = column.parse
+          ? column.parse(input.draftValue, managedRow.row)
+          : input.draftValue;
+
+        return applyRowPatch(
+          managedRow,
+          { [input.columnKey]: parsedValue } as Partial<GridBenchmarkRow>,
+          "edit",
+        );
+      }),
+    );
+  }
+
+  function handleGridClipboardPaste(input: {
+    text: string;
+    anchorCell?: { rowKey: string; columnKey: string };
+    visibleColumnKeys: string[];
+  }) {
+    const visibleClipboardColumns = input.visibleColumnKeys.flatMap((columnKey) => {
+      const column = benchmarkClipboardSchema.find((item) => item.key === columnKey);
+      return column ? [column] : [];
+    });
+    const rowOrder = shaped.rows.map((row) => row.meta.rowKey);
+    const rowsByKey = new Map(baseRows.map((row) => [row.meta.rowKey, row.row]));
+    const plan = buildRectangularPastePlan({
+      text: input.text,
+      columns: visibleClipboardColumns,
+      rowOrder,
+      anchor: input.anchorCell,
+      rowOverflowPolicy: "reject",
+      rowsByKey,
+    });
+
+    const patchMap = new Map(plan.patches.map((entry) => [entry.rowKey, entry.patch]));
+    setPasteSummary(summarizeRectangularPastePlan(plan));
+
+    if (patchMap.size === 0) {
+      return;
+    }
+
+    setBaseRows((currentRows) =>
+      currentRows.map((managedRow) => {
+        const patch = patchMap.get(managedRow.meta.rowKey);
+        return patch ? applyRowPatch(managedRow, patch, "paste") : managedRow;
+      }),
+    );
+  }
 
   return (
     <section className="section-panel" data-testid="real-grid-performance-lab">
@@ -408,7 +534,7 @@ export function RealGridPerformanceLab() {
             onClick={() => {
               markInteraction("scenario");
               startTransition(() => {
-                setRowCount(scenario);
+                applyScenario(scenario);
               });
             }}
             className={
@@ -496,6 +622,11 @@ export function RealGridPerformanceLab() {
           label="Column interaction"
           value={formatMetric(interactionMetrics.columns)}
         />
+        <StatCard
+          dataTestId="real-grid-paste-mode"
+          label="Paste policy"
+          value="reject / editable only"
+        />
       </div>
 
       <div style={{ marginTop: 18 }}>
@@ -508,6 +639,8 @@ export function RealGridPerformanceLab() {
             markInteraction("selection");
             setSelectionState(nextSelectionState);
           }}
+          onCellEditCommit={handleCellEditCommit}
+          onClipboardPaste={handleGridClipboardPaste}
           sorting={sorting}
           onSortingChange={(nextSorting) => {
             markInteraction("sorting");
@@ -549,6 +682,25 @@ export function RealGridPerformanceLab() {
           Use this panel to exercise the actual product path at 10k / 50k / 100k rows.
           Switch scenarios, apply a filter, pin a column, and create a range selection.
           The metric cards above should update after each interaction.
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 18,
+          borderRadius: 18,
+          border: "1px solid rgba(148, 163, 184, 0.22)",
+          background: "rgba(255, 255, 255, 0.9)",
+          padding: 18,
+          color: "#334155",
+          lineHeight: 1.8,
+        }}
+      >
+        <div style={{ fontWeight: 700 }}>Bench paste behavior</div>
+        <div data-testid="real-grid-paste-summary" style={{ marginTop: 8 }}>
+          {pasteSummary
+            ? `applied ${pasteSummary.appliedCellCount}, skipped ${pasteSummary.skippedCellCount}, validation ${pasteSummary.validationErrorCount}`
+            : "No paste applied yet."}
         </div>
       </div>
     </section>

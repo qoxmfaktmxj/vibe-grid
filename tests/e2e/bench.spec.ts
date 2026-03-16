@@ -23,6 +23,9 @@ test("Bench exposes combined-feature performance signals on the real grid path",
   await expect(page.getByTestId("real-grid-edit-activation")).toContainText(
     "doubleClick",
   );
+  await expect(page.getByTestId("real-grid-paste-mode")).toContainText(
+    "editable only",
+  );
 
   const renderedRowCount = Number(
     (await grid.getAttribute("data-rendered-row-count")) ?? "0",
@@ -50,4 +53,32 @@ test("Bench exposes combined-feature performance signals on the real grid path",
   await expect(grid).toHaveAttribute("data-pinned-right-count", "1");
   await expect(page.getByTestId("real-grid-pinned-summary")).toContainText("R 1");
   await expect(page.getByTestId("real-grid-column-ms")).not.toContainText("-");
+
+  await lab.getByTestId("grid-cell-row-4-employeeName").click();
+  await page.evaluate((text) => {
+    const gridRoot = document.querySelector(
+      '[data-testid="real-grid-performance-lab"] [data-testid="vibe-grid"]',
+    );
+
+    if (!(gridRoot instanceof HTMLElement)) {
+      throw new Error("Bench grid root was not found.");
+    }
+
+    const event = new Event("paste", { bubbles: true, cancelable: true });
+    Object.defineProperty(event, "clipboardData", {
+      value: {
+        getData: (type: string) => (type === "text/plain" ? text : ""),
+      },
+    });
+    gridRoot.dispatchEvent(event);
+  }, ["Bench Paste Name", "HR Operations", "Lead"].join("\t"));
+
+  await expect(lab.getByTestId("grid-cell-row-4-employeeName")).toHaveText(
+    "Bench Paste Name",
+  );
+  await expect(lab.getByTestId("grid-cell-row-4-department")).toHaveText(
+    "HR Operations",
+  );
+  await expect(lab.getByTestId("grid-cell-row-4-jobTitle")).toHaveText("Lead");
+  await expect(page.getByTestId("real-grid-paste-summary")).toContainText("applied 3");
 });

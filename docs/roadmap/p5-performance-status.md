@@ -3,7 +3,6 @@
 ## Completed
 
 - Added an actual `VibeGrid` performance lab on the real render path.
-- Kept the raw virtualization baseline and the actual product-path benchmark on the same bench page.
 - Added explicit interaction timing cards for:
   - scenario switch
   - selection interaction
@@ -11,6 +10,8 @@
   - sort interaction
   - column interaction
 - Added current runtime-state exposure on the bench surface so Playwright can verify the active row-height, filter-row, and edit-activation profile together with performance metrics.
+- Removed the old raw-only benchmark table from the bench page so the performance surface now focuses on the actual `VibeGrid` path.
+- Added direct paste verification on the bench `VibeGrid` path, limited to editable cells and reject-overflow policy.
 - Exposed runtime grid diagnostics for Playwright:
   - `data-virtualized`
   - `data-total-row-count`
