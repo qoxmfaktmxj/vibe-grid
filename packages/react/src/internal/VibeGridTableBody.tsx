@@ -331,7 +331,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                       isActive,
                     ),
                     borderBottom: `1px solid ${vibeGridThemeTokens.body.cellBorderColor}`,
-                    padding: "16px 18px",
+                    padding: "12px 18px",
                     color:
                       meta?.state === "D"
                         ? vibeGridThemeTokens.body.deletedCellTextColor

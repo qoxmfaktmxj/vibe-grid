@@ -16,6 +16,7 @@ import {
 import { RealGridPerformanceLab } from "./RealGridPerformanceLab";
 
 const SCENARIOS = [10_000, 50_000, 100_000] as const;
+const BENCH_ROW_HEIGHT = 42;
 
 export function BenchWorkbench() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -30,7 +31,7 @@ export function BenchWorkbench() {
   const rowVirtualizer = useVirtualRows({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
-    rowHeight: 48,
+    rowHeight: BENCH_ROW_HEIGHT,
     overscan: 12,
   });
   const virtualRows = rowVirtualizer.getVirtualItems();
@@ -85,6 +86,7 @@ export function BenchWorkbench() {
         />
         <StatCard label="Visible range" value={visibleRange} />
         <StatCard label="Rendered rows" value={String(virtualRows.length)} />
+        <StatCard label="Current row height" value={`${BENCH_ROW_HEIGHT}px`} />
         <StatCard
           label="Overscan"
           value={String(defaultVirtualizationPreset.overscan)}
@@ -111,7 +113,7 @@ export function BenchWorkbench() {
               <div
                 key={header}
                 style={{
-                  padding: "16px 18px",
+                  padding: "12px 18px",
                   fontWeight: 800,
                   color: "#091526",
                   position: index === 0 ? "sticky" : "relative",
@@ -211,7 +213,8 @@ function BenchCell(props: { children: ReactNode; sticky?: boolean }) {
   return (
     <div
       style={{
-        padding: "14px 18px",
+        padding: "10px 18px",
+        minHeight: BENCH_ROW_HEIGHT,
         display: "flex",
         alignItems: "center",
         position: props.sticky ? "sticky" : "relative",

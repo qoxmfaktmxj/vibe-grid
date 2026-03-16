@@ -22,7 +22,7 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   webServer: {
-    command: "npm run start -- --port 3400",
+    command: "npx next start --port 3400",
     cwd: "apps/playground",
     url: "http://127.0.0.1:3400",
     reuseExistingServer: !process.env.CI,

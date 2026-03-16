@@ -25,6 +25,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Theme token coverage now includes grid surface, body, row-state badges, inline editors, and sticky/range visuals.
 - Grid surface styling now follows the editorial tonal-layering direction translated from the Stitch design references.
 - Styling work now has explicit performance guardrails and a bench checklist for before/after review.
+- Bench now exposes the current runtime grid profile, and the shared row height was tightened to a 42px baseline for denser data display.
 - Playwright CI now records HTML reports and uploads artifacts.
 - Grid body cells, side editors, and paste application now share the same editable/readonly rule evaluation.
 - Shared selection navigation now reuses row/column index maps, drag-range updates commit at frame cadence, and column resize state persists on drag end instead of every move.

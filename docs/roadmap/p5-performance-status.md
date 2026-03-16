@@ -10,6 +10,7 @@
   - filter interaction
   - sort interaction
   - column interaction
+- Added current runtime-state exposure on the bench surface so Playwright can verify the active row-height, filter-row, and edit-activation profile together with performance metrics.
 - Exposed runtime grid diagnostics for Playwright:
   - `data-virtualized`
   - `data-total-row-count`
@@ -38,6 +39,7 @@
 
 - P5 is now beyond a baseline-only bench.
 - We now verify combined feature behavior on the actual `VibeGrid` path, not just a synthetic row list.
+- The bench now reflects the current production-path row height profile (`42px`) so styling-density changes are checked on the same surface as performance behavior.
 - The remaining work is interpretation and policy, not missing instrumentation:
   - set acceptable latency targets
   - decide whether to gate CI on hard timing thresholds

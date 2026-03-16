@@ -27,6 +27,7 @@ import { VibeGrid } from "@vibe-grid/react";
 
 const REAL_GRID_SCENARIOS = [10_000, 50_000, 100_000] as const;
 const REAL_GRID_DEFAULT_COLUMN = "employeeNo";
+const REAL_GRID_ROW_HEIGHT = 42;
 
 type MetricKey =
   | "scenario"
@@ -452,6 +453,21 @@ export function RealGridPerformanceLab() {
           label="Pinned business columns"
           value={`L ${businessPinnedLeftCount} / R ${businessPinnedRightCount}`}
         />
+        <StatCard
+          dataTestId="real-grid-row-height"
+          label="Current row height"
+          value={`${REAL_GRID_ROW_HEIGHT}px`}
+        />
+        <StatCard
+          dataTestId="real-grid-filter-row"
+          label="Filter row"
+          value="enabled"
+        />
+        <StatCard
+          dataTestId="real-grid-edit-activation"
+          label="Edit activation"
+          value="doubleClick"
+        />
       </div>
 
       <div className="stat-grid" style={{ marginTop: 14 }}>
@@ -512,7 +528,7 @@ export function RealGridPerformanceLab() {
           emptyMessage="No rows match the active benchmark filters."
           virtualization={{
             enabled: true,
-            rowHeight: 56,
+            rowHeight: REAL_GRID_ROW_HEIGHT,
             overscan: 12,
           }}
         />

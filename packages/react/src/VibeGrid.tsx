@@ -81,6 +81,8 @@ function shouldIgnoreClipboardPasteTarget(target: EventTarget | null) {
   return target.closest("input, textarea, select, [contenteditable='true']") != null;
 }
 
+const DEFAULT_GRID_ROW_HEIGHT = 42;
+
 export type GridClipboardPasteInput = {
   text: string;
   anchorCell?: GridActiveCell;
@@ -405,10 +407,11 @@ export function VibeGrid<Row extends RowRecord>({
   });
   const tableRows = table.getRowModel().rows;
   const virtualizationEnabled = virtualization?.enabled === true && tableRows.length > 0;
+  const resolvedRowHeight = virtualization?.rowHeight ?? DEFAULT_GRID_ROW_HEIGHT;
   const virtualizer = useVirtualRows({
     count: virtualizationEnabled ? tableRows.length : 0,
     getScrollElement: () => scrollRef.current,
-    rowHeight: virtualization?.rowHeight ?? 56,
+    rowHeight: resolvedRowHeight,
     overscan: virtualization?.overscan ?? 10,
   });
   const virtualItems = virtualizationEnabled ? virtualizer.getVirtualItems() : [];
@@ -656,6 +659,8 @@ export function VibeGrid<Row extends RowRecord>({
       data-rendered-row-count={renderedRows.length}
       data-filter-count={filters?.length ?? 0}
       data-edit-activation={editActivation}
+      data-filter-row-enabled={enableFilterRow ? "true" : "false"}
+      data-row-height={resolvedRowHeight}
       data-pinned-left-count={columnPinningState.left?.length ?? 0}
       data-pinned-right-count={columnPinningState.right?.length ?? 0}
       onPaste={handleGridPaste}
@@ -769,7 +774,7 @@ export function VibeGrid<Row extends RowRecord>({
             suppressClickRef={suppressClickRef}
             topSpacerHeight={topSpacerHeight}
             bottomSpacerHeight={bottomSpacerHeight}
-            rowHeight={virtualizationEnabled ? virtualization?.rowHeight ?? 56 : undefined}
+            rowHeight={virtualizationEnabled ? resolvedRowHeight : undefined}
           />
         </table>
       </div>

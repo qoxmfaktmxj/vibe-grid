@@ -15,6 +15,14 @@ test("Bench exposes combined-feature performance signals on the real grid path",
   const grid = lab.getByTestId("vibe-grid");
   await expect(grid).toHaveAttribute("data-virtualized", "true");
   await expect(grid).toHaveAttribute("data-total-row-count", "100000");
+  await expect(grid).toHaveAttribute("data-row-height", "42");
+  await expect(grid).toHaveAttribute("data-filter-row-enabled", "true");
+  await expect(grid).toHaveAttribute("data-edit-activation", "doubleClick");
+  await expect(page.getByTestId("real-grid-row-height")).toContainText("42px");
+  await expect(page.getByTestId("real-grid-filter-row")).toContainText("enabled");
+  await expect(page.getByTestId("real-grid-edit-activation")).toContainText(
+    "doubleClick",
+  );
 
   const renderedRowCount = Number(
     (await grid.getAttribute("data-rendered-row-count")) ?? "0",
