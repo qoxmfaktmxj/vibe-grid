@@ -12,6 +12,10 @@
 - Added current runtime-state exposure on the bench surface so Playwright can verify the active row-height, filter-row, and edit-activation profile together with performance metrics.
 - Removed the old raw-only benchmark table from the bench page so the performance surface now focuses on the actual `VibeGrid` path.
 - Added direct paste verification on the bench `VibeGrid` path, limited to editable cells and reject-overflow policy.
+- Added Grid-Lab-style working controls on the bench path:
+  - delete-check toggle
+  - save-bundle preview
+  - filter clear / scenario reset actions
 - Exposed runtime grid diagnostics for Playwright:
   - `data-virtualized`
   - `data-total-row-count`

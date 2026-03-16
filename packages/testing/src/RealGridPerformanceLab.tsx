@@ -9,18 +9,22 @@ import {
 } from "react";
 import {
   applyRowPatch,
+  buildSaveBundle,
   createBenchmarkRows,
   createGridColumnState,
   createLoadedRow,
   createSelectionState,
+  getRowStateCounts,
   pruneSelectionState,
   setGridColumnPinning,
+  toggleRowDeleted,
   type GridBenchmarkRow,
   type GridColumnState,
   type GridFilter,
   type GridSelectionState,
   type GridSortRule,
   type ManagedGridRow,
+  type SaveBundle,
   type VibeGridColumn,
 } from "@vibe-grid/core";
 import {
@@ -341,6 +345,11 @@ export function RealGridPerformanceLab() {
   const [interactionMetrics, setInteractionMetrics] =
     useState<InteractionMetrics>(INITIAL_METRICS);
   const [pasteSummary, setPasteSummary] = useState<ClipboardPlanSummary | null>(null);
+  const [lastSaveBundle, setLastSaveBundle] =
+    useState<SaveBundle<GridBenchmarkRow> | null>(null);
+  const [statusMessage, setStatusMessage] = useState(
+    "Use the filter row for search, edit cells directly, and build the save bundle to verify CRUD cost on the real grid path.",
+  );
   const interactionStartRef = useRef<Partial<Record<MetricKey, number>>>({});
 
   const materialized = useMemo(
@@ -383,6 +392,11 @@ export function RealGridPerformanceLab() {
   const columnFingerprint = useMemo(() => JSON.stringify(columnState), [columnState]);
   const businessPinnedLeftCount = columnState.pinning.left.length;
   const businessPinnedRightCount = columnState.pinning.right.length;
+  const stateCounts = useMemo(() => getRowStateCounts(baseRows), [baseRows]);
+  const prettySaveBundle = useMemo(
+    () => JSON.stringify(lastSaveBundle, null, 2),
+    [lastSaveBundle],
+  );
 
   function markInteraction(metric: MetricKey) {
     interactionStartRef.current[metric] = now();
@@ -436,10 +450,49 @@ export function RealGridPerformanceLab() {
     setBaseRows(nextRows);
     setSelectionState(createDefaultSelection(nextRows));
     setPasteSummary(null);
+    setLastSaveBundle(null);
+    setStatusMessage(
+      `Scenario reset to ${nextRowCount.toLocaleString("ko-KR")} rows. Filter row and delete-check state were cleared.`,
+    );
     setInteractionMetrics((current) => ({
       ...current,
       scenario: Math.max(0, now() - startedAt),
     }));
+  }
+
+  function handleDeleteCheckToggle(rowKey: string) {
+    setBaseRows((currentRows) =>
+      currentRows.map((managedRow) => {
+        if (managedRow.meta.rowKey !== rowKey) {
+          return managedRow;
+        }
+
+        return toggleRowDeleted(managedRow) ?? managedRow;
+      }),
+    );
+    setLastSaveBundle(null);
+    setStatusMessage(`Delete-check toggled for ${rowKey}.`);
+  }
+
+  function handleResetWorkingState() {
+    setFilters([]);
+    setSorting([{ id: "employeeNo", desc: false }]);
+    setLastSaveBundle(null);
+    applyScenario(rowCount);
+  }
+
+  function handleBuildSaveBundle() {
+    const bundle = buildSaveBundle(baseRows);
+    setLastSaveBundle(bundle);
+    setStatusMessage(
+      `Save bundle built. inserted ${bundle.inserted.length}, updated ${bundle.updated.length}, deleted ${bundle.deleted.length}.`,
+    );
+  }
+
+  function handleClearFilters() {
+    markInteraction("filters");
+    setFilters([]);
+    setStatusMessage("Bench filters cleared.");
   }
 
   function handleCellEditCommit(input: {
@@ -469,6 +522,8 @@ export function RealGridPerformanceLab() {
         );
       }),
     );
+    setLastSaveBundle(null);
+    setStatusMessage(`Edited ${input.rowKey} / ${input.columnKey}.`);
   }
 
   function handleGridClipboardPaste(input: {
@@ -493,8 +548,10 @@ export function RealGridPerformanceLab() {
 
     const patchMap = new Map(plan.patches.map((entry) => [entry.rowKey, entry.patch]));
     setPasteSummary(summarizeRectangularPastePlan(plan));
+    setLastSaveBundle(null);
 
     if (patchMap.size === 0) {
+      setStatusMessage("Bench paste produced no applicable cell changes.");
       return;
     }
 
@@ -503,6 +560,9 @@ export function RealGridPerformanceLab() {
         const patch = patchMap.get(managedRow.meta.rowKey);
         return patch ? applyRowPatch(managedRow, patch, "paste") : managedRow;
       }),
+    );
+    setStatusMessage(
+      `Bench paste applied ${plan.patches.length} row patches with reject-overflow policy.`,
     );
   }
 
@@ -546,6 +606,44 @@ export function RealGridPerformanceLab() {
             {scenario.toLocaleString("ko-KR")} rows
           </button>
         ))}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          flexWrap: "wrap",
+          marginTop: 16,
+          alignItems: "center",
+        }}
+      >
+        <button
+          type="button"
+          data-testid="bench-reset-scenario"
+          onClick={handleResetWorkingState}
+          className="segmented-button"
+        >
+          Reset scenario
+        </button>
+        <button
+          type="button"
+          data-testid="bench-clear-filters"
+          onClick={handleClearFilters}
+          className="segmented-button"
+        >
+          Clear filters
+        </button>
+        <button
+          type="button"
+          data-testid="bench-build-save-bundle"
+          onClick={handleBuildSaveBundle}
+          className="segmented-button segmented-button--active"
+        >
+          Build save bundle
+        </button>
+        <span className="hero-tag hero-tag--light">Filter row = query path</span>
+        <span className="hero-tag hero-tag--light">Delete-check = delete path</span>
+        <span className="hero-tag hero-tag--light">Edit/paste = update path</span>
       </div>
 
       <div className="stat-grid" style={{ marginTop: 18 }}>
@@ -594,6 +692,16 @@ export function RealGridPerformanceLab() {
           label="Edit activation"
           value="doubleClick"
         />
+        <StatCard
+          dataTestId="real-grid-state-updated"
+          label="Updated rows"
+          value={stateCounts.U.toLocaleString("ko-KR")}
+        />
+        <StatCard
+          dataTestId="real-grid-state-deleted"
+          label="Deleted rows"
+          value={stateCounts.D.toLocaleString("ko-KR")}
+        />
       </div>
 
       <div className="stat-grid" style={{ marginTop: 14 }}>
@@ -639,6 +747,7 @@ export function RealGridPerformanceLab() {
             markInteraction("selection");
             setSelectionState(nextSelectionState);
           }}
+          onDeleteCheckToggle={handleDeleteCheckToggle}
           onCellEditCommit={handleCellEditCommit}
           onClipboardPaste={handleGridClipboardPaste}
           sorting={sorting}
@@ -680,9 +789,25 @@ export function RealGridPerformanceLab() {
       >
         <div>
           Use this panel to exercise the actual product path at 10k / 50k / 100k rows.
-          Switch scenarios, apply a filter, pin a column, and create a range selection.
-          The metric cards above should update after each interaction.
+          Use the filter row for search, the delete-check column for delete intent, and
+          inline edit or paste for update intent. The metric cards above should update
+          after each interaction.
         </div>
+      </div>
+
+      <div
+        data-testid="bench-status-message"
+        style={{
+          marginTop: 18,
+          borderRadius: 18,
+          border: "1px solid rgba(148, 163, 184, 0.22)",
+          background: "rgba(255, 255, 255, 0.9)",
+          padding: 18,
+          color: "#334155",
+          lineHeight: 1.8,
+        }}
+      >
+        {statusMessage}
       </div>
 
       <div
@@ -702,6 +827,38 @@ export function RealGridPerformanceLab() {
             ? `applied ${pasteSummary.appliedCellCount}, skipped ${pasteSummary.skippedCellCount}, validation ${pasteSummary.validationErrorCount}`
             : "No paste applied yet."}
         </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 18,
+          borderRadius: 18,
+          border: "1px solid rgba(148, 163, 184, 0.22)",
+          background: "rgba(255, 255, 255, 0.94)",
+          padding: 18,
+          color: "#334155",
+          lineHeight: 1.8,
+        }}
+      >
+        <div style={{ fontWeight: 700 }}>Bench save bundle preview</div>
+        <pre
+          data-testid="bench-save-bundle-preview"
+          style={{
+            marginTop: 10,
+            marginBottom: 0,
+            borderRadius: 16,
+            background: "#0f172a",
+            color: "#dbeafe",
+            padding: 16,
+            overflowX: "auto",
+            fontSize: 12,
+            lineHeight: 1.7,
+          }}
+        >
+          {lastSaveBundle
+            ? prettySaveBundle
+            : "No save bundle built yet. Edit cells or toggle delete-check, then build the bundle."}
+        </pre>
       </div>
     </section>
   );

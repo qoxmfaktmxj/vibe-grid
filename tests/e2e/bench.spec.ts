@@ -81,4 +81,12 @@ test("Bench exposes combined-feature performance signals on the real grid path",
   );
   await expect(lab.getByTestId("grid-cell-row-4-jobTitle")).toHaveText("Lead");
   await expect(page.getByTestId("real-grid-paste-summary")).toContainText("applied 3");
+
+  await lab.getByTestId("delete-check-row-4").check();
+  await expect(page.getByTestId("real-grid-state-deleted")).toContainText("1");
+
+  await page.getByTestId("bench-build-save-bundle").click();
+  await expect(page.getByTestId("bench-save-bundle-preview")).toContainText('"rowKey": "row-4"');
+  await expect(page.getByTestId("bench-save-bundle-preview")).toContainText('"deleted"');
+  await expect(page.getByTestId("bench-status-message")).toContainText("Save bundle built");
 });

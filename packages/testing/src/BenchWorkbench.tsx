@@ -15,7 +15,8 @@ export function BenchWorkbench() {
         <p className="hero-copy hero-copy--dark">
           This page now focuses on the actual `VibeGrid` product path only. Use it to
           verify combined behavior under load: pinning, filter row, range selection,
-          direct paste, and row virtualization on the real grid surface.
+          direct paste, delete-check, save-bundle generation, and row virtualization on
+          the real grid surface.
         </p>
       </section>
 

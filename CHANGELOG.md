@@ -27,6 +27,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Styling work now has explicit performance guardrails and a bench checklist for before/after review.
 - Bench now exposes the current runtime grid profile, and the shared row height was tightened to a 42px baseline for denser data display.
 - Bench now focuses on the actual `VibeGrid` path only, and the bench grid supports direct paste into editable cells.
+- Bench now also supports delete-check toggles, filter reset, scenario reset, and save-bundle preview so CRUD-like performance flows can be exercised on the real grid path.
 - Shift-click range selection now preserves the original anchor while Shift remains held across continued cell clicks.
 - Playwright CI now records HTML reports and uploads artifacts.
 - Grid body cells, side editors, and paste application now share the same editable/readonly rule evaluation.
