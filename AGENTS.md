@@ -26,6 +26,9 @@ Read these files in order before making changes:
    - `docs/roadmap/p6-product-infrastructure-status.md`
    - `docs/roadmap/p7-test-release-status.md`
    - `docs/roadmap/feature-expansion-backlog.md`
+   - `docs/roadmap/tree-group-pivot-runtime-plan.md`
+   - `docs/roadmap/bench-mode-split-design.md`
+   - `docs/roadmap/tree-group-pivot-backlog.md`
    - `docs/development/style-change-bench-checklist.md`
 7. release discipline docs:
    - `docs/release/public-api-stability.md`

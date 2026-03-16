@@ -352,11 +352,17 @@ Do not prioritize these until the earlier items move:
 
 If work continues immediately, execute in this order:
 
-1. date editor host-integration examples
-2. the next editor family after date foundation
-3. holiday-aware date policy documentation for consuming apps
+1. `Tree` runtime promotion design and MVP
+2. Bench mode split for `Flat / Tree / Group / Pivot`
+3. `Group` runtime promotion after `Tree` bench coverage is green
 
 Use `docs/roadmap/feature-expansion-backlog.md` as the entry point for this next stage.
+
+For the detailed hierarchical-view plan, use:
+
+- `docs/roadmap/tree-group-pivot-runtime-plan.md`
+- `docs/roadmap/bench-mode-split-design.md`
+- `docs/roadmap/tree-group-pivot-backlog.md`
 
 ## Required Validation Policy
 
