@@ -62,7 +62,17 @@ test.describe("Grid Header Menu", () => {
     );
     expect(afterWidth).toBeGreaterThanOrEqual(beforeWidth);
 
-    await resizeHandle.dblclick();
+    await page.reload();
+    await expect(page.getByTestId("header-cell-sampleName")).toHaveAttribute(
+      "data-column-pinned",
+      "left",
+    );
+    await expect(page.getByTestId("header-cell-sampleCode")).toHaveAttribute(
+      "data-column-width",
+      String(afterWidth),
+    );
+
+    await page.getByTestId("header-resize-handle-sampleCode").dblclick();
     await expect(page.getByTestId("header-cell-sampleCode")).toHaveAttribute(
       "data-column-width",
       String(beforeWidth),
@@ -85,7 +95,7 @@ test.describe("Grid Header Menu", () => {
     );
     await expect(page.getByTestId("header-cell-sampleCode")).toHaveAttribute(
       "data-column-width",
-      String(afterWidth),
+      String(beforeWidth),
     );
     await expect(page.getByTestId("header-cell-note")).toHaveCount(0);
   });

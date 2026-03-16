@@ -16,6 +16,7 @@ Read these files in order before making changes:
 4. `docs/development/vibe-grid-development-guide.md`
 5. `docs/roadmap/current-execution-plan.md`
 6. the latest relevant roadmap docs:
+   - `docs/design/stitch-design-translation.md`
    - `docs/roadmap/slice-8-range-selection-design.md`
    - `docs/roadmap/slice-8-status.md`
    - `docs/roadmap/slice-9-productized-grid-ux-design.md`

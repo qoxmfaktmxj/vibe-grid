@@ -722,7 +722,13 @@ export function VibeGrid<Row extends RowRecord>({
     >
       <div
         ref={scrollRef}
-        style={{ overflow: "auto", maxHeight: height, position: "relative" }}
+        style={{
+          overflow: "auto",
+          maxHeight: height,
+          position: "relative",
+          background: vibeGridThemeTokens.surface.shellBackground,
+          padding: 8,
+        }}
       >
         <table
           style={{
@@ -731,6 +737,9 @@ export function VibeGrid<Row extends RowRecord>({
             borderCollapse: "separate",
             borderSpacing: 0,
             tableLayout: "fixed",
+            background: vibeGridThemeTokens.surface.background,
+            borderRadius: 20,
+            overflow: "hidden",
           }}
         >
           <VibeGridTableHeader

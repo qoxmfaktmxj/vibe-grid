@@ -32,6 +32,7 @@ Before changing code, read these files first:
 
 Current active references:
 
+- `docs/design/stitch-design-translation.md`
 - `docs/roadmap/current-execution-plan.md`
 - `docs/release/public-api-stability.md`
 - `docs/release/release-routine.md`

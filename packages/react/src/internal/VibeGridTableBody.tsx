@@ -135,12 +135,16 @@ export function VibeGridTableBody<Row extends RowRecord>({
               height: topSpacerHeight,
               padding: 0,
               border: "none",
-              background: "#fff",
+              background: vibeGridThemeTokens.body.spacerBackground,
             }}
           />
         </tr>
       ) : null}
       {rows.map((row) => {
+        const baseRowBackground =
+          row.index % 2 === 0
+            ? vibeGridThemeTokens.body.rowOddBackground
+            : vibeGridThemeTokens.body.rowEvenBackground;
         const isActive = row.id === selectionState.activeRowId;
         const isSelected = selectionState.selectedRowIds.has(row.id);
         const meta = rowMetaByKey.get(row.id);
@@ -148,7 +152,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
           ? vibeGridThemeTokens.body.activeRowBackground
           : isSelected
             ? vibeGridThemeTokens.body.selectedRowBackground
-            : vibeGridThemeTokens.body.rowBackground;
+            : baseRowBackground;
 
         return (
           <tr
@@ -327,13 +331,13 @@ export function VibeGridTableBody<Row extends RowRecord>({
                       isActive,
                     ),
                     borderBottom: `1px solid ${vibeGridThemeTokens.body.cellBorderColor}`,
-                    padding: "14px 16px",
+                    padding: "16px 18px",
                     color:
                       meta?.state === "D"
                         ? vibeGridThemeTokens.body.deletedCellTextColor
                         : vibeGridThemeTokens.body.cellTextColor,
-                    fontSize: 14,
-                    fontWeight: isActive ? 700 : 500,
+                    fontSize: 13,
+                    fontWeight: isActive ? 700 : 600,
                     verticalAlign: "middle",
                     boxShadow: [
                       buildRangeShadow(rangeState),

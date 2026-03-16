@@ -23,6 +23,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Header menu, filter row, range selection, paste overflow policy, and row virtualization were raised to pilot-ready behavior.
 - Grid status and clipboard fallback copy now flow through `@vibe-grid/i18n`.
 - Theme token coverage now includes grid surface, body, row-state badges, inline editors, and sticky/range visuals.
+- Grid surface styling now follows the editorial tonal-layering direction translated from the Stitch design references.
 - Playwright CI now records HTML reports and uploads artifacts.
 - Grid body cells, side editors, and paste application now share the same editable/readonly rule evaluation.
 - Shared selection navigation now reuses row/column index maps, drag-range updates commit at frame cadence, and column resize state persists on drag end instead of every move.

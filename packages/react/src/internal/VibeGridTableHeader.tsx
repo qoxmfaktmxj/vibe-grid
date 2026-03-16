@@ -270,9 +270,10 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                   overflow: "visible",
                   borderBottom: `1px solid ${vibeGridThemeTokens.header.borderColor}`,
                   color: vibeGridThemeTokens.header.textColor,
-                  fontSize: 13,
+                  fontSize: 11,
                   fontWeight: 800,
-                  padding: "0 16px",
+                  letterSpacing: "0.06em",
+                  padding: "0 18px",
                   textAlign: "left",
                   whiteSpace: "nowrap",
                   width: header.getSize(),
@@ -285,8 +286,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    gap: 8,
-                    minHeight: 50,
+                    gap: 10,
+                    minHeight: 56,
                   }}
                 >
                   {header.isPlaceholder ? null : canSort ? (
@@ -305,6 +306,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         fontWeight: 800,
                         color: vibeGridThemeTokens.header.textColor,
                         cursor: "pointer",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
                       }}
                     >
                       {headerLabel}
@@ -326,7 +329,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                       style={{
                         minWidth: 16,
                         textAlign: "center",
-                        fontSize: 11,
+                        fontSize: 10,
+                        fontWeight: 700,
                         color: sorted
                           ? vibeGridThemeTokens.indicator.sortedText
                           : vibeGridThemeTokens.indicator.idleText,
@@ -356,12 +360,12 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         aria-hidden="true"
                         style={{
                           minWidth: 18,
-                          height: 18,
+                          height: 20,
                           borderRadius: 999,
                           display: "inline-flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          padding: "0 6px",
+                          padding: "0 8px",
                           background: isFiltered
                             ? vibeGridThemeTokens.indicator.filteredBackground
                             : "transparent",
@@ -397,9 +401,9 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                           );
                         }}
                         style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 10,
+                          width: 30,
+                          height: 30,
+                          borderRadius: 999,
                           border: isMenuOpen
                             ? vibeGridThemeTokens.menu.triggerOpenBorder
                             : vibeGridThemeTokens.menu.triggerIdleBorder,
@@ -427,11 +431,11 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         onTouchStart={header.getResizeHandler()}
                         style={{
                           width: 10,
-                          height: 30,
+                          height: 34,
                           cursor: "col-resize",
                           display: "grid",
                           placeItems: "center",
-                          marginRight: -12,
+                          marginRight: -14,
                           userSelect: "none",
                         }}
                       >
