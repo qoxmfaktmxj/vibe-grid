@@ -44,6 +44,25 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("save-bundle-preview")).toContainText('"rowKey": "HR-001"');
   });
 
+  test("supports HeaderCheck for visible-row selection and restore", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    const grid = page.getByTestId("vibe-grid");
+    await expect(grid).toHaveAttribute("data-row-check-enabled", "true");
+    await expect(grid).toHaveAttribute("data-selected-row-count", "1");
+
+    await page.getByTestId("header-check-all").check();
+    await expect(grid).toHaveAttribute("data-selected-row-count", "12");
+
+    await page.getByTestId("row-check-HR-001").uncheck();
+    await expect(grid).toHaveAttribute("data-selected-row-count", "11");
+
+    await page.getByTestId("header-check-all").check();
+    await expect(grid).toHaveAttribute("data-selected-row-count", "12");
+  });
+
   test("applies append paste flow at the loaded row boundary", async ({ page }) => {
     await page.goto("/labs/grid");
 
@@ -279,6 +298,38 @@ test.describe("Grid Lab", () => {
       "People Ops",
     );
     await expect(page.getByTestId("grid-cell-HR-001-jobTitle")).toHaveText("Lead");
+  });
+
+  test("emits experimental public events for paste, copy, and save", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-001-sampleName").click();
+    await page.evaluate((text) => {
+      const grid = document.querySelector('[data-testid="vibe-grid"]');
+
+      if (!(grid instanceof HTMLElement)) {
+        throw new Error("Grid root was not found.");
+      }
+
+      const event = new Event("paste", { bubbles: true, cancelable: true });
+      Object.defineProperty(event, "clipboardData", {
+        value: {
+          getData: (type: string) => (type === "text/plain" ? text : ""),
+        },
+      });
+      grid.dispatchEvent(event);
+    }, "Event Alpha");
+
+    await expect(page.getByTestId("public-event-log-item-0")).toContainText("onAfterPaste");
+    await expect(page.getByTestId("public-event-log-item-1")).toContainText("onBeforePaste");
+
+    await page.getByTestId("command-copyRow").click();
+    await expect(page.getByTestId("public-event-log-item-0")).toContainText("onAfterRowCopy");
+
+    await page.getByTestId("command-save").click();
+    await expect(page.getByTestId("public-event-log-item-0")).toContainText("onAfterSave");
   });
 
   test("rejects overflow rows when the policy is reject", async ({ page }) => {

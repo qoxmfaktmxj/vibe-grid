@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("Compatibility Lab shows the IBSheet8 matrix and source references", async ({
+test("Compatibility Lab shows the IBSheet8 matrix and experimental previews", async ({
   page,
 }) => {
   await page.goto("/labs/compatibility");
@@ -15,12 +15,21 @@ test("Compatibility Lab shows the IBSheet8 matrix and source references", async 
   await expect(page.getByRole("link", { name: "Grid Lab" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Bench" })).toBeVisible();
 
+  await expect(page.getByTestId("compatibility-group-demo")).toContainText("Group Preview");
+  await expect(page.getByTestId("compatibility-group-demo")).toContainText("인사운영");
+  await expect(page.getByTestId("compatibility-tree-demo")).toContainText("Tree Preview");
+  await expect(page.getByTestId("compatibility-tree-demo")).toContainText("인사운영팀");
+  await expect(page.getByTestId("compatibility-pivot-demo")).toContainText("Pivot Preview");
+  await expect(page.getByTestId("compatibility-pivot-demo")).toContainText("매니저");
+
   const matrix = page.getByTestId("compatibility-matrix");
   await expect(matrix).toContainText("행 선택 + 범위 선택 + 복사/붙여넣기");
   await expect(matrix).toContainText("저장 번들 / 변경 상태 분리");
   await expect(matrix).toContainText("날짜 editor + host date policy");
   await expect(matrix).toContainText("HeaderCheck 전체 체크");
   await expect(matrix).toContainText("Group / Tree / Pivot 계열");
+  await expect(matrix).toContainText("IBSheet public event parity");
+  await expect(matrix).toContainText("experimental public surface");
 
   const sources = page.getByTestId("compatibility-sources");
   await expect(sources).toContainText("basic-course.html");

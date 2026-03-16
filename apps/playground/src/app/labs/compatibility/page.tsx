@@ -1,32 +1,38 @@
 import Link from "next/link";
 import type { Route } from "next";
+import {
+  buildGridGroupPreview,
+  buildGridPivotPreview,
+  flattenGridTree,
+  type GridTreeNode,
+} from "@vibe-grid/core";
 
 type CompatStatus = "done" | "partial" | "next";
 
 const ibsheetSources = [
   {
     doc: "basic-course.html",
-    focus: "조회, 페이징 조회, 저장, 저장 JSON 구조",
+    focus: "조회, 저장, 페이지 구조와 기본 이벤트 흐름",
   },
   {
     doc: "header.html",
-    focus: "헤더, 헤더 체크, 컬럼 제어",
+    focus: "헤더, HeaderCheck, 컬럼 제어",
   },
   {
     doc: "init-structure.html",
-    focus: "필터, 그룹, 좌측 고정 컬럼",
+    focus: "필터, 그룹, 트리, 고정 컬럼",
   },
   {
     doc: "on-before-paste.html / on-after-paste.html",
-    focus: "붙여넣기 전후 이벤트와 lifecycle",
+    focus: "붙여넣기 전후 lifecycle",
   },
   {
     doc: "on-after-save.html",
-    focus: "저장 완료 후 이벤트",
+    focus: "저장 완료 이후 lifecycle",
   },
   {
     doc: "on-after-row-copy.html",
-    focus: "행 복사 후 이벤트",
+    focus: "행 복사 이후 lifecycle",
   },
 ] as const;
 
@@ -38,12 +44,12 @@ const scenarioLinks: Array<{
   {
     href: "/labs/grid",
     title: "Grid Lab",
-    description: "실제 업무형 편집, 삭제 체크, 붙여넣기, 저장 번들을 직접 확인합니다.",
+    description: "실제 업무형 CRUD, 붙여넣기, 저장 번들, public event를 확인합니다.",
   },
   {
     href: "/labs/bench",
     title: "Bench",
-    description: "10k, 50k, 100k 기준 실제 VibeGrid 경로의 성능과 상호작용을 검증합니다.",
+    description: "10k / 50k / 100k 기준에서 실제 VibeGrid 경로와 결합 성능을 확인합니다.",
   },
 ] as const;
 
@@ -57,18 +63,18 @@ const matrix: Array<{
 }> = [
   {
     feature: "행 선택 + 범위 선택 + 복사/붙여넣기",
-    ibsheet: "행 중심 UX 위에 범위 선택과 클립보드 작업을 제공",
-    vibeGrid: "행 선택, 범위 선택, 범위 복사/붙여넣기, overflow 정책까지 동작",
+    ibsheet: "업무형 시트 UX에서 범위 선택과 클립보드 작업을 제공",
+    vibeGrid: "행 선택, 범위 선택, 범위 복사/붙여넣기, overflow 정책까지 구현",
     status: "done",
-    nextStep: "drag polish와 이벤트 surface만 추가 검토",
+    nextStep: "drag polish와 event payload 세부 항목 보강",
     source: "basic-course / on-before-paste / on-after-paste",
   },
   {
     feature: "저장 번들 / 변경 상태 분리",
     ibsheet: "추가, 수정, 삭제 상태를 분리한 저장 구조 제공",
-    vibeGrid: "inserted / updated / deleted diff bundle과 row state를 제공",
+    vibeGrid: "inserted / updated / deleted diff bundle과 row state 제공",
     status: "done",
-    nextStep: "host callback naming만 더 정리",
+    nextStep: "host callback naming만 추가 정리",
     source: "basic-course / on-after-save",
   },
   {
@@ -76,13 +82,13 @@ const matrix: Array<{
     ibsheet: "헤더 중심 컬럼 제어",
     vibeGrid: "헤더 메뉴에서 정렬, 숨김, 좌우 고정, 폭 초기화 지원",
     status: "done",
-    nextStep: "HeaderCheck 계열 확장 검토",
+    nextStep: "right-click 정책과 indicator 표현 추가 보강",
     source: "header",
   },
   {
     feature: "in-grid filter row / 조회 경로",
     ibsheet: "헤더 아래 필터 입력과 조회 흐름 제공",
-    vibeGrid: "필터 행, text/select/number filter, query path 연동 지원",
+    vibeGrid: "text/select/number filter row와 query path 연동 지원",
     status: "done",
     nextStep: "saved filter preset은 추후 제품화",
     source: "init-structure / basic-course",
@@ -105,10 +111,10 @@ const matrix: Array<{
   },
   {
     feature: "실제 경로 대용량 성능 검증",
-    ibsheet: "업무 기능이 결합된 상태의 체감 성능 확보",
-    vibeGrid: "actual render path row virtualization + bench 상호작용 지표 제공",
+    ibsheet: "업무 기능이 결합된 상태의 체감 성능 정보",
+    vibeGrid: "actual render path row virtualization과 bench 상호작용 지표 제공",
     status: "done",
-    nextStep: "latency band 기준값을 팀 규칙으로 고정",
+    nextStep: "latency band를 팀 기준값으로 고정",
     source: "init-structure",
   },
   {
@@ -116,55 +122,55 @@ const matrix: Array<{
     ibsheet: "업무 정책을 반영한 날짜 편집 가능",
     vibeGrid: "날짜 editor foundation과 host holiday/date policy helper 제공",
     status: "partial",
-    nextStep: "host 앱 예제와 disabled reason UX 보강",
+    nextStep: "host 예제와 disabled reason UX 보강",
     source: "basic-course",
   },
   {
     feature: "행 복사 lifecycle parity",
     ibsheet: "행 복사 이후 public lifecycle 제공",
-    vibeGrid: "행 복사 동작은 있으나 public row-copy lifecycle hook은 아직 미정",
+    vibeGrid: "onAfterRowCopy experimental public surface 제공",
     status: "partial",
-    nextStep: "public contract 여부 결정",
+    nextStep: "stable payload naming 정리",
     source: "on-after-row-copy",
   },
   {
     feature: "붙여넣기 lifecycle parity",
     ibsheet: "onBeforePaste / onAfterPaste 이벤트 제공",
-    vibeGrid: "summary, validation, skip reason은 있으나 public hook surface는 아직 없음",
+    vibeGrid: "onBeforePaste / onAfterPaste experimental public surface 제공",
     status: "partial",
-    nextStep: "clipboard hook contract 설계",
+    nextStep: "cancel / payload 정책을 stable로 고정",
     source: "on-before-paste / on-after-paste",
   },
   {
     feature: "저장 lifecycle parity",
-    ibsheet: "onAfterSave 등 저장 후 이벤트 제공",
-    vibeGrid: "save bundle은 있으나 public after-save hook은 아직 없음",
+    ibsheet: "onAfterSave 저장 완료 이벤트 제공",
+    vibeGrid: "onAfterSave experimental public surface 제공",
     status: "partial",
-    nextStep: "host save callback contract 구체화",
+    nextStep: "host save contract를 stable로 정리",
     source: "on-after-save",
   },
   {
     feature: "HeaderCheck 전체 체크",
     ibsheet: "헤더 체크로 전체 행 선택/해제",
-    vibeGrid: "미구현",
-    status: "next",
-    nextStep: "삭제 체크와 일반 선택 체크를 분리한 설계 필요",
+    vibeGrid: "rowCheck internal column과 header all-check 제공",
+    status: "done",
+    nextStep: "visible row / filtered row 정책 세분화",
     source: "header",
   },
   {
     feature: "Group / Tree / Pivot 계열",
     ibsheet: "그룹, 트리, 피벗형 시각화 지원",
-    vibeGrid: "미구현",
-    status: "next",
-    nextStep: "실제 제품 backlog에서 필요성 재판단",
-    source: "init-structure",
+    vibeGrid: "compatibility lab에서 experimental group/tree/pivot preview 제공",
+    status: "partial",
+    nextStep: "실제 VibeGrid runtime 확장은 필요 기능이 확인되면 진행",
+    source: "init-structure / userGuide/group / userGuide/pivot",
   },
   {
     feature: "IBSheet public event parity",
     ibsheet: "paste/save/copy 관련 이벤트 계약 제공",
-    vibeGrid: "브라우저 검증은 있으나 동일한 public event surface는 아직 없음",
-    status: "next",
-    nextStep: "stable API로 열지 experimental로 둘지 결정",
+    vibeGrid: "Grid Lab에서 experimental public event surface와 event log 제공",
+    status: "partial",
+    nextStep: "stable API로 승격할 payload와 네이밍 정리",
     source: "on-before-paste / on-after-paste / on-after-save / on-after-row-copy",
   },
 ] as const;
@@ -179,6 +185,51 @@ const doneCount = matrix.filter((item) => item.status === "done").length;
 const partialCount = matrix.filter((item) => item.status === "partial").length;
 const nextCount = matrix.filter((item) => item.status === "next").length;
 
+const experimentalRows = [
+  { employeeNo: "E-001", department: "인사운영", jobTitle: "매니저", amount: 120 },
+  { employeeNo: "E-002", department: "인사운영", jobTitle: "리드", amount: 80 },
+  { employeeNo: "E-003", department: "보상기획", jobTitle: "매니저", amount: 95 },
+  { employeeNo: "E-004", department: "보상기획", jobTitle: "리드", amount: 70 },
+];
+
+const treeNodes: GridTreeNode<{
+  department: string;
+  headcount: number;
+}>[] = [
+  {
+    id: "org-root",
+    label: "본사",
+    row: { department: "본사", headcount: 42 },
+    children: [
+      {
+        id: "org-hr",
+        label: "인사본부",
+        row: { department: "인사본부", headcount: 18 },
+        children: [
+          {
+            id: "org-hr-ops",
+            label: "인사운영팀",
+            row: { department: "인사운영팀", headcount: 9 },
+          },
+          {
+            id: "org-hr-reward",
+            label: "보상기획팀",
+            row: { department: "보상기획팀", headcount: 9 },
+          },
+        ],
+      },
+    ],
+  },
+];
+
+const groupedPreview = buildGridGroupPreview(experimentalRows, "department");
+const treePreview = flattenGridTree(treeNodes);
+const pivotPreview = buildGridPivotPreview(experimentalRows, {
+  rowField: "department",
+  columnField: "jobTitle",
+  valueField: "amount",
+});
+
 export default function CompatibilityLabPage() {
   return (
     <main style={{ display: "grid", gap: 24, paddingBottom: 48 }}>
@@ -186,13 +237,13 @@ export default function CompatibilityLabPage() {
         <div className="hero-eyebrow">
           <span className="hero-tag">Compatibility</span>
           <span className="hero-tag">IBSheet8 기준</span>
-          <span className="hero-tag">2026-03-16 점검</span>
+          <span className="hero-tag">2026-03-16 갱신</span>
         </div>
         <h2 className="hero-title">IBSheet8 호환성 매트릭스</h2>
         <p className="hero-copy">
           이 화면은 단순 체크리스트가 아니라 IBSheet8 운영 UX를 기준으로 현재 VibeGrid가
-          어디까지 구현되었는지, 무엇이 부분 구현 상태인지, 다음 제품 backlog가 무엇인지
-          정리한 비교판입니다.
+          어디까지 올라왔는지, 무엇이 부분 구현 상태인지, 다음 제품 backlog가 무엇인지
+          비교하는 곳입니다.
         </p>
       </section>
 
@@ -239,6 +290,74 @@ export default function CompatibilityLabPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="highlight-grid" data-testid="compatibility-experimental-previews">
+        <article className="lab-card" data-testid="compatibility-group-demo">
+          <div className="lab-card__head">
+            <h3 className="lab-card__title">Group Preview</h3>
+            <span className="status-pill" data-state="partial">
+              Experimental
+            </span>
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {groupedPreview.map((group) => (
+              <div key={group.key}>
+                <strong>{group.label}</strong> / {group.count}명
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="lab-card" data-testid="compatibility-tree-demo">
+          <div className="lab-card__head">
+            <h3 className="lab-card__title">Tree Preview</h3>
+            <span className="status-pill" data-state="partial">
+              Experimental
+            </span>
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {treePreview.map((node) => (
+              <div
+                key={node.id}
+                style={{
+                  paddingLeft: `${node.level * 18}px`,
+                  color: "#334155",
+                }}
+              >
+                {node.hasChildren ? "▾ " : "• "}
+                {node.label} / {node.row.headcount}명
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="lab-card" data-testid="compatibility-pivot-demo">
+          <div className="lab-card__head">
+            <h3 className="lab-card__title">Pivot Preview</h3>
+            <span className="status-pill" data-state="partial">
+              Experimental
+            </span>
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {pivotPreview.rowKeys.map((rowKey) => (
+              <div key={rowKey}>
+                <strong>{rowKey}</strong>
+                {pivotPreview.columnKeys.map((columnKey) => {
+                  const cell = pivotPreview.cells.find(
+                    (item) => item.rowKey === rowKey && item.columnKey === columnKey,
+                  );
+
+                  return (
+                    <span key={`${rowKey}-${columnKey}`} style={{ marginLeft: 12 }}>
+                      {columnKey}: {cell?.value ?? 0}
+                    </span>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </article>
       </section>
 
       <section className="matrix" data-testid="compatibility-matrix">

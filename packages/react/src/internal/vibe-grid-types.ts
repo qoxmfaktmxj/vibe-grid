@@ -12,7 +12,7 @@ export type InternalColumnMeta<Row extends RowRecord = RowRecord> = {
   filterable?: boolean;
   filterEditor?: GridFilterEditorSpec;
   internal?: boolean;
-  internalControl?: "rowNumber" | "deleteCheck" | "rowState";
+  internalControl?: "rowNumber" | "rowCheck" | "deleteCheck" | "rowState";
   editor?: GridEditorSpec<Row>;
 };
 

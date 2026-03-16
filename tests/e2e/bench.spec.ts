@@ -17,6 +17,7 @@ test("Bench exposes combined-feature performance signals on the real grid path",
   await expect(grid).toHaveAttribute("data-total-row-count", "100000");
   await expect(grid).toHaveAttribute("data-row-height", "42");
   await expect(grid).toHaveAttribute("data-filter-row-enabled", "true");
+  await expect(grid).toHaveAttribute("data-row-check-enabled", "true");
   await expect(grid).toHaveAttribute("data-edit-activation", "doubleClick");
   await expect(page.getByTestId("real-grid-row-height")).toContainText("42px");
   await expect(page.getByTestId("real-grid-filter-row")).toContainText("활성화");
@@ -28,6 +29,11 @@ test("Bench exposes combined-feature performance signals on the real grid path",
   );
   expect(renderedRowCount).toBeGreaterThan(0);
   expect(renderedRowCount).toBeLessThan(200);
+
+  await lab.getByTestId("header-check-all").check();
+  await expect(grid).toHaveAttribute("data-selected-row-count", "100000");
+  await lab.getByTestId("header-check-all").uncheck();
+  await expect(grid).toHaveAttribute("data-selected-row-count", "0");
 
   await lab.getByTestId("grid-cell-row-1-employeeNo").click();
   await page.keyboard.down("Shift");

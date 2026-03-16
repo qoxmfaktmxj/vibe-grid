@@ -58,6 +58,8 @@ export type GridSelectionMode = "row" | "range";
 
 export type GridEditActivation = "doubleClick" | "singleClick";
 
+export type GridEventSource = "command" | "directPaste";
+
 export type GridSelectionState = {
   activeRowId?: string;
   selectedRowIds: Set<string>;
@@ -215,6 +217,43 @@ export type GridEditSession = {
   columnKey: string;
   draftValue: string;
   startedAt: number;
+};
+
+export type GridBeforePasteEvent = {
+  gridId: string;
+  source: GridEventSource;
+  text: string;
+  anchorCell?: GridActiveCell;
+  visibleColumnKeys: string[];
+};
+
+export type GridAfterPasteEvent<PasteSummary = unknown> = {
+  gridId: string;
+  source: GridEventSource;
+  summary: PasteSummary;
+};
+
+export type GridAfterSaveEvent<Row extends Record<string, unknown>> = {
+  gridId: string;
+  bundle: SaveBundle<Row>;
+};
+
+export type GridAfterRowCopyEvent<Row extends Record<string, unknown>> = {
+  gridId: string;
+  sourceRowKey: string;
+  targetRowKey: string;
+  sourceRow: ManagedGridRow<Row>;
+  targetRow: ManagedGridRow<Row>;
+};
+
+export type GridPublicEventHandlers<
+  Row extends Record<string, unknown>,
+  PasteSummary = unknown,
+> = {
+  onBeforePaste?: (event: GridBeforePasteEvent) => boolean | void;
+  onAfterPaste?: (event: GridAfterPasteEvent<PasteSummary>) => void;
+  onAfterSave?: (event: GridAfterSaveEvent<Row>) => void;
+  onAfterRowCopy?: (event: GridAfterRowCopyEvent<Row>) => void;
 };
 
 export type ManagedGridRow<Row extends Record<string, unknown>> = {

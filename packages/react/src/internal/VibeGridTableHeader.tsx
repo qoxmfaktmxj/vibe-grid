@@ -139,6 +139,9 @@ export function VibeGridTableHeader<Row extends RowRecord>({
             const canSort = headerColumn.getCanSort() && !headerMeta?.internal;
             const canShowMenu = !headerMeta?.internal && !!columnKey;
             const isMenuOpen = !!columnKey && openColumnKey === columnKey;
+            const isSimpleInternalHeader =
+              headerMeta?.internalControl === "rowCheck" ||
+              headerMeta?.internalControl === "deleteCheck";
             const pinIndicator = getPinIndicator(pinned);
             const filterCount = getColumnFilterCount(columnKey, filters);
             const isFiltered = filterCount > 0;
@@ -244,7 +247,19 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                 {flexRender(header.column.columnDef.header, header.getContext())}
               </span>
             );
-
+            const simpleHeaderContent = header.isPlaceholder ? null : (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: 56,
+                  width: "100%",
+                }}
+              >
+                {headerLabel}
+              </div>
+            );
             return (
               <th
                 key={header.id}
@@ -280,6 +295,9 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                   minWidth: header.getSize(),
                 }}
               >
+                {isSimpleInternalHeader ? (
+                  simpleHeaderContent
+                ) : (
                 <div
                   style={{
                     position: "relative",
@@ -461,6 +479,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                     />
                   ) : null}
                 </div>
+                )}
               </th>
             );
           })}

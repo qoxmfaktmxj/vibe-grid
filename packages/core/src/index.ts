@@ -11,6 +11,7 @@ export type {
   GridCommandScope,
   GridDateBadge,
   GridEditActivation,
+  GridEventSource,
   GridEditableRule,
   GridEditorOption,
   GridFilterEditorSpec,
@@ -19,6 +20,11 @@ export type {
   GridFilter,
   GridInputParser,
   GridMutationSource,
+  GridPublicEventHandlers,
+  GridBeforePasteEvent,
+  GridAfterPasteEvent,
+  GridAfterRowCopyEvent,
+  GridAfterSaveEvent,
   GridPageSnapshot,
   GridQuery,
   GridRowMeta,
@@ -36,6 +42,12 @@ export type {
   SupportedLocale,
   VibeGridColumn,
 } from "./contracts";
+export {
+  emitGridAfterPaste,
+  emitGridAfterRowCopy,
+  emitGridAfterSave,
+  shouldApplyGridPaste,
+} from "./events";
 export {
   createGridColumnState,
   moveGridColumn,
@@ -88,6 +100,8 @@ export {
   moveActiveCellByArrow,
   pruneSelectionState,
   setActiveCell,
+  setManyRowSelectionChecked,
+  setRowSelectionChecked,
   toggleRowSelection,
   updateRangeSelection,
 } from "./selection";
@@ -110,4 +124,15 @@ export {
   isIsoGridDateValue,
   isWeekendGridDate,
 } from "./date-policy";
+export type {
+  FlattenedGridTreeNode,
+  GridGroupPreview,
+  GridPivotPreview,
+  GridTreeNode,
+} from "./experimental-views";
+export {
+  buildGridGroupPreview,
+  buildGridPivotPreview,
+  flattenGridTree,
+} from "./experimental-views";
 export { getScaffoldStatus } from "./scaffold";

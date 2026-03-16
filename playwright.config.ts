@@ -23,7 +23,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      'cmd /c "cd /d C:\\Users\\kms\\Desktop\\dev\\vibe-grid\\apps\\playground && npx next start --port 3400"',
+      'cmd /c "cd /d C:\\Users\\kms\\Desktop\\dev\\vibe-grid && npm run start -w @vibe-grid/playground -- --port 3400"',
     url: "http://127.0.0.1:3400",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

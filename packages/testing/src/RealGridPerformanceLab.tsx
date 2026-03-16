@@ -216,6 +216,10 @@ function createDefaultSelection(
   });
 }
 
+function createScenarioRows(rowCount: number) {
+  return createBenchmarkRows(rowCount).map((row) => createLoadedRow(row.rowKey, row));
+}
+
 function compareValues(left: unknown, right: unknown) {
   if (typeof left === "number" && typeof right === "number") {
     return left - right;
@@ -325,10 +329,10 @@ function createSelectionFingerprint(selection: GridSelectionState) {
 export function RealGridPerformanceLab() {
   const [rowCount, setRowCount] = useState<number>(10_000);
   const [baseRows, setBaseRows] = useState<ManagedGridRow<GridBenchmarkRow>[]>(() =>
-    createBenchmarkRows(10_000).map((row) => createLoadedRow(row.rowKey, row)),
+    createScenarioRows(10_000),
   );
   const [selectionState, setSelectionState] = useState<GridSelectionState>(
-    createSelectionState(),
+    () => createDefaultSelection(createScenarioRows(10_000)),
   );
   const [sorting, setSorting] = useState<GridSortRule[]>([
     { id: "employeeNo", desc: false },
@@ -370,16 +374,14 @@ export function RealGridPerformanceLab() {
     };
   }, [filters, materialized.rows, sorting]);
 
-  const resolvedSelectionState = useMemo(() => {
-    const nextSelection = pruneSelectionState(
-      selectionState,
-      shaped.rows.map((row) => row.meta.rowKey),
-    );
-
-    return nextSelection.activeRowId
-      ? nextSelection
-      : createDefaultSelection(shaped.rows);
-  }, [selectionState, shaped.rows]);
+  const resolvedSelectionState = useMemo(
+    () =>
+      pruneSelectionState(
+        selectionState,
+        shaped.rows.map((row) => row.meta.rowKey),
+      ),
+    [selectionState, shaped.rows],
+  );
 
   const estimatedCellCount = shaped.rows.length * realGridColumns.length;
   const selectionFingerprint = useMemo(
@@ -441,9 +443,7 @@ export function RealGridPerformanceLab() {
 
   function applyScenario(nextRowCount: number) {
     const startedAt = now();
-    const nextRows = createBenchmarkRows(nextRowCount).map((row) =>
-      createLoadedRow(row.rowKey, row),
-    );
+    const nextRows = createScenarioRows(nextRowCount);
 
     setRowCount(nextRowCount);
     setBaseRows(nextRows);
@@ -747,6 +747,7 @@ export function RealGridPerformanceLab() {
             setSelectionState(nextSelectionState);
           }}
           onDeleteCheckToggle={handleDeleteCheckToggle}
+          enableRowCheck
           onCellEditCommit={handleCellEditCommit}
           onClipboardPaste={handleGridClipboardPaste}
           sorting={sorting}

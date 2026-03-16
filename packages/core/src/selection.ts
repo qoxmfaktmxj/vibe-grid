@@ -196,6 +196,90 @@ export function toggleRowSelection(
   };
 }
 
+export function setRowSelectionChecked(
+  selection: GridSelectionState,
+  rowKey: string,
+  checked: boolean,
+): GridSelectionState {
+  const selectedRowIds = new Set(selection.selectedRowIds);
+
+  if (checked) {
+    selectedRowIds.add(rowKey);
+
+    return {
+      activeRowId: selection.activeRowId ?? rowKey,
+      selectedRowIds,
+      activeCell: selection.activeCell,
+      range: undefined,
+      mode: "row",
+    };
+  }
+
+  selectedRowIds.delete(rowKey);
+
+  return {
+    activeRowId:
+      selection.activeRowId === rowKey
+        ? [...selectedRowIds][0]
+        : selection.activeRowId,
+    selectedRowIds,
+    activeCell:
+      selection.activeCell?.rowKey === rowKey ? undefined : selection.activeCell,
+    range: undefined,
+    mode: "row",
+  };
+}
+
+export function setManyRowSelectionChecked(
+  selection: GridSelectionState,
+  rowKeys: Iterable<string>,
+  checked: boolean,
+): GridSelectionState {
+  const nextSelection = createSelectionState({
+    activeRowId: selection.activeRowId,
+    selectedRowIds: selection.selectedRowIds,
+    activeCell: selection.activeCell,
+    mode: "row",
+  });
+
+  const selectedRowIds = new Set(nextSelection.selectedRowIds);
+  const targetRowKeys = [...rowKeys];
+
+  if (checked) {
+    for (const rowKey of targetRowKeys) {
+      selectedRowIds.add(rowKey);
+    }
+
+    return {
+      activeRowId: nextSelection.activeRowId ?? targetRowKeys[0],
+      selectedRowIds,
+      activeCell: nextSelection.activeCell,
+      range: undefined,
+      mode: "row",
+    };
+  }
+
+  for (const rowKey of targetRowKeys) {
+    selectedRowIds.delete(rowKey);
+  }
+
+  const activeRowId =
+    nextSelection.activeRowId && selectedRowIds.has(nextSelection.activeRowId)
+      ? nextSelection.activeRowId
+      : [...selectedRowIds][0];
+
+  return {
+    activeRowId,
+    selectedRowIds,
+    activeCell:
+      nextSelection.activeCell && selectedRowIds.has(nextSelection.activeCell.rowKey)
+        ? nextSelection.activeCell
+        : undefined,
+    range: undefined,
+    mode: "row",
+  };
+}
+
 export function clearSelection(): GridSelectionState {
   return {
     activeRowId: undefined,

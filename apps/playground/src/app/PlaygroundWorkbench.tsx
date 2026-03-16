@@ -2,6 +2,7 @@
 
 import {
   startTransition,
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -26,6 +27,9 @@ import {
   createInsertedRow,
   createLoadedRow,
   createSelectionState,
+  emitGridAfterPaste,
+  emitGridAfterRowCopy,
+  emitGridAfterSave,
   getNormalizedCellRange,
   getSelectionAnchorCell,
   getPrimarySelectedRowId,
@@ -47,6 +51,7 @@ import {
   type GridEditSession,
   type GridFilter,
   type GridPageSnapshot,
+  type GridPublicEventHandlers,
   type GridQuery,
   type GridSelectionState,
   type GridServerResult,
@@ -99,6 +104,11 @@ type FilterDraft = {
 type PasteSummary = {
   sourceLabel: string;
   summary: ClipboardPlanSummary;
+};
+
+type PublicEventLogEntry = {
+  id: string;
+  label: string;
 };
 
 const pasteSkipReasonLabels: Record<ClipboardSkipReason, string> = {
@@ -213,6 +223,7 @@ export function PlaygroundWorkbench() {
     getStatusMessage("statusGridLabReady"),
   );
   const [pasteSummary, setPasteSummary] = useState<PasteSummary | null>(null);
+  const [publicEventLog, setPublicEventLog] = useState<PublicEventLogEntry[]>([]);
   const [pasteRowOverflowPolicy, setPasteRowOverflowPolicy] =
     useState<ClipboardRowOverflowPolicy>("reject");
   const [importPreview, setImportPreview] =
@@ -232,6 +243,16 @@ export function PlaygroundWorkbench() {
   const [columnState, setColumnState] = useState<GridColumnState>(() =>
     createGridColumnState(playgroundColumns),
   );
+
+  const appendPublicEvent = useCallback((label: string) => {
+    setPublicEventLog((current) => [
+      {
+        id: `${Date.now()}-${current.length}`,
+        label,
+      },
+      ...current,
+    ].slice(0, 8));
+  }, []);
 
   const commands = createDefaultCommandRegistry(defaultLocale);
   const activeRowKey = selectionState.activeRowId;
@@ -257,6 +278,31 @@ export function PlaygroundWorkbench() {
     () =>
       columnState.order.filter((columnKey) => columnState.visibility[columnKey] !== false),
     [columnState.order, columnState.visibility],
+  );
+  const publicEvents = useMemo<GridPublicEventHandlers<PlaygroundRow, unknown>>(
+    () => ({
+      onBeforePaste: (event) => {
+        appendPublicEvent(
+          `onBeforePaste / ${event.source} / ${event.anchorCell?.columnKey ?? "no-anchor"}`,
+        );
+        return true;
+      },
+      onAfterPaste: (event) => {
+        const summary = event.summary as ClipboardPlanSummary;
+        appendPublicEvent(
+          `onAfterPaste / applied ${summary.appliedCellCount} / skipped ${summary.skippedCellCount}`,
+        );
+      },
+      onAfterSave: (event) => {
+        appendPublicEvent(
+          `onAfterSave / inserted ${event.bundle.inserted.length} / updated ${event.bundle.updated.length} / deleted ${event.bundle.deleted.length}`,
+        );
+      },
+      onAfterRowCopy: (event) => {
+        appendPublicEvent(`onAfterRowCopy / ${event.sourceRowKey} -> ${event.targetRowKey}`);
+      },
+    }),
+    [appendPublicEvent],
   );
   const normalizedRange = useMemo(
     () =>
@@ -499,6 +545,11 @@ export function PlaygroundWorkbench() {
         },
       ),
     );
+    emitGridAfterPaste(publicEvents, {
+      gridId: "grid-lab",
+      source: sourceLabel === "그리드 직접 붙여넣기" ? "directPaste" : "command",
+      summary,
+    });
   }
 
   function handleInsert() {
@@ -576,6 +627,13 @@ export function PlaygroundWorkbench() {
       }),
     );
     setStatusMessage(getStatusMessage("statusCopyRowSuccess"));
+    emitGridAfterRowCopy(publicEvents, {
+      gridId: "grid-lab",
+      sourceRowKey: sourceRow.meta.rowKey,
+      targetRowKey: copiedRow.meta.rowKey,
+      sourceRow,
+      targetRow: copiedRow,
+    });
   }
 
   function handleToggleDelete() {
@@ -642,6 +700,10 @@ export function PlaygroundWorkbench() {
         deletedCount: bundle.deleted.length,
       }),
     );
+    emitGridAfterSave(publicEvents, {
+      gridId: "grid-lab",
+      bundle,
+    });
   }
 
   function handleFieldChange<Field extends keyof PlaygroundRow>(
@@ -981,8 +1043,10 @@ export function PlaygroundWorkbench() {
             editSession={editSession}
             onEditSessionChange={setEditSession}
             onCellEditCommit={handleCellEditCommit}
+            publicEvents={publicEvents}
             onClipboardPaste={handleGridClipboardPaste}
             onDeleteCheckToggle={handleDeleteCheckToggle}
+            enableRowCheck
             editActivation={editActivation}
             columnState={columnState}
             onColumnStateChange={setColumnState}
@@ -1508,6 +1572,35 @@ export function PlaygroundWorkbench() {
             <pre style={preStyle} data-testid="save-bundle-preview">
               {lastSaveBundle ? prettySaveBundle : "아직 저장 번들이 생성되지 않았습니다."}
             </pre>
+          </section>
+          <section style={cardStyle}>
+            <div style={sectionHeaderStyle}>
+              <h2 style={sectionTitleStyle}>Public Event Log</h2>
+              <span style={badgeStyle("#e0f2fe", "#0f4c81")}>Experimental</span>
+            </div>
+            <div data-testid="public-event-log" style={{ display: "grid", gap: 8 }}>
+              {publicEventLog.length > 0 ? (
+                publicEventLog.map((entry, index) => (
+                  <div
+                    key={entry.id}
+                    data-testid={`public-event-log-item-${index}`}
+                    style={{
+                      borderRadius: 14,
+                      border: "1px solid rgba(148, 163, 184, 0.18)",
+                      background: "rgba(255, 255, 255, 0.7)",
+                      padding: "10px 12px",
+                      color: "#334155",
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {entry.label}
+                  </div>
+                ))
+              ) : (
+                <div>아직 발생한 public event가 없습니다.</div>
+              )}
+            </div>
           </section>
         </aside>
       </section>

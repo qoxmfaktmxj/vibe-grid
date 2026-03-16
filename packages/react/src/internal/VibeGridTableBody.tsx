@@ -172,6 +172,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                 !columnMeta?.internal &&
                 !!columnMeta?.columnKey &&
                 isGridCellEditable(columnMeta.editable, row.original);
+              const isRowCheckCell = columnMeta?.internalControl === "rowCheck";
               const isDeleteCheckCell = columnMeta?.internalControl === "deleteCheck";
               const editing =
                 !!columnMeta?.columnKey &&
@@ -268,7 +269,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
 
                     focusGridSurface();
 
-                    if (isDeleteCheckCell) {
+                    if (isRowCheckCell || isDeleteCheckCell) {
                       return;
                     }
 
@@ -334,7 +335,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                     }
                   }}
                   onDoubleClick={() => {
-                    if (isDeleteCheckCell) {
+                    if (isRowCheckCell || isDeleteCheckCell) {
                       return;
                     }
                     openEditSession();

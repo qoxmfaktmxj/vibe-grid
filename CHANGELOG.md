@@ -17,10 +17,14 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Date editor foundation with calendar popover, disabled-date rules, and badge-aware day rendering.
 - Shared date-policy helpers in `@vibe-grid/core` for host-provided holiday and business-calendar wiring.
 - Direct in-grid clipboard paste entry on the shared `VibeGrid` surface, wired to the existing range-aware paste engine.
+- HeaderCheck-style rowCheck column with header all-check and bench/browser coverage.
+- Experimental public event handlers for paste, save, and row-copy flows.
+- Experimental group/tree/pivot preview helpers and compatibility demos.
 
 ### Changed
 
 - Bench 화면 문구와 벤치 더미 데이터를 한국어 기준으로 정리했고, Compatibility Lab은 IBSheet8 매뉴얼 기준 매트릭스로 최신화했다.
+- Compatibility Lab now reflects the current HeaderCheck, public-event, and Group/Tree/Pivot experimental state.
 - Header menu, filter row, range selection, paste overflow policy, and row virtualization were raised to pilot-ready behavior.
 - Grid status and clipboard fallback copy now flow through `@vibe-grid/i18n`.
 - Theme token coverage now includes grid surface, body, row-state badges, inline editors, and sticky/range visuals.

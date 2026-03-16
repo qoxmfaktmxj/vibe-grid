@@ -40,6 +40,7 @@ These areas are expected to remain compatible unless a roadmap document explicit
   - `createGridDatePolicy`
   - `createGridDateEditorSpec`
   - `createGridDateValidators`
+- HeaderCheck-style rowCheck behavior through the shared React surface
 
 ### Product Validation Rules
 
@@ -70,6 +71,20 @@ These areas are still subject to product-level iteration and should not be treat
 - persistence beyond column state
 - locale catalog completeness beyond the default currently shipped copy
 - any future saved-view or server preference behavior
+- public event payload naming and stable/experimental boundary
+- Group / Tree / Pivot promotion from preview helpers into runtime behavior
+
+### Experimental Product Extensions
+
+- `GridPublicEventHandlers`
+  - `onBeforePaste`
+  - `onAfterPaste`
+  - `onAfterSave`
+  - `onAfterRowCopy`
+- experimental compatibility helpers in `@vibe-grid/core`
+  - `buildGridGroupPreview`
+  - `flattenGridTree`
+  - `buildGridPivotPreview`
 
 ## Release Discipline
 

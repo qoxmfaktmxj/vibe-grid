@@ -23,8 +23,11 @@ import {
   hasRangeSelection,
   moveActiveCellByArrow,
   sanitizeGridColumnState,
+  setManyRowSelectionChecked,
+  shouldApplyGridPaste,
   updateRangeSelection,
   type GridActiveCell,
+  type GridPublicEventHandlers,
   type GridColumnState,
   type GridEditActivation,
   type GridEditSession,
@@ -102,8 +105,10 @@ export type VibeGridProps<Row extends RowRecord> = {
     columnKey: string;
     draftValue: string;
   }) => void;
+  publicEvents?: GridPublicEventHandlers<Row, unknown>;
   onClipboardPaste?: (input: GridClipboardPasteInput) => void;
   onDeleteCheckToggle?: (rowKey: string) => void;
+  enableRowCheck?: boolean;
   editActivation?: GridEditActivation;
   columnState?: GridColumnState;
   onColumnStateChange?: (state: GridColumnState) => void;
@@ -144,8 +149,10 @@ export function VibeGrid<Row extends RowRecord>({
   editSession,
   onEditSessionChange,
   onCellEditCommit,
+  publicEvents,
   onClipboardPaste,
   onDeleteCheckToggle,
+  enableRowCheck = false,
   editActivation = "doubleClick",
   columnState,
   onColumnStateChange,
@@ -185,6 +192,110 @@ export function VibeGrid<Row extends RowRecord>({
   const tableData = useMemo(() => rows.map((managedRow) => managedRow.row), [rows]);
 
   const businessColumns = useMemo<ColumnDef<Row>[]>(() => {
+    const rowCheckColumn: ColumnDef<Row>[] = enableRowCheck
+      ? [
+          {
+            id: "__rowCheck",
+            header: () => {
+              const targetRowIds = rows.map((managedRow) => managedRow.meta.rowKey);
+              const selectedCount = targetRowIds.filter((rowKey) =>
+                resolvedSelectionState.selectedRowIds.has(rowKey),
+              ).length;
+              const isChecked =
+                targetRowIds.length > 0 && selectedCount === targetRowIds.length;
+              const isIndeterminate =
+                selectedCount > 0 && selectedCount < targetRowIds.length;
+
+              return (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    justifyContent: "center",
+                    width: "100%",
+                  }}
+                >
+                  <input
+                    ref={(node) => {
+                      if (node) {
+                        node.indeterminate = isIndeterminate;
+                      }
+                    }}
+                    type="checkbox"
+                    checked={isChecked}
+                    data-testid="header-check-all"
+                    aria-label="전체 행 체크"
+                    onChange={(event) => {
+                      onSelectionStateChange?.(
+                        setManyRowSelectionChecked(
+                          resolvedSelectionState,
+                          targetRowIds,
+                          event.target.checked,
+                        ),
+                      );
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
+                    style={{
+                      width: 16,
+                      height: 16,
+                      cursor: onSelectionStateChange ? "pointer" : "default",
+                    }}
+                  />
+                </span>
+              );
+            },
+            cell: ({ row }) => {
+              const isChecked = resolvedSelectionState.selectedRowIds.has(row.id);
+
+              return (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    justifyContent: "center",
+                    width: "100%",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    data-testid={`row-check-${row.id}`}
+                    aria-label={`${row.id} 행 체크`}
+                    onChange={(event) => {
+                      onSelectionStateChange?.(
+                        setManyRowSelectionChecked(
+                          resolvedSelectionState,
+                          [row.id],
+                          event.target.checked,
+                        ),
+                      );
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
+                    style={{
+                      width: 16,
+                      height: 16,
+                      cursor: onSelectionStateChange ? "pointer" : "default",
+                    }}
+                  />
+                </span>
+              );
+            },
+            size: 72,
+            minSize: 72,
+            maxSize: 72,
+            enableSorting: false,
+            enableResizing: false,
+            meta: {
+              columnKey: "__rowCheck",
+              internal: true,
+              internalControl: "rowCheck",
+            } satisfies InternalColumnMeta<Row>,
+          },
+        ]
+      : [];
+
     return [
       {
         id: "__rowNumber",
@@ -201,6 +312,7 @@ export function VibeGrid<Row extends RowRecord>({
           internalControl: "rowNumber",
         } satisfies InternalColumnMeta<Row>,
       },
+      ...rowCheckColumn,
       {
         id: "__deleteCheck",
         header: "삭제",
@@ -284,7 +396,14 @@ export function VibeGrid<Row extends RowRecord>({
       },
       ...createTanStackColumns(columns),
     ];
-  }, [columns, onDeleteCheckToggle]);
+  }, [
+    columns,
+    enableRowCheck,
+    onDeleteCheckToggle,
+    onSelectionStateChange,
+    resolvedSelectionState,
+    rows,
+  ]);
 
   const visibilityState = useMemo<VisibilityState>(() => {
     const visibility: VisibilityState = {};
@@ -297,16 +416,28 @@ export function VibeGrid<Row extends RowRecord>({
   }, [columns, resolvedColumnState.visibility]);
 
   const columnOrderState = useMemo<ColumnOrderState>(
-    () => ["__rowNumber", "__deleteCheck", "__rowState", ...resolvedColumnState.order],
-    [resolvedColumnState.order],
+    () => [
+      "__rowNumber",
+      ...(enableRowCheck ? ["__rowCheck"] : []),
+      "__deleteCheck",
+      "__rowState",
+      ...resolvedColumnState.order,
+    ],
+    [enableRowCheck, resolvedColumnState.order],
   );
 
   const columnPinningState = useMemo<ColumnPinningState>(
     () => ({
-      left: ["__rowNumber", "__deleteCheck", "__rowState", ...resolvedColumnState.pinning.left],
+      left: [
+        "__rowNumber",
+        ...(enableRowCheck ? ["__rowCheck"] : []),
+        "__deleteCheck",
+        "__rowState",
+        ...resolvedColumnState.pinning.left,
+      ],
       right: [...resolvedColumnState.pinning.right],
     }),
-    [resolvedColumnState.pinning.left, resolvedColumnState.pinning.right],
+    [enableRowCheck, resolvedColumnState.pinning.left, resolvedColumnState.pinning.right],
   );
 
   const columnSizingState = useMemo<ColumnSizingState>(
@@ -646,6 +777,19 @@ export function VibeGrid<Row extends RowRecord>({
       return;
     }
 
+    if (
+      !shouldApplyGridPaste(publicEvents, {
+        gridId,
+        source: "directPaste",
+        text,
+        anchorCell: selectionAnchorCell,
+        visibleColumnKeys: visibleBusinessColumnKeys,
+      })
+    ) {
+      event.preventDefault();
+      return;
+    }
+
     event.preventDefault();
     onClipboardPaste({
       text,
@@ -669,6 +813,8 @@ export function VibeGrid<Row extends RowRecord>({
       data-filter-count={filters?.length ?? 0}
       data-edit-activation={editActivation}
       data-filter-row-enabled={enableFilterRow ? "true" : "false"}
+      data-row-check-enabled={enableRowCheck ? "true" : "false"}
+      data-selected-row-count={resolvedSelectionState.selectedRowIds.size}
       data-row-height={resolvedRowHeight}
       data-pinned-left-count={columnPinningState.left?.length ?? 0}
       data-pinned-right-count={columnPinningState.right?.length ?? 0}
