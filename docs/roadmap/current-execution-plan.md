@@ -352,9 +352,9 @@ Do not prioritize these until the earlier items move:
 
 If work continues immediately, execute in this order:
 
-1. `Tree` runtime promotion design and MVP
-2. Bench mode split for `Flat / Tree / Group / Pivot`
-3. `Group` runtime promotion after `Tree` bench coverage is green
+1. `TGP-2` React tree rendering MVP
+2. `TGP-3` tree interaction rules
+3. `TGP-4` Tree bench tab and browser coverage
 
 Use `docs/roadmap/feature-expansion-backlog.md` as the entry point for this next stage.
 

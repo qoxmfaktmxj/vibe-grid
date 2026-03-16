@@ -125,6 +125,17 @@ export {
   isWeekendGridDate,
 } from "./date-policy";
 export type {
+  GridTreeSpec,
+  GridTreeState,
+} from "./tree";
+export {
+  createGridTreeState,
+  isGridTreeRowExpanded,
+  sanitizeGridTreeState,
+  setGridTreeRowsExpanded,
+  toggleGridTreeRowExpanded,
+} from "./tree";
+export type {
   FlattenedGridTreeNode,
   GridGroupPreview,
   GridPivotPreview,

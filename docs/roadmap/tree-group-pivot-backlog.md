@@ -19,6 +19,17 @@ Scope:
 - define parent-child relationship
 - define expanded row state shape
 
+Status:
+
+- implemented on `2026-03-16`
+- current scope includes:
+  - `GridTreeSpec`
+  - `GridTreeState`
+  - expanded-row state helpers
+- current boundary:
+  - `experimental`
+  - runtime rendering is not implemented yet
+
 Acceptance:
 
 - contract is serializable enough for host usage
@@ -167,16 +178,15 @@ Scope:
 
 ## Recommended Execution Order
 
-1. `TGP-1`
-2. `TGP-2`
-3. `TGP-3`
-4. `TGP-4`
-5. `TGP-5`
-6. `TGP-6`
-7. `TGP-7`
-8. `TGP-8`
-9. `TGP-9`
-10. `TGP-10`
+1. `TGP-2`
+2. `TGP-3`
+3. `TGP-4`
+4. `TGP-5`
+5. `TGP-6`
+6. `TGP-7`
+7. `TGP-8`
+8. `TGP-9`
+9. `TGP-10`
 
 ## Final Rule
 

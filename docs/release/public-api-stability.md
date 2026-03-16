@@ -76,6 +76,14 @@ These areas are still subject to product-level iteration and should not be treat
 
 ### Experimental Product Extensions
 
+- tree runtime contracts in `@vibe-grid/core`
+  - `GridTreeSpec`
+  - `GridTreeState`
+  - `createGridTreeState`
+  - `sanitizeGridTreeState`
+  - `isGridTreeRowExpanded`
+  - `setGridTreeRowsExpanded`
+  - `toggleGridTreeRowExpanded`
 - `GridPublicEventHandlers`
   - `onBeforePaste`
   - `onAfterPaste`

@@ -20,6 +20,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - HeaderCheck-style rowCheck column with header all-check and bench/browser coverage.
 - Experimental public event handlers for paste, save, and row-copy flows.
 - Experimental group/tree/pivot preview helpers and compatibility demos.
+- Experimental tree runtime contracts in `@vibe-grid/core`, including expanded-row state helpers.
 
 ### Changed
 
