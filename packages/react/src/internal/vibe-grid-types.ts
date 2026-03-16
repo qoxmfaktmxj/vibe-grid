@@ -20,3 +20,11 @@ export type GridActiveCellLike = {
   rowKey: string;
   columnKey: string;
 };
+
+export type TreeRuntimeRowLike = {
+  rowKey: string;
+  parentRowKey: string | null;
+  level: number;
+  hasChildren: boolean;
+  isExpanded: boolean;
+};

@@ -6,6 +6,7 @@ import {
   flattenGridTree,
   type GridTreeNode,
 } from "@vibe-grid/core";
+import { CompatibilityTreeRuntimeDemo } from "./CompatibilityTreeRuntimeDemo";
 
 type CompatStatus = "done" | "partial" | "next";
 
@@ -158,12 +159,20 @@ const matrix: Array<{
     source: "header",
   },
   {
-    feature: "Group / Tree / Pivot 계열",
-    ibsheet: "그룹, 트리, 피벗형 시각화 지원",
-    vibeGrid: "compatibility lab에서 experimental group/tree/pivot preview 제공",
+    feature: "Tree runtime MVP",
+    ibsheet: "트리 행 확장/축소와 계층 구조 렌더 지원",
+    vibeGrid: "실제 VibeGrid runtime 경로에서 tree spec + expanded state + toggle 렌더 제공",
     status: "partial",
-    nextStep: "실제 VibeGrid runtime 확장은 필요 기능이 확인되면 진행",
-    source: "init-structure / userGuide/group / userGuide/pivot",
+    nextStep: "selection / range / bench 규칙까지 올려서 runtime 완성도 상승",
+    source: "init-structure",
+  },
+  {
+    feature: "Group / Pivot 계열",
+    ibsheet: "그룹, 피벗형 시각화 지원",
+    vibeGrid: "compatibility lab에서 experimental group/pivot preview 제공",
+    status: "partial",
+    nextStep: "Tree runtime 안정화 이후 group 승격, pivot은 experimental 유지",
+    source: "userGuide/group / userGuide/pivot",
   },
   {
     feature: "IBSheet public event parity",
@@ -359,6 +368,8 @@ export default function CompatibilityLabPage() {
           </div>
         </article>
       </section>
+
+      <CompatibilityTreeRuntimeDemo />
 
       <section className="matrix" data-testid="compatibility-matrix">
         <div className="matrix__row matrix__row--head">

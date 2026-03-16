@@ -21,6 +21,7 @@ import type {
   GridActiveCellLike,
   InternalColumnMeta,
   RowRecord,
+  TreeRuntimeRowLike,
 } from "./vibe-grid-types";
 import {
   buildRangeShadow,
@@ -61,6 +62,9 @@ type VibeGridTableBodyProps<Row extends RowRecord> = {
   topSpacerHeight?: number;
   bottomSpacerHeight?: number;
   rowHeight?: number;
+  firstBusinessColumnKey?: string;
+  treeRowMetaByKey?: ReadonlyMap<string, TreeRuntimeRowLike>;
+  onTreeToggle?: (rowKey: string) => void;
 };
 
 function buildShiftRangeState(
@@ -102,6 +106,9 @@ export function VibeGridTableBody<Row extends RowRecord>({
   topSpacerHeight = 0,
   bottomSpacerHeight = 0,
   rowHeight,
+  firstBusinessColumnKey,
+  treeRowMetaByKey,
+  onTreeToggle,
 }: VibeGridTableBodyProps<Row>) {
   if (totalRowCount === 0) {
     return (
@@ -178,6 +185,9 @@ export function VibeGridTableBody<Row extends RowRecord>({
                 !!columnMeta?.columnKey &&
                 isEditingCell(editSession, row.id, columnMeta.columnKey);
               const baseValue = cell.getValue();
+              const treeRowMeta = treeRowMetaByKey?.get(row.id);
+              const isTreeLeadCell =
+                !!treeRowMeta && columnMeta?.columnKey === firstBusinessColumnKey;
               const rangeState = getCellRangeState({
                 normalizedRange,
                 rowKey: row.id,
@@ -383,7 +393,68 @@ export function VibeGridTableBody<Row extends RowRecord>({
                       />
                     </div>
                   ) : (
-                    flexRender(cell.column.columnDef.cell, cell.getContext())
+                    isTreeLeadCell ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          paddingLeft: `${treeRowMeta.level * 18}px`,
+                          minWidth: 0,
+                        }}
+                      >
+                        {treeRowMeta.hasChildren ? (
+                          <button
+                            type="button"
+                            data-testid={`tree-toggle-${row.id}`}
+                            data-tree-expanded={treeRowMeta.isExpanded ? "true" : "false"}
+                            aria-label={`${row.id} tree toggle`}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              onTreeToggle?.(row.id);
+                              focusGridSurface();
+                            }}
+                            style={{
+                              width: 24,
+                              height: 24,
+                              borderRadius: 999,
+                              border: `1px solid ${vibeGridThemeTokens.body.cellBorderColor}`,
+                              background: vibeGridThemeTokens.surface.background,
+                              color: vibeGridThemeTokens.body.cellTextColor,
+                              fontSize: 12,
+                              fontWeight: 800,
+                              cursor: "pointer",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {treeRowMeta.isExpanded ? "-" : "+"}
+                          </button>
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              width: 24,
+                              height: 24,
+                              display: "inline-block",
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+                        <span
+                          style={{
+                            minWidth: 0,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </span>
+                      </div>
+                    ) : (
+                      flexRender(cell.column.columnDef.cell, cell.getContext())
+                    )
                   )}
                 </td>
               );

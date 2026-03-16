@@ -21,6 +21,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Experimental public event handlers for paste, save, and row-copy flows.
 - Experimental group/tree/pivot preview helpers and compatibility demos.
 - Experimental tree runtime contracts in `@vibe-grid/core`, including expanded-row state helpers.
+- Experimental tree runtime rendering on the shared `VibeGrid` React surface, with Compatibility Lab browser coverage.
 
 ### Changed
 

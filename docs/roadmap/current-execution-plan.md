@@ -358,6 +358,21 @@ If work continues immediately, execute in this order:
 
 Use `docs/roadmap/feature-expansion-backlog.md` as the entry point for this next stage.
 
+## Tree Runtime Progress
+
+### TGP-2
+
+Status:
+
+- completed on `2026-03-16`
+- tree runtime now renders on the shared `VibeGrid` React surface behind the experimental `tree` prop
+- Compatibility Lab includes a real runtime demo with browser-tested expand/collapse behavior
+
+Next:
+
+- `TGP-3` tree interaction rules
+- `TGP-4` Tree bench mode and browser coverage
+
 For the detailed hierarchical-view plan, use:
 
 - `docs/roadmap/tree-group-pivot-runtime-plan.md`

@@ -21,13 +21,25 @@ test("Compatibility Lab shows the IBSheet8 matrix and experimental previews", as
   await expect(page.getByTestId("compatibility-tree-demo")).toContainText("인사운영팀");
   await expect(page.getByTestId("compatibility-pivot-demo")).toContainText("Pivot Preview");
   await expect(page.getByTestId("compatibility-pivot-demo")).toContainText("매니저");
+  await expect(page.getByTestId("compatibility-tree-runtime")).toContainText("Tree Runtime MVP");
+  await expect(page.getByTestId("compatibility-tree-runtime")).toContainText("조직운영팀");
+  await expect(page.getByTestId("tree-runtime-visible-count")).toContainText("표시 행 4");
+
+  await page.getByTestId("tree-toggle-org-hr").click();
+  await expect(page.getByTestId("compatibility-tree-runtime")).not.toContainText("조직운영팀");
+  await expect(page.getByTestId("tree-runtime-visible-count")).toContainText("표시 행 2");
+
+  await page.getByTestId("tree-toggle-org-hr").click();
+  await expect(page.getByTestId("compatibility-tree-runtime")).toContainText("조직운영팀");
+  await expect(page.getByTestId("tree-runtime-visible-count")).toContainText("표시 행 4");
 
   const matrix = page.getByTestId("compatibility-matrix");
   await expect(matrix).toContainText("행 선택 + 범위 선택 + 복사/붙여넣기");
   await expect(matrix).toContainText("저장 번들 / 변경 상태 분리");
   await expect(matrix).toContainText("날짜 editor + host date policy");
   await expect(matrix).toContainText("HeaderCheck 전체 체크");
-  await expect(matrix).toContainText("Group / Tree / Pivot 계열");
+  await expect(matrix).toContainText("Tree runtime MVP");
+  await expect(matrix).toContainText("Group / Pivot 계열");
   await expect(matrix).toContainText("IBSheet public event parity");
   await expect(matrix).toContainText("experimental public surface");
 

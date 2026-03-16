@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
 
-import { useEffect, useId, useMemo, useRef } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ClipboardEvent as ReactClipboardEvent } from "react";
 import {
   getCoreRowModel,
@@ -16,6 +16,7 @@ import {
 import { useVirtualRows } from "@vibe-grid/virtualization";
 import {
   beginRangeSelection,
+  createGridTreeState,
   createSelectionState,
   extendRangeByArrow,
   getNormalizedCellRange,
@@ -24,7 +25,9 @@ import {
   moveActiveCellByArrow,
   sanitizeGridColumnState,
   setManyRowSelectionChecked,
+  shapeGridTreeRows,
   shouldApplyGridPaste,
+  toggleGridTreeRowExpanded,
   updateRangeSelection,
   type GridActiveCell,
   type GridPublicEventHandlers,
@@ -34,6 +37,8 @@ import {
   type GridFilter,
   type GridSelectionState,
   type GridSortRule,
+  type GridTreeSpec,
+  type GridTreeState,
   type ManagedGridRow,
   type RowState,
   type VibeGridColumn,
@@ -46,6 +51,7 @@ import type {
   GridActiveCellLike,
   InternalColumnMeta,
   RowRecord,
+  TreeRuntimeRowLike,
 } from "./internal/vibe-grid-types";
 import { resolveUpdater } from "./internal/vibe-grid-utils";
 
@@ -124,6 +130,11 @@ export type VibeGridProps<Row extends RowRecord> = {
     rowHeight?: number;
     overscan?: number;
   };
+  tree?: {
+    spec: GridTreeSpec<Row>;
+    state?: GridTreeState;
+    onStateChange?: (state: GridTreeState) => void;
+  };
 };
 
 const rowStateLabel: Record<RowState, string> = {
@@ -164,6 +175,7 @@ export function VibeGrid<Row extends RowRecord>({
   emptyMessage = "조회된 데이터가 없습니다.",
   height = 420,
   virtualization,
+  tree,
 }: VibeGridProps<Row>) {
   const inputId = useId();
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -177,19 +189,41 @@ export function VibeGrid<Row extends RowRecord>({
   const shiftRangeAnchorRef = useRef<GridActiveCellLike | null>(null);
   const dragFrameRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
+  const [internalTreeState, setInternalTreeState] = useState<GridTreeState>(() =>
+    createGridTreeState(),
+  );
   const resolvedSelectionState =
     selectionState ?? createSelectionState({ activeRowId: rows[0]?.meta.rowKey });
+  const resolvedTreeState = tree?.state ?? internalTreeState;
+  const setResolvedTreeState = tree?.onStateChange ?? setInternalTreeState;
+  const treeShape = useMemo(
+    () => (tree ? shapeGridTreeRows(rows, tree.spec, resolvedTreeState) : null),
+    [resolvedTreeState, rows, tree],
+  );
+  const visibleManagedRows = treeShape?.visibleRows ?? rows;
+  const treeRowMetaByKey = treeShape?.runtimeRowMeta as
+    | ReadonlyMap<string, TreeRuntimeRowLike>
+    | undefined;
   const resolvedColumnState = useMemo(
     () => sanitizeGridColumnState(columns, columnState),
     [columnState, columns],
   );
   const rowMetaByKey = useMemo(
-    () => new Map(rows.map((managedRow) => [managedRow.meta.rowKey, managedRow.meta])),
-    [rows],
+    () =>
+      new Map(
+        visibleManagedRows.map((managedRow) => [
+          managedRow.meta.rowKey,
+          managedRow.meta,
+        ]),
+      ),
+    [visibleManagedRows],
   );
   const rowMetaByKeyRef = useRef(rowMetaByKey);
   rowMetaByKeyRef.current = rowMetaByKey;
-  const tableData = useMemo(() => rows.map((managedRow) => managedRow.row), [rows]);
+  const tableData = useMemo(
+    () => visibleManagedRows.map((managedRow) => managedRow.row),
+    [visibleManagedRows],
+  );
 
   const businessColumns = useMemo<ColumnDef<Row>[]>(() => {
     const rowCheckColumn: ColumnDef<Row>[] = enableRowCheck
@@ -197,7 +231,9 @@ export function VibeGrid<Row extends RowRecord>({
           {
             id: "__rowCheck",
             header: () => {
-              const targetRowIds = rows.map((managedRow) => managedRow.meta.rowKey);
+              const targetRowIds = visibleManagedRows.map(
+                (managedRow) => managedRow.meta.rowKey,
+              );
               const selectedCount = targetRowIds.filter((rowKey) =>
                 resolvedSelectionState.selectedRowIds.has(rowKey),
               ).length;
@@ -402,7 +438,7 @@ export function VibeGrid<Row extends RowRecord>({
     onDeleteCheckToggle,
     onSelectionStateChange,
     resolvedSelectionState,
-    rows,
+    visibleManagedRows,
   ]);
 
   const visibilityState = useMemo<VisibilityState>(() => {
@@ -453,7 +489,8 @@ export function VibeGrid<Row extends RowRecord>({
   const table = useReactTable({
     data: tableData,
     columns: businessColumns,
-    getRowId: (_row, index) => rows[index]?.meta.rowKey ?? `${gridId}-${index}`,
+    getRowId: (_row, index) =>
+      visibleManagedRows[index]?.meta.rowKey ?? `${gridId}-${index}`,
     getCoreRowModel: getCoreRowModel(),
     manualSorting: true,
     columnResizeMode: "onEnd",
@@ -565,11 +602,15 @@ export function VibeGrid<Row extends RowRecord>({
         )
       : 0;
 
-  const rowOrder = useMemo(() => rows.map((row) => row.meta.rowKey), [rows]);
+  const rowOrder = useMemo(
+    () => visibleManagedRows.map((row) => row.meta.rowKey),
+    [visibleManagedRows],
+  );
   const visibleBusinessColumnKeys = table.getVisibleLeafColumns().flatMap((column) => {
     const meta = column.columnDef.meta as InternalColumnMeta<Row> | undefined;
     return meta?.internal || !meta?.columnKey ? [] : [meta.columnKey];
   });
+  const firstBusinessColumnKey = visibleBusinessColumnKeys[0];
   const rowIndexByKey = useMemo(
     () => new Map(rowOrder.map((rowKey, index) => [rowKey, index])),
     [rowOrder],
@@ -815,6 +856,8 @@ export function VibeGrid<Row extends RowRecord>({
       data-filter-row-enabled={enableFilterRow ? "true" : "false"}
       data-row-check-enabled={enableRowCheck ? "true" : "false"}
       data-selected-row-count={resolvedSelectionState.selectedRowIds.size}
+      data-tree-mode={tree ? "true" : "false"}
+      data-tree-visible-row-count={visibleManagedRows.length}
       data-row-height={resolvedRowHeight}
       data-pinned-left-count={columnPinningState.left?.length ?? 0}
       data-pinned-right-count={columnPinningState.right?.length ?? 0}
@@ -937,6 +980,17 @@ export function VibeGrid<Row extends RowRecord>({
             topSpacerHeight={topSpacerHeight}
             bottomSpacerHeight={bottomSpacerHeight}
             rowHeight={virtualizationEnabled ? resolvedRowHeight : undefined}
+            firstBusinessColumnKey={firstBusinessColumnKey}
+            treeRowMetaByKey={treeRowMetaByKey}
+            onTreeToggle={
+              tree
+                ? (rowKey) => {
+                    setResolvedTreeState(
+                      toggleGridTreeRowExpanded(resolvedTreeState, rowKey),
+                    );
+                  }
+                : undefined
+            }
           />
         </table>
       </div>

@@ -49,6 +49,18 @@ Acceptance:
 - visible tree path renders correctly
 - toggle interaction works in browser
 
+Status:
+
+- implemented on `2026-03-16`
+- current scope includes:
+  - visible-row shaping on the shared `VibeGrid` runtime path
+  - first-business-column indentation
+  - expand/collapse toggle rendering
+  - browser coverage in Compatibility Lab
+- current boundary:
+  - `experimental`
+  - tree interaction rules and bench coverage still pending in `TGP-3` and `TGP-4`
+
 ### TGP-3. Tree interaction rules
 
 Scope:

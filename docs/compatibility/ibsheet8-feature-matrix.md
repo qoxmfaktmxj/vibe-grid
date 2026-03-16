@@ -45,7 +45,8 @@ The current comparison baseline is the IBSheet8 manual under:
 - Group / Tree / Pivot
   - experimental preview helpers exist in `@vibe-grid/core`
   - Compatibility Lab now renders preview sections for all three
-  - they are not yet promoted into the main `VibeGrid` runtime
+  - Tree runtime MVP is now available on the real `VibeGrid` path in Compatibility Lab
+  - Group and Pivot are not yet promoted into the main `VibeGrid` runtime
 
 ## Current Interpretation
 
@@ -67,7 +68,8 @@ It is still not a full IBSheet API clone. The product direction remains:
 
 - stable naming for shared public event payloads
 - decision on which event hooks become stable versus remain experimental
-- promotion decision for Group / Tree / Pivot from compatibility preview into runtime
+- tree interaction rules and bench coverage before Tree promotion can be treated as pilot-ready
+- promotion decision for Group / Pivot from compatibility preview into runtime
 - stronger date editor UX for disabled reasons and host examples
 
 ## Practical Conclusion

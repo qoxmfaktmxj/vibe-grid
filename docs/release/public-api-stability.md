@@ -83,7 +83,13 @@ These areas are still subject to product-level iteration and should not be treat
   - `sanitizeGridTreeState`
   - `isGridTreeRowExpanded`
   - `setGridTreeRowsExpanded`
+  - `shapeGridTreeRows`
   - `toggleGridTreeRowExpanded`
+- experimental tree runtime rendering in `@vibe-grid/react`
+  - `tree.spec`
+  - `tree.state`
+  - `tree.onStateChange`
+  - indentation and expand/collapse toggle rendering on the first visible business column
 - `GridPublicEventHandlers`
   - `onBeforePaste`
   - `onAfterPaste`
