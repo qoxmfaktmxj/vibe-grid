@@ -18,6 +18,6 @@ test("Hub navigation exposes the primary lab surfaces", async ({ page }) => {
   await page.getByRole("link", { name: "Compatibility" }).click();
   await expect(page).toHaveURL(/\/labs\/compatibility$/);
   await expect(
-    page.getByRole("heading", { name: "IBSheet 비교 매트릭스" }),
+    page.getByRole("heading", { name: "IBSheet8 호환성 매트릭스" }),
   ).toBeVisible();
 });

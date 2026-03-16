@@ -27,9 +27,9 @@ export function createBenchmarkRow(index: number): GridBenchmarkRow {
   return {
     rowKey: `row-${index}`,
     employeeNo: `EMP${String(index).padStart(6, "0")}`,
-    employeeName: `Employee ${index}`,
-    department: index % 2 === 0 ? "HR Operations" : "People Platform",
-    jobTitle: index % 3 === 0 ? "Manager" : index % 3 === 1 ? "Lead" : "Staff",
+    employeeName: `직원 ${index}`,
+    department: index % 2 === 0 ? "인사운영" : "피플플랫폼",
+    jobTitle: index % 3 === 0 ? "매니저" : index % 3 === 1 ? "리드" : "스태프",
     useYn: index % 5 === 0 ? "N" : "Y",
     sortOrder: index,
   };

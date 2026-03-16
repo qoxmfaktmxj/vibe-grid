@@ -20,6 +20,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 
 ### Changed
 
+- Bench 화면 문구와 벤치 더미 데이터를 한국어 기준으로 정리했고, Compatibility Lab은 IBSheet8 매뉴얼 기준 매트릭스로 최신화했다.
 - Header menu, filter row, range selection, paste overflow policy, and row virtualization were raised to pilot-ready behavior.
 - Grid status and clipboard fallback copy now flow through `@vibe-grid/i18n`.
 - Theme token coverage now includes grid surface, body, row-state badges, inline editors, and sticky/range visuals.

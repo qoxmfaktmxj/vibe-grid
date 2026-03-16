@@ -59,7 +59,7 @@ const INITIAL_METRICS: InteractionMetrics = {
 const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
   {
     key: "employeeNo",
-    header: "Employee No",
+    header: "사번",
     width: 150,
     minWidth: 130,
     sortable: true,
@@ -68,12 +68,12 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     pin: "left",
     filterEditor: {
       type: "text",
-      placeholder: "Search employee no",
+      placeholder: "사번 검색",
     },
   },
   {
     key: "employeeName",
-    header: "Employee Name",
+    header: "이름",
     width: 180,
     minWidth: 150,
     sortable: true,
@@ -81,16 +81,16 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     editable: true,
     editor: {
       type: "text",
-      placeholder: "Employee name",
+      placeholder: "이름",
     },
     filterEditor: {
       type: "text",
-      placeholder: "Search employee name",
+      placeholder: "이름 검색",
     },
   },
   {
     key: "department",
-    header: "Department",
+    header: "조직",
     width: 180,
     minWidth: 150,
     sortable: true,
@@ -99,22 +99,22 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     editor: {
       type: "select",
       options: [
-        { label: "HR Operations", value: "HR Operations" },
-        { label: "People Platform", value: "People Platform" },
+        { label: "인사운영", value: "인사운영" },
+        { label: "피플플랫폼", value: "피플플랫폼" },
       ],
     },
     filterEditor: {
       type: "select",
-      emptyLabel: "All",
+      emptyLabel: "전체",
       options: [
-        { label: "HR Operations", value: "HR Operations" },
-        { label: "People Platform", value: "People Platform" },
+        { label: "인사운영", value: "인사운영" },
+        { label: "피플플랫폼", value: "피플플랫폼" },
       ],
     },
   },
   {
     key: "jobTitle",
-    header: "Job Title",
+    header: "직급",
     width: 150,
     minWidth: 130,
     sortable: true,
@@ -123,24 +123,24 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     editor: {
       type: "select",
       options: [
-        { label: "Manager", value: "Manager" },
-        { label: "Lead", value: "Lead" },
-        { label: "Staff", value: "Staff" },
+        { label: "매니저", value: "매니저" },
+        { label: "리드", value: "리드" },
+        { label: "스태프", value: "스태프" },
       ],
     },
     filterEditor: {
       type: "select",
-      emptyLabel: "All",
+      emptyLabel: "전체",
       options: [
-        { label: "Manager", value: "Manager" },
-        { label: "Lead", value: "Lead" },
-        { label: "Staff", value: "Staff" },
+        { label: "매니저", value: "매니저" },
+        { label: "리드", value: "리드" },
+        { label: "스태프", value: "스태프" },
       ],
     },
   },
   {
     key: "useYn",
-    header: "Use YN",
+    header: "사용여부",
     width: 120,
     minWidth: 110,
     sortable: true,
@@ -149,22 +149,22 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     editor: {
       type: "select",
       options: [
-        { label: "Y", value: "Y" },
-        { label: "N", value: "N" },
+        { label: "사용", value: "Y" },
+        { label: "미사용", value: "N" },
       ],
     },
     filterEditor: {
       type: "select",
-      emptyLabel: "All",
+      emptyLabel: "전체",
       options: [
-        { label: "Y", value: "Y" },
-        { label: "N", value: "N" },
+        { label: "사용", value: "Y" },
+        { label: "미사용", value: "N" },
       ],
     },
   },
   {
     key: "sortOrder",
-    header: "Sort Order",
+    header: "정렬순서",
     width: 130,
     minWidth: 110,
     sortable: true,
@@ -172,18 +172,17 @@ const realGridColumns: VibeGridColumn<GridBenchmarkRow>[] = [
     editable: true,
     parse: (value) => Number(value),
     validate: [
-      (value) =>
-        Number.isFinite(value) ? null : "Sort Order must be numeric",
+      (value) => (Number.isFinite(value) ? null : "정렬순서는 숫자여야 합니다."),
     ],
     editor: {
       type: "number",
       min: 0,
       step: 1,
-      placeholder: "Sort order",
+      placeholder: "정렬순서",
     },
     filterEditor: {
       type: "number",
-      placeholder: "Exact sort order",
+      placeholder: "정렬순서 일치",
       op: "eq",
     },
   },
@@ -300,18 +299,18 @@ function applyBenchmarkFilters(
 
 function describeSelection(selection: GridSelectionState) {
   if (selection.range) {
-    return `range ${selection.range.anchor.rowKey} -> ${selection.range.focus.rowKey}`;
+    return `범위 ${selection.range.anchor.rowKey} -> ${selection.range.focus.rowKey}`;
   }
 
   if (selection.activeCell) {
-    return `cell ${selection.activeCell.rowKey} / ${selection.activeCell.columnKey}`;
+    return `셀 ${selection.activeCell.rowKey} / ${selection.activeCell.columnKey}`;
   }
 
   if (selection.activeRowId) {
-    return `row ${selection.activeRowId}`;
+    return `행 ${selection.activeRowId}`;
   }
 
-  return "none";
+  return "없음";
 }
 
 function createSelectionFingerprint(selection: GridSelectionState) {
@@ -348,7 +347,7 @@ export function RealGridPerformanceLab() {
   const [lastSaveBundle, setLastSaveBundle] =
     useState<SaveBundle<GridBenchmarkRow> | null>(null);
   const [statusMessage, setStatusMessage] = useState(
-    "Use the filter row for search, edit cells directly, and build the save bundle to verify CRUD cost on the real grid path.",
+    "필터 행으로 조회하고, 셀을 직접 수정하거나 붙여넣은 뒤, 저장 번들을 생성해 실제 CRUD 비용을 확인하세요.",
   );
   const interactionStartRef = useRef<Partial<Record<MetricKey, number>>>({});
 
@@ -452,7 +451,7 @@ export function RealGridPerformanceLab() {
     setPasteSummary(null);
     setLastSaveBundle(null);
     setStatusMessage(
-      `Scenario reset to ${nextRowCount.toLocaleString("ko-KR")} rows. Filter row and delete-check state were cleared.`,
+      `시나리오를 ${nextRowCount.toLocaleString("ko-KR")}건으로 초기화했습니다. 필터 행과 삭제 체크 상태도 함께 초기화했습니다.`,
     );
     setInteractionMetrics((current) => ({
       ...current,
@@ -471,7 +470,7 @@ export function RealGridPerformanceLab() {
       }),
     );
     setLastSaveBundle(null);
-    setStatusMessage(`Delete-check toggled for ${rowKey}.`);
+    setStatusMessage(`${rowKey} 행의 삭제 체크를 변경했습니다.`);
   }
 
   function handleResetWorkingState() {
@@ -485,14 +484,14 @@ export function RealGridPerformanceLab() {
     const bundle = buildSaveBundle(baseRows);
     setLastSaveBundle(bundle);
     setStatusMessage(
-      `Save bundle built. inserted ${bundle.inserted.length}, updated ${bundle.updated.length}, deleted ${bundle.deleted.length}.`,
+      `저장 번들 생성 완료. 입력 ${bundle.inserted.length}건, 수정 ${bundle.updated.length}건, 삭제 ${bundle.deleted.length}건입니다.`,
     );
   }
 
   function handleClearFilters() {
     markInteraction("filters");
     setFilters([]);
-    setStatusMessage("Bench filters cleared.");
+    setStatusMessage("벤치 필터를 초기화했습니다.");
   }
 
   function handleCellEditCommit(input: {
@@ -523,7 +522,7 @@ export function RealGridPerformanceLab() {
       }),
     );
     setLastSaveBundle(null);
-    setStatusMessage(`Edited ${input.rowKey} / ${input.columnKey}.`);
+    setStatusMessage(`${input.rowKey} / ${input.columnKey} 셀을 수정했습니다.`);
   }
 
   function handleGridClipboardPaste(input: {
@@ -551,7 +550,7 @@ export function RealGridPerformanceLab() {
     setLastSaveBundle(null);
 
     if (patchMap.size === 0) {
-      setStatusMessage("Bench paste produced no applicable cell changes.");
+      setStatusMessage("붙여넣기 결과 적용 가능한 셀 변경이 없었습니다.");
       return;
     }
 
@@ -562,7 +561,7 @@ export function RealGridPerformanceLab() {
       }),
     );
     setStatusMessage(
-      `Bench paste applied ${plan.patches.length} row patches with reject-overflow policy.`,
+      `붙여넣기 적용 완료. 행 초과 거부 정책으로 ${plan.patches.length}개 행 패치를 반영했습니다.`,
     );
   }
 
@@ -570,17 +569,17 @@ export function RealGridPerformanceLab() {
     <section className="section-panel" data-testid="real-grid-performance-lab">
       <div style={{ display: "grid", gap: 14 }}>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-          <span className="hero-tag hero-tag--light">P5 baseline</span>
-          <span className="hero-tag hero-tag--light">Actual VibeGrid path</span>
-          <span className="hero-tag hero-tag--light">Row virtualization active</span>
+          <span className="hero-tag hero-tag--light">P5 기준선</span>
+          <span className="hero-tag hero-tag--light">실제 VibeGrid 경로</span>
+          <span className="hero-tag hero-tag--light">행 가상 스크롤 활성화</span>
         </div>
         <div>
-          <h2 className="section-panel__title">Actual VibeGrid performance lab</h2>
+          <h2 className="section-panel__title">실제 VibeGrid 성능 랩</h2>
           <p className="section-panel__copy">
-            This panel measures the real `VibeGrid` render path with pinning, sticky
-            header, filter row, range selection, and virtualization enabled together.
-            The goal is not a synthetic list benchmark. The goal is to confirm that the
-            full product shell remains responsive under combined feature load.
+            이 패널은 실제 `VibeGrid` 렌더 경로에서 고정 컬럼, 스티키 헤더, 필터 행, 범위
+            선택, 가상 스크롤이 함께 켜진 상태를 측정합니다. 단순한 리스트 벤치마크가
+            아니라, 기능이 결합된 실제 제품 셸이 부하 상황에서도 반응성을 유지하는지
+            확인하는 것이 목적입니다.
           </p>
         </div>
       </div>
@@ -603,7 +602,7 @@ export function RealGridPerformanceLab() {
                 : "segmented-button"
             }
           >
-            {scenario.toLocaleString("ko-KR")} rows
+            {scenario.toLocaleString("ko-KR")}건
           </button>
         ))}
       </div>
@@ -623,7 +622,7 @@ export function RealGridPerformanceLab() {
           onClick={handleResetWorkingState}
           className="segmented-button"
         >
-          Reset scenario
+          시나리오 초기화
         </button>
         <button
           type="button"
@@ -631,7 +630,7 @@ export function RealGridPerformanceLab() {
           onClick={handleClearFilters}
           className="segmented-button"
         >
-          Clear filters
+          필터 초기화
         </button>
         <button
           type="button"
@@ -639,67 +638,67 @@ export function RealGridPerformanceLab() {
           onClick={handleBuildSaveBundle}
           className="segmented-button segmented-button--active"
         >
-          Build save bundle
+          저장 번들 생성
         </button>
-        <span className="hero-tag hero-tag--light">Filter row = query path</span>
-        <span className="hero-tag hero-tag--light">Delete-check = delete path</span>
-        <span className="hero-tag hero-tag--light">Edit/paste = update path</span>
+        <span className="hero-tag hero-tag--light">필터 행 = 조회 경로</span>
+        <span className="hero-tag hero-tag--light">삭제 체크 = 삭제 경로</span>
+        <span className="hero-tag hero-tag--light">수정 / 붙여넣기 = 수정 경로</span>
       </div>
 
       <div className="stat-grid" style={{ marginTop: 18 }}>
         <StatCard
           dataTestId="real-grid-visible-rows"
-          label="Visible rows after shaping"
+          label="가공 후 표시 행 수"
           value={shaped.rows.length.toLocaleString("ko-KR")}
         />
         <StatCard
           dataTestId="real-grid-materialize-ms"
-          label="Materialize rows"
+          label="행 물질화"
           value={`${materialized.durationMs.toFixed(1)} ms`}
         />
         <StatCard
           dataTestId="real-grid-shape-ms"
-          label="Filter + sort"
+          label="필터 + 정렬"
           value={`${shaped.durationMs.toFixed(1)} ms`}
         />
         <StatCard
           dataTestId="real-grid-estimated-cells"
-          label="Estimated cells"
+          label="예상 셀 수"
           value={estimatedCellCount.toLocaleString("ko-KR")}
         />
         <StatCard
           dataTestId="real-grid-selection-mode"
-          label="Selection state"
+          label="선택 상태"
           value={describeSelection(resolvedSelectionState)}
         />
         <StatCard
           dataTestId="real-grid-pinned-summary"
-          label="Pinned business columns"
+          label="업무 컬럼 고정 수"
           value={`L ${businessPinnedLeftCount} / R ${businessPinnedRightCount}`}
         />
         <StatCard
           dataTestId="real-grid-row-height"
-          label="Current row height"
+          label="현재 행 높이"
           value={`${REAL_GRID_ROW_HEIGHT}px`}
         />
         <StatCard
           dataTestId="real-grid-filter-row"
-          label="Filter row"
-          value="enabled"
+          label="필터 행"
+          value="활성화"
         />
         <StatCard
           dataTestId="real-grid-edit-activation"
-          label="Edit activation"
-          value="doubleClick"
+          label="편집 진입 방식"
+          value="더블클릭"
         />
         <StatCard
           dataTestId="real-grid-state-updated"
-          label="Updated rows"
+          label="수정 행 수"
           value={stateCounts.U.toLocaleString("ko-KR")}
         />
         <StatCard
           dataTestId="real-grid-state-deleted"
-          label="Deleted rows"
+          label="삭제 행 수"
           value={stateCounts.D.toLocaleString("ko-KR")}
         />
       </div>
@@ -707,33 +706,33 @@ export function RealGridPerformanceLab() {
       <div className="stat-grid" style={{ marginTop: 14 }}>
         <StatCard
           dataTestId="real-grid-scenario-ms"
-          label="Scenario switch"
+          label="시나리오 전환"
           value={formatMetric(interactionMetrics.scenario)}
         />
         <StatCard
           dataTestId="real-grid-selection-ms"
-          label="Selection interaction"
+          label="선택 반응"
           value={formatMetric(interactionMetrics.selection)}
         />
         <StatCard
           dataTestId="real-grid-filter-ms"
-          label="Filter interaction"
+          label="필터 반응"
           value={formatMetric(interactionMetrics.filters)}
         />
         <StatCard
           dataTestId="real-grid-sorting-ms"
-          label="Sort interaction"
+          label="정렬 반응"
           value={formatMetric(interactionMetrics.sorting)}
         />
         <StatCard
           dataTestId="real-grid-column-ms"
-          label="Column interaction"
+          label="컬럼 반응"
           value={formatMetric(interactionMetrics.columns)}
         />
         <StatCard
           dataTestId="real-grid-paste-mode"
-          label="Paste policy"
-          value="reject / editable only"
+          label="붙여넣기 정책"
+          value="거부 / 수정 가능 셀만"
         />
       </div>
 
@@ -767,7 +766,7 @@ export function RealGridPerformanceLab() {
           }}
           enableFilterRow
           height={520}
-          emptyMessage="No rows match the active benchmark filters."
+          emptyMessage="현재 벤치 필터와 일치하는 행이 없습니다."
           virtualization={{
             enabled: true,
             rowHeight: REAL_GRID_ROW_HEIGHT,
@@ -786,14 +785,14 @@ export function RealGridPerformanceLab() {
           color: "#475569",
           lineHeight: 1.8,
         }}
-      >
-        <div>
-          Use this panel to exercise the actual product path at 10k / 50k / 100k rows.
-          Use the filter row for search, the delete-check column for delete intent, and
-          inline edit or paste for update intent. The metric cards above should update
-          after each interaction.
+        >
+          <div>
+            이 패널은 10k / 50k / 100k 행 기준에서 실제 제품 경로를 검증합니다.
+            필터 행은 조회, 삭제 체크 컬럼은 삭제 의도, 인라인 수정과 붙여넣기는 수정
+            의도를 확인하는 용도입니다. 각 상호작용 후 상단 지표 카드가 함께 갱신되어야
+            합니다.
+          </div>
         </div>
-      </div>
 
       <div
         data-testid="bench-status-message"
@@ -821,11 +820,11 @@ export function RealGridPerformanceLab() {
           lineHeight: 1.8,
         }}
       >
-        <div style={{ fontWeight: 700 }}>Bench paste behavior</div>
+        <div style={{ fontWeight: 700 }}>벤치 붙여넣기 결과</div>
         <div data-testid="real-grid-paste-summary" style={{ marginTop: 8 }}>
           {pasteSummary
-            ? `applied ${pasteSummary.appliedCellCount}, skipped ${pasteSummary.skippedCellCount}, validation ${pasteSummary.validationErrorCount}`
-            : "No paste applied yet."}
+            ? `적용 ${pasteSummary.appliedCellCount}, 건너뜀 ${pasteSummary.skippedCellCount}, 검증 오류 ${pasteSummary.validationErrorCount}`
+            : "아직 붙여넣기 결과가 없습니다."}
         </div>
       </div>
 
@@ -840,7 +839,7 @@ export function RealGridPerformanceLab() {
           lineHeight: 1.8,
         }}
       >
-        <div style={{ fontWeight: 700 }}>Bench save bundle preview</div>
+        <div style={{ fontWeight: 700 }}>벤치 저장 번들 미리보기</div>
         <pre
           data-testid="bench-save-bundle-preview"
           style={{
@@ -857,7 +856,7 @@ export function RealGridPerformanceLab() {
         >
           {lastSaveBundle
             ? prettySaveBundle
-            : "No save bundle built yet. Edit cells or toggle delete-check, then build the bundle."}
+            : "아직 저장 번들을 생성하지 않았습니다. 셀을 수정하거나 삭제 체크를 토글한 뒤 번들을 생성하세요."}
         </pre>
       </div>
     </section>
