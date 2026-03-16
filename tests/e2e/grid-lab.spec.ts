@@ -213,6 +213,40 @@ test.describe("Grid Lab", () => {
     expect(copiedText).toContain("HR-002");
   });
 
+  test("keeps the original anchor while Shift-click range selection continues", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-001-sampleCode").click();
+    await page.keyboard.down("Shift");
+    await page.getByTestId("grid-cell-HR-002-sampleName").click();
+
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute(
+      "data-range-anchor",
+      "sampleCode",
+    );
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute("data-range-rows", "2");
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute(
+      "data-range-columns",
+      "2",
+    );
+
+    await page.getByTestId("grid-cell-HR-003-department").click();
+    await page.keyboard.up("Shift");
+
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute(
+      "data-range-anchor",
+      "sampleCode",
+    );
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute("data-range-rows", "3");
+    await expect(page.getByTestId("vibe-grid")).toHaveAttribute(
+      "data-range-columns",
+      "3",
+    );
+    await expect(page.getByTestId("range-summary")).toContainText("3 x 3");
+  });
+
   test("supports direct in-grid paste from the current anchor cell", async ({
     page,
   }) => {

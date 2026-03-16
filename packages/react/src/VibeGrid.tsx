@@ -167,6 +167,7 @@ export function VibeGrid<Row extends RowRecord>({
     lastFocus?: GridActiveCellLike;
     pendingFocus?: GridActiveCellLike;
   } | null>(null);
+  const shiftRangeAnchorRef = useRef<GridActiveCellLike | null>(null);
   const dragFrameRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
   const resolvedSelectionState =
@@ -573,8 +574,15 @@ export function VibeGrid<Row extends RowRecord>({
       dragRangeRef.current = null;
     };
 
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key === "Shift") {
+        shiftRangeAnchorRef.current = null;
+      }
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("keyup", handleKeyUp);
     return () => {
       if (dragFrameRef.current != null) {
         window.cancelAnimationFrame(dragFrameRef.current);
@@ -583,6 +591,7 @@ export function VibeGrid<Row extends RowRecord>({
 
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, [onSelectionStateChange]);
 
@@ -667,6 +676,7 @@ export function VibeGrid<Row extends RowRecord>({
       onKeyDown={(event) => {
         if (event.key === "Escape" && hasRangeSelection(resolvedSelectionState)) {
           event.preventDefault();
+          shiftRangeAnchorRef.current = null;
           onSelectionStateChange?.({
             ...resolvedSelectionState,
             range: undefined,
@@ -705,6 +715,11 @@ export function VibeGrid<Row extends RowRecord>({
 
           if (nextState) {
             event.preventDefault();
+            if (!event.shiftKey) {
+              shiftRangeAnchorRef.current = null;
+            } else {
+              shiftRangeAnchorRef.current = nextState.range?.anchor ?? null;
+            }
             onSelectionStateChange?.(nextState);
           }
           return;
@@ -771,6 +786,7 @@ export function VibeGrid<Row extends RowRecord>({
             normalizedRange={normalizedRange}
             focusGridSurface={focusGridSurface}
             dragRangeRef={dragRangeRef}
+            shiftRangeAnchorRef={shiftRangeAnchorRef}
             suppressClickRef={suppressClickRef}
             topSpacerHeight={topSpacerHeight}
             bottomSpacerHeight={bottomSpacerHeight}

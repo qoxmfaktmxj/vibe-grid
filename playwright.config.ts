@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "node:path";
+
+const playgroundCwd = path.resolve(process.cwd(), "apps", "playground");
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -23,7 +26,7 @@ export default defineConfig({
   },
   webServer: {
     command: "npx next start --port 3400",
-    cwd: "apps/playground",
+    cwd: playgroundCwd,
     url: "http://127.0.0.1:3400",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

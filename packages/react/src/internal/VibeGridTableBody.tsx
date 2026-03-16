@@ -56,6 +56,7 @@ type VibeGridTableBodyProps<Row extends RowRecord> = {
     lastFocus?: GridActiveCellLike;
     pendingFocus?: GridActiveCellLike;
   } | null>;
+  shiftRangeAnchorRef: MutableRefObject<GridActiveCellLike | null>;
   suppressClickRef: MutableRefObject<boolean>;
   topSpacerHeight?: number;
   bottomSpacerHeight?: number;
@@ -63,20 +64,16 @@ type VibeGridTableBodyProps<Row extends RowRecord> = {
 };
 
 function buildShiftRangeState(
-  selectionState: GridSelectionState,
+  anchor: GridActiveCellLike,
   nextCell: GridActiveCellLike,
 ) {
-  if (!selectionState.activeCell) {
-    return undefined;
-  }
-
   return updateRangeSelection(
     beginRangeSelection(
       createSelectionState({
-        activeRowId: selectionState.activeCell.rowKey,
-        activeCell: selectionState.activeCell,
+        activeRowId: anchor.rowKey,
+        activeCell: anchor,
       }),
-      selectionState.activeCell,
+      anchor,
     ),
     nextCell,
   );
@@ -100,6 +97,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
   normalizedRange,
   focusGridSurface,
   dragRangeRef,
+  shiftRangeAnchorRef,
   suppressClickRef,
   topSpacerHeight = 0,
   bottomSpacerHeight = 0,
@@ -230,7 +228,16 @@ export function VibeGridTableBody<Row extends RowRecord>({
                     event.preventDefault();
 
                     if (event.shiftKey) {
-                      const nextState = buildShiftRangeState(selectionState, {
+                      const anchor =
+                        shiftRangeAnchorRef.current ??
+                        selectionState.range?.anchor ??
+                        selectionState.activeCell ??
+                        {
+                          rowKey: row.id,
+                          columnKey: columnMeta.columnKey,
+                        };
+                      shiftRangeAnchorRef.current = anchor;
+                      const nextState = buildShiftRangeState(anchor, {
                         rowKey: row.id,
                         columnKey: columnMeta.columnKey,
                       });
@@ -243,6 +250,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                       return;
                     }
 
+                    shiftRangeAnchorRef.current = null;
                     dragRangeRef.current = {
                       anchor: {
                         rowKey: row.id,
@@ -269,7 +277,16 @@ export function VibeGridTableBody<Row extends RowRecord>({
                       !columnMeta?.internal &&
                       columnMeta?.columnKey
                     ) {
-                      const nextState = buildShiftRangeState(selectionState, {
+                      const anchor =
+                        shiftRangeAnchorRef.current ??
+                        selectionState.range?.anchor ??
+                        selectionState.activeCell ??
+                        {
+                          rowKey: row.id,
+                          columnKey: columnMeta.columnKey,
+                        };
+                      shiftRangeAnchorRef.current = anchor;
+                      const nextState = buildShiftRangeState(anchor, {
                         rowKey: row.id,
                         columnKey: columnMeta.columnKey,
                       });
@@ -282,6 +299,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                     }
 
                     const preserveSelection = event.ctrlKey || event.metaKey;
+                    shiftRangeAnchorRef.current = null;
                     const nextBaseState = preserveSelection
                       ? toggleRowSelection(selectionState, row.id)
                       : activateRow(clearRangeSelection(selectionState), row.id);
