@@ -33,6 +33,7 @@ Before changing code, read these files first:
 Current active references:
 
 - `docs/design/stitch-design-translation.md`
+- `docs/design/design-performance-guardrails.md`
 - `docs/roadmap/current-execution-plan.md`
 - `docs/release/public-api-stability.md`
 - `docs/release/release-routine.md`
@@ -41,6 +42,7 @@ Current active references:
 - `docs/roadmap/slice-9-productized-grid-ux-design.md`
 - `docs/roadmap/slice-9-status.md`
 - `docs/roadmap/feature-expansion-backlog.md`
+- `docs/development/style-change-bench-checklist.md`
 
 ## Stability Boundary
 
@@ -88,6 +90,11 @@ $env:CI='1'; npm run test:e2e
 ```
 
 UI and interaction changes must include browser validation with Playwright before push.
+
+Styling changes must also be reviewed against:
+
+- `docs/design/design-performance-guardrails.md`
+- `docs/development/style-change-bench-checklist.md`
 
 Here, Playwright validation means real browser click and event verification, including behavior like:
 

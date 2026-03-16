@@ -17,7 +17,8 @@ Read these files in order before making changes:
 5. `docs/roadmap/current-execution-plan.md`
 6. the latest relevant roadmap docs:
    - `docs/design/stitch-design-translation.md`
-   - `docs/roadmap/slice-8-range-selection-design.md`
+   - `docs/design/design-performance-guardrails.md`
+    - `docs/roadmap/slice-8-range-selection-design.md`
    - `docs/roadmap/slice-8-status.md`
    - `docs/roadmap/slice-9-productized-grid-ux-design.md`
    - `docs/roadmap/slice-9-status.md`
@@ -25,6 +26,7 @@ Read these files in order before making changes:
    - `docs/roadmap/p6-product-infrastructure-status.md`
    - `docs/roadmap/p7-test-release-status.md`
    - `docs/roadmap/feature-expansion-backlog.md`
+   - `docs/development/style-change-bench-checklist.md`
 7. release discipline docs:
    - `docs/release/public-api-stability.md`
    - `docs/release/release-routine.md`
@@ -337,6 +339,13 @@ Always:
 - `$env:CI='1'; npm run test:e2e`
 
 If one of these is skipped, the work is not complete.
+
+For styling work, also read:
+
+- `docs/design/design-performance-guardrails.md`
+- `docs/development/style-change-bench-checklist.md`
+
+Design changes are not exempt from performance review.
 
 ## 10. What A New Contributor Should Know Immediately
 
