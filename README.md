@@ -28,12 +28,14 @@ Before changing code, read these files first:
 1. `AGENTS.md`
 2. `docs/adr/0001-product-scope.md`
 3. `docs/development/vibe-grid-development-guide.md`
-4. the latest relevant slice docs in `docs/roadmap/`
+4. `docs/development/vibe-grid-ai-consumption-guide.md`
+5. the latest relevant slice docs in `docs/roadmap/`
 
 Current active references:
 
 - `docs/design/stitch-design-translation.md`
 - `docs/design/design-performance-guardrails.md`
+- `docs/development/vibe-grid-ai-consumption-guide.md`
 - `docs/roadmap/current-execution-plan.md`
 - `docs/release/public-api-stability.md`
 - `docs/release/release-routine.md`

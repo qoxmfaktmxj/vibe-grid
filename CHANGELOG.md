@@ -26,6 +26,8 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 
 ### Changed
 
+- Added an AI-facing consumption guide for reusing `VibeGrid` packages from external workspaces such as `EHR_6`.
+
 - Bench 화면 문구와 벤치 더미 데이터를 한국어 기준으로 정리했고, Compatibility Lab은 IBSheet8 매뉴얼 기준 매트릭스로 최신화했다.
 - Compatibility Lab now reflects the current HeaderCheck, public-event, and Group/Tree/Pivot experimental state.
 - Header menu, filter row, range selection, paste overflow policy, and row virtualization were raised to pilot-ready behavior.

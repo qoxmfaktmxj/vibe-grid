@@ -14,8 +14,9 @@ Read these files in order before making changes:
 2. `CHANGELOG.md`
 3. `docs/adr/0001-product-scope.md`
 4. `docs/development/vibe-grid-development-guide.md`
-5. `docs/roadmap/current-execution-plan.md`
-6. the latest relevant roadmap docs:
+5. `docs/development/vibe-grid-ai-consumption-guide.md`
+6. `docs/roadmap/current-execution-plan.md`
+7. the latest relevant roadmap docs:
    - `docs/design/stitch-design-translation.md`
    - `docs/design/design-performance-guardrails.md`
     - `docs/roadmap/slice-8-range-selection-design.md`
