@@ -32,6 +32,7 @@ import {
   type GridActiveCell,
   type GridPublicEventHandlers,
   type GridColumnState,
+  type GridDensity,
   type GridEditActivation,
   type GridEditSession,
   type GridFilter,
@@ -46,6 +47,7 @@ import {
 import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import { createTanStackColumns } from "@vibe-grid/tanstack-adapter";
 import { VibeGridTableBody } from "./internal/VibeGridTableBody";
+import { resolveGridDensityMetrics } from "./grid-density";
 import { VibeGridTableHeader } from "./internal/VibeGridTableHeader";
 import type {
   GridActiveCellLike,
@@ -90,8 +92,6 @@ function shouldIgnoreClipboardPasteTarget(target: EventTarget | null) {
   return target.closest("input, textarea, select, [contenteditable='true']") != null;
 }
 
-const DEFAULT_GRID_ROW_HEIGHT = 42;
-
 export type GridClipboardPasteInput = {
   text: string;
   anchorCell?: GridActiveCell;
@@ -116,6 +116,7 @@ export type VibeGridProps<Row extends RowRecord> = {
   onDeleteCheckToggle?: (rowKey: string) => void;
   enableRowCheck?: boolean;
   editActivation?: GridEditActivation;
+  density?: GridDensity;
   columnState?: GridColumnState;
   onColumnStateChange?: (state: GridColumnState) => void;
   sorting?: GridSortRule[];
@@ -165,6 +166,7 @@ export function VibeGrid<Row extends RowRecord>({
   onDeleteCheckToggle,
   enableRowCheck = false,
   editActivation = "doubleClick",
+  density = "default",
   columnState,
   onColumnStateChange,
   sorting,
@@ -194,6 +196,10 @@ export function VibeGrid<Row extends RowRecord>({
   );
   const resolvedSelectionState =
     selectionState ?? createSelectionState({ activeRowId: rows[0]?.meta.rowKey });
+  const densityMetrics = useMemo(
+    () => resolveGridDensityMetrics(density),
+    [density],
+  );
   const resolvedTreeState = tree?.state ?? internalTreeState;
   const setResolvedTreeState = tree?.onStateChange ?? setInternalTreeState;
   const treeShape = useMemo(
@@ -407,7 +413,7 @@ export function VibeGrid<Row extends RowRecord>({
                 display: "inline-flex",
                 minWidth: 54,
                 justifyContent: "center",
-                padding: "6px 10px",
+                padding: `${densityMetrics.rowStatePaddingBlock}px ${densityMetrics.rowStatePaddingInline}px`,
                 borderRadius: 999,
                 background: palette.background,
                 color: palette.color,
@@ -434,6 +440,8 @@ export function VibeGrid<Row extends RowRecord>({
     ];
   }, [
     columns,
+    densityMetrics.rowStatePaddingBlock,
+    densityMetrics.rowStatePaddingInline,
     enableRowCheck,
     onDeleteCheckToggle,
     onSelectionStateChange,
@@ -576,7 +584,7 @@ export function VibeGrid<Row extends RowRecord>({
   });
   const tableRows = table.getRowModel().rows;
   const virtualizationEnabled = virtualization?.enabled === true && tableRows.length > 0;
-  const resolvedRowHeight = virtualization?.rowHeight ?? DEFAULT_GRID_ROW_HEIGHT;
+  const resolvedRowHeight = virtualization?.rowHeight ?? densityMetrics.rowHeight;
   const virtualizer = useVirtualRows({
     count: virtualizationEnabled ? tableRows.length : 0,
     getScrollElement: () => scrollRef.current,
@@ -853,6 +861,7 @@ export function VibeGrid<Row extends RowRecord>({
       data-rendered-row-count={renderedRows.length}
       data-filter-count={filters?.length ?? 0}
       data-edit-activation={editActivation}
+      data-density={density}
       data-filter-row-enabled={enableFilterRow ? "true" : "false"}
       data-row-check-enabled={enableRowCheck ? "true" : "false"}
       data-selected-row-count={resolvedSelectionState.selectedRowIds.size}
@@ -979,7 +988,8 @@ export function VibeGrid<Row extends RowRecord>({
             suppressClickRef={suppressClickRef}
             topSpacerHeight={topSpacerHeight}
             bottomSpacerHeight={bottomSpacerHeight}
-            rowHeight={virtualizationEnabled ? resolvedRowHeight : undefined}
+            rowHeight={resolvedRowHeight}
+            densityMetrics={densityMetrics}
             firstBusinessColumnKey={firstBusinessColumnKey}
             treeRowMetaByKey={treeRowMetaByKey}
             onTreeToggle={

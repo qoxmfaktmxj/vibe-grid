@@ -15,6 +15,7 @@ test("Bench exposes combined-feature performance signals on the real grid path",
   const grid = lab.getByTestId("vibe-grid");
   await expect(grid).toHaveAttribute("data-virtualized", "true");
   await expect(grid).toHaveAttribute("data-total-row-count", "100000");
+  await expect(grid).toHaveAttribute("data-density", "default");
   await expect(grid).toHaveAttribute("data-row-height", "42");
   await expect(grid).toHaveAttribute("data-filter-row-enabled", "true");
   await expect(grid).toHaveAttribute("data-row-check-enabled", "true");
@@ -23,6 +24,22 @@ test("Bench exposes combined-feature performance signals on the real grid path",
   await expect(page.getByTestId("real-grid-filter-row")).toContainText("활성화");
   await expect(page.getByTestId("real-grid-edit-activation")).toContainText("더블클릭");
   await expect(page.getByTestId("real-grid-paste-mode")).toContainText("수정 가능 셀만");
+
+  await page.getByTestId("real-grid-density-compact").click();
+  await expect(grid).toHaveAttribute("data-density", "compact");
+  await expect(grid).toHaveAttribute("data-row-height", "36");
+  await expect(page.getByTestId("real-grid-row-height")).toContainText("36px");
+  await expect(page.getByTestId("real-grid-density")).toContainText("조밀");
+
+  await page.getByTestId("real-grid-density-comfortable").click();
+  await expect(grid).toHaveAttribute("data-density", "comfortable");
+  await expect(grid).toHaveAttribute("data-row-height", "52");
+  await expect(page.getByTestId("real-grid-row-height")).toContainText("52px");
+
+  await page.getByTestId("real-grid-density-default").click();
+  await expect(grid).toHaveAttribute("data-density", "default");
+  await expect(grid).toHaveAttribute("data-row-height", "42");
+  await expect(page.getByTestId("real-grid-row-height")).toContainText("42px");
 
   const renderedRowCount = Number(
     (await grid.getAttribute("data-rendered-row-count")) ?? "0",

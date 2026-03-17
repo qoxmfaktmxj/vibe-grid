@@ -180,6 +180,30 @@ test.describe("Grid Lab", () => {
     );
   });
 
+  test("switches grid density without changing the default baseline", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    const grid = page.getByTestId("vibe-grid");
+    const densityMode = page.getByTestId("grid-density-mode");
+
+    await expect(grid).toHaveAttribute("data-density", "default");
+    await expect(grid).toHaveAttribute("data-row-height", "42");
+
+    await densityMode.selectOption("compact");
+    await expect(grid).toHaveAttribute("data-density", "compact");
+    await expect(grid).toHaveAttribute("data-row-height", "36");
+
+    await densityMode.selectOption("comfortable");
+    await expect(grid).toHaveAttribute("data-density", "comfortable");
+    await expect(grid).toHaveAttribute("data-row-height", "52");
+
+    await densityMode.selectOption("default");
+    await expect(grid).toHaveAttribute("data-density", "default");
+    await expect(grid).toHaveAttribute("data-row-height", "42");
+  });
+
   test("supports drag range selection and range copy", async ({ page }) => {
     await page.addInitScript(() => {
       const state = { copiedText: "" };

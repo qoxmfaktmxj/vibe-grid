@@ -6,6 +6,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 
 ### Added
 
+- Shared density option on `VibeGrid` with `compact`, `default`, and `comfortable` modes, plus density comparison controls in Grid Lab and Bench.
 - Real-grid performance verification with actual `VibeGrid` render-path coverage.
 - Stable vs experimental boundary documentation.
 - Hub smoke regression coverage.

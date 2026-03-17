@@ -10,6 +10,7 @@ export type {
   GridCommandId,
   GridCommandScope,
   GridDateBadge,
+  GridDensity,
   GridEditActivation,
   GridEventSource,
   GridEditableRule,

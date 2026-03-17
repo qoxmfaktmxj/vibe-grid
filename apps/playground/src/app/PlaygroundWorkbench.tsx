@@ -46,6 +46,7 @@ import {
   toggleRowDeleted,
   validateManagedRows,
   type GridActiveCell,
+  type GridDensity,
   type GridEditActivation,
   type GridColumnState,
   type GridEditSession,
@@ -69,7 +70,11 @@ import {
   gridMessageKeys,
   type GridMessageValues,
 } from "@vibe-grid/i18n";
-import { VibeGrid, type GridClipboardPasteInput } from "@vibe-grid/react";
+import {
+  VibeGrid,
+  resolveGridDensityMetrics,
+  type GridClipboardPasteInput,
+} from "@vibe-grid/react";
 import {
   createBrowserGridPreferenceAdapter,
   type GridPreferenceScope,
@@ -214,6 +219,7 @@ export function PlaygroundWorkbench() {
     createDefaultSelection(initialRows),
   );
   const [editSession, setEditSession] = useState<GridEditSession | null>(null);
+  const [density, setDensity] = useState<GridDensity>("default");
   const [editActivation, setEditActivation] =
     useState<GridEditActivation>("doubleClick");
   const [lastSaveBundle, setLastSaveBundle] =
@@ -260,6 +266,10 @@ export function PlaygroundWorkbench() {
     rows.find((row) => row.meta.rowKey === activeRowKey) ??
     rows.find((row) => row.meta.rowKey === getPrimarySelectedRowId(selectionState));
   const stateCounts = getRowStateCounts(rows);
+  const densityMetrics = useMemo(
+    () => resolveGridDensityMetrics(density),
+    [density],
+  );
   const validationIssueCount = countValidationIssues(rows);
   const prettyQuery = useMemo(() => JSON.stringify(query, null, 2), [query]);
   const prettySaveBundle = useMemo(
@@ -1007,6 +1017,11 @@ export function PlaygroundWorkbench() {
                 value={editActivation === "singleClick" ? "single click" : "double click"}
                 tone="slate"
               />
+              <MetricCard
+                label="밀도"
+                value={`${density} / ${densityMetrics.rowHeight}px`}
+                tone="slate"
+              />
             </div>
           </section>
 
@@ -1020,17 +1035,29 @@ export function PlaygroundWorkbench() {
                   기본은 double click이고, single click은 편집 중심 화면에서만 opt-in 합니다.
                 </div>
               </div>
-              <select
-                data-testid="edit-activation-mode"
-                value={editActivation}
-                onChange={(event) =>
-                  setEditActivation(event.target.value as GridEditActivation)
-                }
-                style={compactInputStyle}
-              >
-                <option value="doubleClick">doubleClick</option>
-                <option value="singleClick">singleClick</option>
-              </select>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <select
+                  data-testid="grid-density-mode"
+                  value={density}
+                  onChange={(event) => setDensity(event.target.value as GridDensity)}
+                  style={compactInputStyle}
+                >
+                  <option value="compact">compact (36px)</option>
+                  <option value="default">default (42px)</option>
+                  <option value="comfortable">comfortable (52px)</option>
+                </select>
+                <select
+                  data-testid="edit-activation-mode"
+                  value={editActivation}
+                  onChange={(event) =>
+                    setEditActivation(event.target.value as GridEditActivation)
+                  }
+                  style={compactInputStyle}
+                >
+                  <option value="doubleClick">doubleClick</option>
+                  <option value="singleClick">singleClick</option>
+                </select>
+              </div>
             </div>
           </section>
 
@@ -1048,6 +1075,7 @@ export function PlaygroundWorkbench() {
             onDeleteCheckToggle={handleDeleteCheckToggle}
             enableRowCheck
             editActivation={editActivation}
+            density={density}
             columnState={columnState}
             onColumnStateChange={setColumnState}
             sorting={query.sorting}

@@ -19,6 +19,7 @@ import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import { VibeGridInlineEditor } from "./VibeGridInlineEditor";
 import type {
   GridActiveCellLike,
+  GridDensityMetricsLike,
   InternalColumnMeta,
   RowRecord,
   TreeRuntimeRowLike,
@@ -62,6 +63,7 @@ type VibeGridTableBodyProps<Row extends RowRecord> = {
   topSpacerHeight?: number;
   bottomSpacerHeight?: number;
   rowHeight?: number;
+  densityMetrics: GridDensityMetricsLike;
   firstBusinessColumnKey?: string;
   treeRowMetaByKey?: ReadonlyMap<string, TreeRuntimeRowLike>;
   onTreeToggle?: (rowKey: string) => void;
@@ -106,6 +108,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
   topSpacerHeight = 0,
   bottomSpacerHeight = 0,
   rowHeight,
+  densityMetrics,
   firstBusinessColumnKey,
   treeRowMetaByKey,
   onTreeToggle,
@@ -360,7 +363,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                       isActive,
                     ),
                     borderBottom: `1px solid ${vibeGridThemeTokens.body.cellBorderColor}`,
-                    padding: "12px 18px",
+                    padding: `${densityMetrics.cellPaddingBlock}px ${densityMetrics.cellPaddingInline}px`,
                     color:
                       meta?.state === "D"
                         ? vibeGridThemeTokens.body.deletedCellTextColor

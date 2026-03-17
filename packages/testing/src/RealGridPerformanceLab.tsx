@@ -20,6 +20,7 @@ import {
   toggleRowDeleted,
   type GridBenchmarkRow,
   type GridColumnState,
+  type GridDensity,
   type GridFilter,
   type GridSelectionState,
   type GridSortRule,
@@ -33,11 +34,11 @@ import {
   summarizeRectangularPastePlan,
   type ClipboardPlanSummary,
 } from "@vibe-grid/clipboard";
-import { VibeGrid } from "@vibe-grid/react";
+import { VibeGrid, resolveGridDensityMetrics } from "@vibe-grid/react";
 
 const REAL_GRID_SCENARIOS = [10_000, 50_000, 100_000] as const;
 const REAL_GRID_DEFAULT_COLUMN = "employeeNo";
-const REAL_GRID_ROW_HEIGHT = 42;
+const GRID_DENSITY_OPTIONS = ["compact", "default", "comfortable"] as const;
 
 type MetricKey =
   | "scenario"
@@ -328,6 +329,7 @@ function createSelectionFingerprint(selection: GridSelectionState) {
 
 export function RealGridPerformanceLab() {
   const [rowCount, setRowCount] = useState<number>(10_000);
+  const [density, setDensity] = useState<GridDensity>("default");
   const [baseRows, setBaseRows] = useState<ManagedGridRow<GridBenchmarkRow>[]>(() =>
     createScenarioRows(10_000),
   );
@@ -354,6 +356,10 @@ export function RealGridPerformanceLab() {
     "필터 행으로 조회하고, 셀을 직접 수정하거나 붙여넣은 뒤, 저장 번들을 생성해 실제 CRUD 비용을 확인하세요.",
   );
   const interactionStartRef = useRef<Partial<Record<MetricKey, number>>>({});
+  const densityMetrics = useMemo(
+    () => resolveGridDensityMetrics(density),
+    [density],
+  );
 
   const materialized = useMemo(
     () => ({
@@ -607,6 +613,28 @@ export function RealGridPerformanceLab() {
         ))}
       </div>
 
+      <div className="segmented-row" style={{ marginTop: 12 }}>
+        {GRID_DENSITY_OPTIONS.map((option) => (
+          <button
+            key={option}
+            type="button"
+            data-testid={`real-grid-density-${option}`}
+            onClick={() => setDensity(option)}
+            className={
+              option === density
+                ? "segmented-button segmented-button--active"
+                : "segmented-button"
+            }
+          >
+            {option === "compact"
+              ? "조밀"
+              : option === "comfortable"
+                ? "여유"
+                : "기본"}
+          </button>
+        ))}
+      </div>
+
       <div
         style={{
           display: "flex",
@@ -679,7 +707,18 @@ export function RealGridPerformanceLab() {
         <StatCard
           dataTestId="real-grid-row-height"
           label="현재 행 높이"
-          value={`${REAL_GRID_ROW_HEIGHT}px`}
+          value={`${densityMetrics.rowHeight}px`}
+        />
+        <StatCard
+          dataTestId="real-grid-density"
+          label="밀도"
+          value={
+            density === "compact"
+              ? "조밀"
+              : density === "comfortable"
+                ? "여유"
+                : "기본"
+          }
         />
         <StatCard
           dataTestId="real-grid-filter-row"
@@ -741,6 +780,7 @@ export function RealGridPerformanceLab() {
           gridId="bench-real-grid"
           rows={shaped.rows}
           columns={realGridColumns}
+          density={density}
           selectionState={resolvedSelectionState}
           onSelectionStateChange={(nextSelectionState) => {
             markInteraction("selection");
@@ -770,7 +810,7 @@ export function RealGridPerformanceLab() {
           emptyMessage="현재 벤치 필터와 일치하는 행이 없습니다."
           virtualization={{
             enabled: true,
-            rowHeight: REAL_GRID_ROW_HEIGHT,
+            rowHeight: densityMetrics.rowHeight,
             overscan: 12,
           }}
         />

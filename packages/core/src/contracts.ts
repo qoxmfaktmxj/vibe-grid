@@ -58,6 +58,8 @@ export type GridSelectionMode = "row" | "range";
 
 export type GridEditActivation = "doubleClick" | "singleClick";
 
+export type GridDensity = "compact" | "default" | "comfortable";
+
 export type GridEventSource = "command" | "directPaste";
 
 export type GridSelectionState = {

@@ -28,3 +28,11 @@ export type TreeRuntimeRowLike = {
   hasChildren: boolean;
   isExpanded: boolean;
 };
+
+export type GridDensityMetricsLike = {
+  rowHeight: number;
+  cellPaddingBlock: number;
+  cellPaddingInline: number;
+  rowStatePaddingBlock: number;
+  rowStatePaddingInline: number;
+};
