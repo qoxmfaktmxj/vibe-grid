@@ -33,16 +33,15 @@ export default function RootLayout({
         <div className="app-shell">
           <header className="app-header">
             <div className="app-header__top">
-              <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span className="app-kicker">VibeGrid Product Lab</span>
-                <h1 className="app-title">그리드 검증 플랫폼</h1>
               </div>
               <p className="app-copy">
-                Grid Lab, Bench, Compatibility를 하나의 흐름으로 묶어 업무형 grid의 행
-                선택 UX, 대용량 성능, IBSheet 대체 가능성을 빠르게 검증할 수 있게
-                만들었습니다.
+                업무형 grid의 행 선택 UX, 대용량 성능, 공통 사용 가능성을 빠르게
+                검증할 수 있게 만들었습니다.
               </p>
             </div>
+            <h1 className="app-title">그리드 검증 플랫폼</h1>
             <AppNav />
           </header>
           <div className="page-stack">{children}</div>

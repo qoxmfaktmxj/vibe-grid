@@ -39,11 +39,16 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
 
   const commonStyle = {
     width: "100%",
-    border: `1px solid ${vibeGridThemeTokens.editor.borderColor}`,
-    borderRadius: vibeGridThemeTokens.editor.borderRadius,
-    padding: "8px 10px",
+    border: "none",
+    borderRadius: 0,
+    padding: 0,
+    margin: 0,
     font: "inherit",
-    background: vibeGridThemeTokens.editor.background,
+    fontSize: "inherit",
+    fontWeight: "inherit",
+    color: "inherit",
+    background: "transparent",
+    outline: "none",
   } as const;
 
   const commit = (draftValue = editSession.draftValue) => {
@@ -141,8 +146,7 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
         }}
         style={{
           ...commonStyle,
-          minHeight: 88,
-          resize: "vertical",
+          resize: "none",
         }}
       />
     );

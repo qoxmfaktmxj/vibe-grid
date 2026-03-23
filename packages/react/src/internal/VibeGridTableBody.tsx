@@ -373,16 +373,16 @@ export function VibeGridTableBody<Row extends RowRecord>({
                     verticalAlign: "middle",
                     boxShadow: [
                       buildRangeShadow(rangeState),
-                      isActiveCell
+                      isActiveCell && !editing
                         ? `inset 0 0 0 2px ${vibeGridThemeTokens.body.activeCellOutline}`
                         : undefined,
                     ]
                       .filter(Boolean)
-                      .join(", "),
+                      .join(", ") || "none",
                   }}
                 >
                   {editing ? (
-                    <div style={{ display: "grid" }}>
+                    <div style={{ display: "flex", alignItems: "center", minHeight: 0 }}>
                       <span style={{ display: "none" }}>{columnMeta?.columnKey}</span>
                       <VibeGridInlineEditor
                         inputId={inputId}

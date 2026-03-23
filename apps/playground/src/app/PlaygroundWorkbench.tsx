@@ -982,7 +982,7 @@ export function PlaygroundWorkbench() {
         {statusMessage}
       </section>
 
-      <section style={layoutGridStyle}>
+      <section style={{ display: "grid", gap: 18 }}>
         <div style={{ display: "grid", gap: 18 }}>
           <section style={cardStyle}>
             <div style={metricGridStyle}>
@@ -1134,7 +1134,7 @@ export function PlaygroundWorkbench() {
           </section>
         </div>
 
-        <aside style={{ display: "grid", gap: 18 }}>
+        <div style={{ display: "grid", gap: 18 }}>
           <section style={cardStyle}>
             <div style={sectionHeaderStyle}>
               <h2 style={sectionTitleStyle}>서버 Query / Filter / Sort / Page</h2>
@@ -1630,7 +1630,7 @@ export function PlaygroundWorkbench() {
               )}
             </div>
           </section>
-        </aside>
+        </div>
       </section>
     </section>
   );
@@ -1754,95 +1754,70 @@ function MetricCard(input: {
   tone: "teal" | "blue" | "amber" | "slate";
 }) {
   const palette = {
-    teal: {
-      background: "linear-gradient(180deg, rgba(219, 247, 244, 0.96), rgba(236, 253, 255, 0.96))",
-      color: "#0f766e",
-      borderColor: "rgba(15, 118, 110, 0.18)",
-    },
-    blue: {
-      background: "linear-gradient(180deg, rgba(224, 242, 254, 0.96), rgba(239, 246, 255, 0.96))",
-      color: "#1d4ed8",
-      borderColor: "rgba(29, 78, 216, 0.16)",
-    },
-    amber: {
-      background: "linear-gradient(180deg, rgba(255, 244, 214, 0.96), rgba(255, 247, 237, 0.96))",
-      color: "#c2410c",
-      borderColor: "rgba(194, 65, 12, 0.16)",
-    },
-    slate: {
-      background: "linear-gradient(180deg, rgba(244, 248, 252, 0.98), rgba(248, 250, 252, 0.98))",
-      color: "#334155",
-      borderColor: "rgba(100, 116, 139, 0.14)",
-    },
+    teal: { color: "#0f766e", borderColor: "#e5e5e5" },
+    blue: { color: "#1d4ed8", borderColor: "#e5e5e5" },
+    amber: { color: "#c2410c", borderColor: "#e5e5e5" },
+    slate: { color: "#334155", borderColor: "#e5e5e5" },
   }[input.tone];
 
   return (
     <article
       style={{
-        borderRadius: 20,
+        borderRadius: 8,
         padding: 16,
         border: `1px solid ${palette.borderColor}`,
-        boxShadow: "0 12px 28px rgba(9, 21, 38, 0.06)",
-        ...palette,
+        background: "#ffffff",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 800 }}>{input.label}</div>
-      <div style={{ marginTop: 8, fontSize: 18, fontWeight: 800 }}>{input.value}</div>
+      <div style={{ fontSize: 12, fontWeight: 500, color: palette.color }}>{input.label}</div>
+      <div style={{ marginTop: 6, fontSize: 18, fontWeight: 600, color: "#0a0a0a" }}>{input.value}</div>
     </article>
   );
 }
 
 const heroSectionStyle = {
-  border: "1px solid rgba(255, 255, 255, 0.12)",
-  borderRadius: 32,
-  padding: "30px 32px",
-  background:
-    "linear-gradient(135deg, rgba(8,40,59,0.98), rgba(15,118,110,0.96), rgba(20,184,166,0.92))",
-  color: "#fff",
-  boxShadow: "0 28px 70px rgba(9, 21, 38, 0.16)",
+  borderRadius: 12,
+  padding: "48px",
+  background: "linear-gradient(135deg, #f0f9ff, #e0f2fe 50%, #bae6fd)",
+  color: "#0c4a6e",
 } as const;
 
 const heroDescriptionStyle = {
-  marginTop: 16,
+  marginTop: 20,
   maxWidth: 920,
-  lineHeight: 1.82,
-  color: "rgba(255,255,255,0.84)",
+  lineHeight: 1.6,
+  fontSize: 15,
+  color: "#475569",
 } as const;
 
-const heroChipStyle = (background: string) =>
+const heroChipStyle = (_background: string) =>
   ({
-    padding: "7px 12px",
-    borderRadius: 999,
-    background,
+    padding: "4px 10px",
+    borderRadius: 9999,
+    border: "1px solid rgba(14, 165, 233, 0.2)",
+    background: "transparent",
     fontSize: 12,
-    fontWeight: 700,
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
+    fontWeight: 500,
+    color: "#0369a1",
   }) as const;
 
 const statusPanelStyle = {
-  border: "1px solid rgba(148, 163, 184, 0.2)",
-  borderRadius: 22,
-  background: "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,250,255,0.92))",
-  padding: 18,
+  border: "1px solid #e5e5e5",
+  borderRadius: 8,
+  background: "#ffffff",
+  padding: 16,
   color: "#334155",
-  lineHeight: 1.7,
-  boxShadow: "0 14px 34px rgba(9, 21, 38, 0.06)",
-  fontWeight: 600,
+  lineHeight: 1.5,
+  fontSize: 14,
+  fontWeight: 500,
 } as const;
 
-const layoutGridStyle = {
-  display: "grid",
-  gap: 22,
-  gridTemplateColumns: "minmax(0, 1.75fr) minmax(340px, 0.95fr)",
-  alignItems: "start",
-} as const;
 
 const cardStyle = {
-  border: "1px solid rgba(153, 177, 201, 0.24)",
-  borderRadius: 26,
-  padding: 22,
-  background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,251,255,0.94))",
-  boxShadow: "0 20px 50px rgba(9, 21, 38, 0.08)",
+  border: "1px solid #e5e5e5",
+  borderRadius: 8,
+  padding: 24,
+  background: "#ffffff",
 } as const;
 
 const metricGridStyle = {
@@ -1862,19 +1837,20 @@ const sectionHeaderStyle = {
 
 const sectionTitleStyle = {
   margin: 0,
-  fontSize: 21,
-  color: "#0f172a",
-  letterSpacing: "-0.02em",
+  fontSize: 18,
+  fontWeight: 600,
+  color: "#0a0a0a",
 } as const;
 
 const badgeStyle = (background: string, color: string) =>
   ({
-    borderRadius: 999,
-    padding: "6px 10px",
+    borderRadius: 9999,
+    padding: "2px 8px",
     background,
     color,
     fontSize: 12,
-    fontWeight: 800,
+    fontWeight: 500,
+    border: `1px solid ${color}20`,
   }) as const;
 
 const fieldLabelStyle = {
@@ -1887,72 +1863,71 @@ const fieldLabelStyle = {
 
 const fullInputStyle = {
   width: "100%",
-  border: "1px solid rgba(148, 163, 184, 0.38)",
-  borderRadius: 14,
-  padding: "11px 13px",
+  border: "1px solid #e5e5e5",
+  borderRadius: 6,
+  padding: "8px 12px",
   font: "inherit",
-  background: "rgba(255,255,255,0.94)",
-  boxShadow: "inset 0 1px 2px rgba(15, 23, 42, 0.04)",
+  fontSize: 14,
+  background: "#ffffff",
 } as const;
 
 const compactInputStyle = {
-  border: "1px solid rgba(148, 163, 184, 0.38)",
-  borderRadius: 14,
-  padding: "10px 12px",
+  border: "1px solid #e5e5e5",
+  borderRadius: 6,
+  padding: "8px 12px",
   font: "inherit",
-  background: "rgba(255,255,255,0.94)",
+  fontSize: 14,
+  background: "#ffffff",
 } as const;
 
 const primaryButtonStyle = {
-  border: "1px solid rgba(15, 118, 110, 0.22)",
-  borderRadius: 14,
-  padding: "11px 15px",
-  background: "linear-gradient(135deg, #0f766e, #0d9488)",
+  border: "1px solid #0f766e",
+  borderRadius: 6,
+  padding: "8px 16px",
+  background: "#0f766e",
   color: "#fff",
-  fontWeight: 700,
+  fontSize: 14,
+  fontWeight: 500,
   cursor: "pointer",
-  boxShadow: "0 14px 30px rgba(15, 118, 110, 0.18)",
 } as const;
 
 const secondaryButtonStyle = {
-  border: "1px solid rgba(148, 163, 184, 0.26)",
-  borderRadius: 14,
-  padding: "11px 15px",
-  background: "rgba(255,255,255,0.92)",
-  color: "#0f172a",
-  fontWeight: 700,
+  border: "1px solid #e5e5e5",
+  borderRadius: 6,
+  padding: "8px 16px",
+  background: "#ffffff",
+  color: "#0a0a0a",
+  fontSize: 14,
+  fontWeight: 500,
   cursor: "pointer",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
 } as const;
 
 const primaryGhostButtonStyle = {
-  border: "1px solid rgba(148, 163, 184, 0.24)",
-  borderRadius: 16,
-  background: "rgba(255,255,255,0.92)",
-  color: "#0f172a",
-  padding: "12px 16px",
-  fontWeight: 700,
+  border: "1px solid #e5e5e5",
+  borderRadius: 6,
+  background: "#ffffff",
+  color: "#0a0a0a",
+  padding: "8px 16px",
+  fontSize: 14,
+  fontWeight: 500,
   cursor: "pointer",
-  boxShadow: "0 10px 24px rgba(9, 21, 38, 0.05)",
 } as const;
 
 const disabledButtonStyle = {
   ...primaryGhostButtonStyle,
-  background: "#f8fafc",
-  color: "#94a3b8",
+  background: "#f5f5f5",
+  color: "#a3a3a3",
   cursor: "not-allowed",
-  boxShadow: "none",
 } as const;
 
 const preStyle = {
   margin: 0,
-  padding: 16,
-  borderRadius: 18,
-  background: "linear-gradient(180deg, #091220, #111d32)",
-  color: "#d7e1f0",
-  fontSize: 12,
-  lineHeight: 1.7,
+  padding: 14,
+  borderRadius: 6,
+  background: "#18181b",
+  color: "#d4d4d8",
+  fontSize: 13,
+  lineHeight: 1.6,
   overflowX: "auto",
-  border: "1px solid rgba(148, 163, 184, 0.16)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+  border: "1px solid #e5e5e5",
 } as const;
