@@ -18,7 +18,7 @@
 
 ## Why deploy `apps/playground`
 
-`apps/playground` is the best first deployment target because it already acts as the single-port test hub.
+`apps/playground` is the best first deployment target because it already acts as the grid validation platform.
 
 - `/labs/grid`: business grid behaviors
 - `/labs/bench`: large-data rendering and sticky behavior

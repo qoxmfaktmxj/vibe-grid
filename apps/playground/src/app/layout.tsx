@@ -19,7 +19,7 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "VibeGrid Playground",
-  description: "업무형 공통 Grid 제품을 검증하고 발전시키는 단일 테스트 허브",
+  description: "업무형 공통 Grid 제품을 검증하고 발전시키는 그리드 검증 플랫폼",
 };
 
 export default function RootLayout({
@@ -35,7 +35,7 @@ export default function RootLayout({
             <div className="app-header__top">
               <div>
                 <span className="app-kicker">VibeGrid Product Lab</span>
-                <h1 className="app-title">한 포트 검증 허브</h1>
+                <h1 className="app-title">그리드 검증 플랫폼</h1>
               </div>
               <p className="app-copy">
                 Grid Lab, Bench, Compatibility를 하나의 흐름으로 묶어 업무형 grid의 행

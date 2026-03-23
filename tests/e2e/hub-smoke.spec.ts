@@ -4,7 +4,7 @@ test("Hub navigation exposes the primary lab surfaces", async ({ page }) => {
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { name: "한 포트 검증 허브" }),
+    page.getByRole("heading", { name: "그리드 검증 플랫폼" }),
   ).toBeVisible();
 
   await page.getByRole("link", { name: "Grid Lab" }).click();
