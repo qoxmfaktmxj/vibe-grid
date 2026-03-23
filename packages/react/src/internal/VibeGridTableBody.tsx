@@ -15,7 +15,7 @@ import {
   type GridEditSession,
   type GridSelectionState,
 } from "@vibe-grid/core";
-import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import type { VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import { VibeGridInlineEditor } from "./VibeGridInlineEditor";
 import type {
   GridActiveCellLike,
@@ -67,6 +67,7 @@ type VibeGridTableBodyProps<Row extends RowRecord> = {
   firstBusinessColumnKey?: string;
   treeRowMetaByKey?: ReadonlyMap<string, TreeRuntimeRowLike>;
   onTreeToggle?: (rowKey: string) => void;
+  theme: VibeGridThemeTokens;
 };
 
 function buildShiftRangeState(
@@ -112,6 +113,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
   firstBusinessColumnKey,
   treeRowMetaByKey,
   onTreeToggle,
+  theme,
 }: VibeGridTableBodyProps<Row>) {
   if (totalRowCount === 0) {
     return (
@@ -122,8 +124,8 @@ export function VibeGridTableBody<Row extends RowRecord>({
             style={{
               padding: "40px 24px",
               textAlign: "center",
-              color: vibeGridThemeTokens.body.emptyTextColor,
-              background: vibeGridThemeTokens.body.emptyBackground,
+              color: theme.body.emptyTextColor,
+              background: theme.body.emptyBackground,
             }}
           >
             {emptyMessage}
@@ -143,7 +145,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
               height: topSpacerHeight,
               padding: 0,
               border: "none",
-              background: vibeGridThemeTokens.body.spacerBackground,
+              background: theme.body.spacerBackground,
             }}
           />
         </tr>
@@ -151,15 +153,15 @@ export function VibeGridTableBody<Row extends RowRecord>({
       {rows.map((row) => {
         const baseRowBackground =
           row.index % 2 === 0
-            ? vibeGridThemeTokens.body.rowOddBackground
-            : vibeGridThemeTokens.body.rowEvenBackground;
+            ? theme.body.rowOddBackground
+            : theme.body.rowEvenBackground;
         const isActive = row.id === selectionState.activeRowId;
         const isSelected = selectionState.selectedRowIds.has(row.id);
         const meta = rowMetaByKey.get(row.id);
         const rowBackground = isActive
-          ? vibeGridThemeTokens.body.activeRowBackground
+          ? theme.body.activeRowBackground
           : isSelected
-            ? vibeGridThemeTokens.body.selectedRowBackground
+            ? theme.body.selectedRowBackground
             : baseRowBackground;
 
         return (
@@ -199,7 +201,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                 columnIndexByKey,
               });
               const rangeBackground = rangeState.inRange
-                ? vibeGridThemeTokens.body.rangeBackground
+                ? theme.body.rangeBackground
                 : undefined;
               const openEditSession = () => {
                 if (
@@ -357,24 +359,25 @@ export function VibeGridTableBody<Row extends RowRecord>({
                     ...getStickyCellStyle(
                       cell.column,
                       isActiveCell
-                        ? vibeGridThemeTokens.body.activeCellBackground
+                        ? theme.body.activeCellBackground
                         : (rangeBackground ?? rowBackground),
                       false,
                       isActive,
+                      theme,
                     ),
-                    borderBottom: `1px solid ${vibeGridThemeTokens.body.cellBorderColor}`,
+                    borderBottom: `1px solid ${theme.body.cellBorderColor}`,
                     padding: `${densityMetrics.cellPaddingBlock}px ${densityMetrics.cellPaddingInline}px`,
                     color:
                       meta?.state === "D"
-                        ? vibeGridThemeTokens.body.deletedCellTextColor
-                        : vibeGridThemeTokens.body.cellTextColor,
+                        ? theme.body.deletedCellTextColor
+                        : theme.body.cellTextColor,
                     fontSize: 13,
                     fontWeight: isActive ? 700 : 600,
                     verticalAlign: "middle",
                     boxShadow: [
-                      buildRangeShadow(rangeState),
+                      buildRangeShadow(rangeState, theme),
                       isActiveCell && !editing
-                        ? `inset 0 0 0 2px ${vibeGridThemeTokens.body.activeCellOutline}`
+                        ? `inset 0 0 0 2px ${theme.body.activeCellOutline}`
                         : undefined,
                     ]
                       .filter(Boolean)
@@ -393,6 +396,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
                         editSession={editSession}
                         onEditSessionChange={onEditSessionChange}
                         onCellEditCommit={onCellEditCommit}
+                        theme={theme}
                       />
                     </div>
                   ) : (
@@ -422,9 +426,9 @@ export function VibeGridTableBody<Row extends RowRecord>({
                               width: 24,
                               height: 24,
                               borderRadius: 999,
-                              border: `1px solid ${vibeGridThemeTokens.body.cellBorderColor}`,
-                              background: vibeGridThemeTokens.surface.background,
-                              color: vibeGridThemeTokens.body.cellTextColor,
+                              border: `1px solid ${theme.body.cellBorderColor}`,
+                              background: theme.surface.background,
+                              color: theme.body.cellTextColor,
                               fontSize: 12,
                               fontWeight: 800,
                               cursor: "pointer",
@@ -473,7 +477,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
               height: bottomSpacerHeight,
               padding: 0,
               border: "none",
-              background: vibeGridThemeTokens.body.spacerBackground,
+              background: theme.body.spacerBackground,
             }}
           />
         </tr>

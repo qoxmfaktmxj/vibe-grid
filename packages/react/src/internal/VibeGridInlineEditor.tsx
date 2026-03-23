@@ -4,7 +4,7 @@ import {
   type GridEditorSpec,
   type GridEditSession,
 } from "@vibe-grid/core";
-import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import type { VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import { VibeGridDateEditor } from "./VibeGridDateEditor";
 import type { RowRecord } from "./vibe-grid-types";
 
@@ -21,6 +21,7 @@ type VibeGridInlineEditorProps<Row extends RowRecord> = {
     columnKey: string;
     draftValue: string;
   }) => void;
+  theme: VibeGridThemeTokens;
 };
 
 export function VibeGridInlineEditor<Row extends RowRecord>({
@@ -32,6 +33,7 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
   editSession,
   onEditSessionChange,
   onCellEditCommit,
+  theme,
 }: VibeGridInlineEditorProps<Row>) {
   if (!editSession || !columnKey) {
     return null;
@@ -183,6 +185,7 @@ export function VibeGridInlineEditor<Row extends RowRecord>({
         editSession={editSession}
         onEditSessionChange={onEditSessionChange}
         onCellEditCommit={onCellEditCommit}
+        theme={theme}
       />
     );
   }

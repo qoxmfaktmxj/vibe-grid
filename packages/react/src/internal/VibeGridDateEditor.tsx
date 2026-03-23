@@ -13,7 +13,7 @@ import {
   type GridEditSession,
   type GridEditorSpec,
 } from "@vibe-grid/core";
-import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import type { VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import type { RowRecord } from "./vibe-grid-types";
 
 type DateEditorSpec<Row extends RowRecord> = Extract<
@@ -34,6 +34,7 @@ type VibeGridDateEditorProps<Row extends RowRecord> = {
     columnKey: string;
     draftValue: string;
   }) => void;
+  theme: VibeGridThemeTokens;
 };
 
 type CalendarCell = {
@@ -141,6 +142,7 @@ export function VibeGridDateEditor<Row extends RowRecord>({
   editSession,
   onEditSessionChange,
   onCellEditCommit,
+  theme,
 }: VibeGridDateEditorProps<Row>) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -246,11 +248,11 @@ export function VibeGridDateEditor<Row extends RowRecord>({
           }}
           style={{
             width: "100%",
-            border: `1px solid ${vibeGridThemeTokens.editor.borderColor}`,
-            borderRadius: vibeGridThemeTokens.editor.borderRadius,
+            border: `1px solid ${theme.editor.borderColor}`,
+            borderRadius: theme.editor.borderRadius,
             padding: "8px 10px",
             font: "inherit",
-            background: vibeGridThemeTokens.editor.background,
+            background: theme.editor.background,
           }}
         />
         <button
@@ -277,10 +279,10 @@ export function VibeGridDateEditor<Row extends RowRecord>({
             zIndex: 30,
             marginTop: 8,
             minWidth: 280,
-            border: `1px solid ${vibeGridThemeTokens.menu.borderColor}`,
+            border: `1px solid ${theme.menu.borderColor}`,
             borderRadius: 16,
-            background: vibeGridThemeTokens.menu.background,
-            boxShadow: vibeGridThemeTokens.menu.shadow,
+            background: theme.menu.background,
+            boxShadow: theme.menu.shadow,
             padding: 14,
           }}
         >

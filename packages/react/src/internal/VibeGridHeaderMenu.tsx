@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { defaultLocale, getGridMessage, gridMessageKeys } from "@vibe-grid/i18n";
-import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import type { VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 
 export type GridHeaderMenuAction =
   | "sortAsc"
@@ -22,47 +22,59 @@ type VibeGridHeaderMenuProps = {
   columnKey: string;
   items: MenuActionItem[];
   onAction: (action: GridHeaderMenuAction) => void;
+  theme: VibeGridThemeTokens;
 };
 
-const menuStyle: CSSProperties = {
-  position: "absolute",
-  top: "calc(100% - 4px)",
-  right: 0,
-  minWidth: 196,
-  padding: 10,
-  borderRadius: 18,
-  border: `1px solid ${vibeGridThemeTokens.menu.borderColor}`,
-  background: vibeGridThemeTokens.menu.background,
-  boxShadow: vibeGridThemeTokens.menu.shadow,
-  backdropFilter: "blur(20px)",
-  zIndex: 30,
-};
+function getMenuStyle(theme: VibeGridThemeTokens): CSSProperties {
+  return {
+    position: "absolute",
+    top: "calc(100% - 4px)",
+    right: 0,
+    minWidth: 196,
+    padding: 10,
+    borderRadius: 18,
+    border: `1px solid ${theme.menu.borderColor}`,
+    background: theme.menu.background,
+    boxShadow: theme.menu.shadow,
+    backdropFilter: "blur(20px)",
+    zIndex: 30,
+  };
+}
 
-const menuItemStyle: CSSProperties = {
-  width: "100%",
-  border: "none",
-  background: "transparent",
-  borderRadius: 14,
-  padding: "11px 14px",
-  textAlign: "left",
-  font: "inherit",
-  fontSize: 12,
-  fontWeight: 700,
-  color: vibeGridThemeTokens.menu.textColor,
-  cursor: "pointer",
-};
+function getMenuItemStyle(theme: VibeGridThemeTokens): CSSProperties {
+  return {
+    width: "100%",
+    border: "none",
+    background: "transparent",
+    borderRadius: 14,
+    padding: "11px 14px",
+    textAlign: "left",
+    font: "inherit",
+    fontSize: 12,
+    fontWeight: 700,
+    color: theme.menu.textColor,
+    cursor: "pointer",
+  };
+}
 
-const disabledMenuItemStyle: CSSProperties = {
-  ...menuItemStyle,
-  color: "#94a3b8",
-  cursor: "not-allowed",
-};
+function getDisabledMenuItemStyle(theme: VibeGridThemeTokens): CSSProperties {
+  return {
+    ...getMenuItemStyle(theme),
+    color: "#94a3b8",
+    cursor: "not-allowed",
+  };
+}
 
 export function VibeGridHeaderMenu({
   columnKey,
   items,
   onAction,
+  theme,
 }: VibeGridHeaderMenuProps) {
+  const menuStyle = getMenuStyle(theme);
+  const menuItemStyle = getMenuItemStyle(theme);
+  const disabledStyle = getDisabledMenuItemStyle(theme);
+
   return (
     <div
       role="menu"
@@ -85,7 +97,7 @@ export function VibeGridHeaderMenu({
               onAction(item.id);
             }
           }}
-          style={item.disabled ? disabledMenuItemStyle : menuItemStyle}
+          style={item.disabled ? disabledStyle : menuItemStyle}
         >
           {item.label}
         </button>

@@ -2,7 +2,7 @@ import type { GridFilter } from "@vibe-grid/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flexRender, type Table } from "@tanstack/react-table";
 import { defaultLocale, getGridMessage, gridMessageKeys } from "@vibe-grid/i18n";
-import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import type { VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import {
   VibeGridHeaderMenu,
   type GridHeaderMenuAction,
@@ -17,6 +17,7 @@ type VibeGridTableHeaderProps<Row extends RowRecord> = {
   filters?: GridFilter[];
   onFiltersChange?: (filters: GridFilter[]) => void;
   enableFilterRow?: boolean;
+  theme: VibeGridThemeTokens;
 };
 
 function getSortIndicator(sorted: false | "asc" | "desc") {
@@ -70,6 +71,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
   filters,
   onFiltersChange,
   enableFilterRow = false,
+  theme,
 }: VibeGridTableHeaderProps<Row>) {
   const headerRef = useRef<HTMLTableSectionElement | null>(null);
   const triggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -147,15 +149,15 @@ export function VibeGridTableHeader<Row extends RowRecord>({
             const isFiltered = filterCount > 0;
             const showIndicators = !headerMeta?.internal;
             const background = isMenuOpen
-              ? vibeGridThemeTokens.header.menuOpenBackground
+              ? theme.header.menuOpenBackground
               : pinned
-                ? vibeGridThemeTokens.header.pinnedBackground
+                ? theme.header.pinnedBackground
                 : isFiltered
-                  ? vibeGridThemeTokens.header.filteredBackground
+                  ? theme.header.filteredBackground
                   : sorted
-                    ? vibeGridThemeTokens.header.sortedBackground
-                    : vibeGridThemeTokens.header.idleBackground;
-            const stickyStyle = getStickyCellStyle(headerColumn, background, true);
+                    ? theme.header.sortedBackground
+                    : theme.header.idleBackground;
+            const stickyStyle = getStickyCellStyle(headerColumn, background, true, false, theme);
 
             const menuItems: MenuActionItem[] = columnKey
               ? [
@@ -283,8 +285,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                   ...stickyStyle,
                   zIndex: isMenuOpen ? 40 : stickyStyle.zIndex,
                   overflow: "visible",
-                  borderBottom: `1px solid ${vibeGridThemeTokens.header.borderColor}`,
-                  color: vibeGridThemeTokens.header.textColor,
+                  borderBottom: `1px solid ${theme.header.borderColor}`,
+                  color: theme.header.textColor,
                   fontSize: 11,
                   fontWeight: 800,
                   letterSpacing: "0.06em",
@@ -322,7 +324,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         padding: 0,
                         font: "inherit",
                         fontWeight: 800,
-                        color: vibeGridThemeTokens.header.textColor,
+                        color: theme.header.textColor,
                         cursor: "pointer",
                         textTransform: "uppercase",
                         letterSpacing: "0.06em",
@@ -350,8 +352,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         fontSize: 10,
                         fontWeight: 700,
                         color: sorted
-                          ? vibeGridThemeTokens.indicator.sortedText
-                          : vibeGridThemeTokens.indicator.idleText,
+                          ? theme.indicator.sortedText
+                          : theme.indicator.idleText,
                         visibility: showIndicators ? "visible" : "hidden",
                       }}
                     >
@@ -365,8 +367,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         fontSize: 10,
                         fontWeight: 800,
                         color: pinIndicator
-                          ? vibeGridThemeTokens.indicator.pinnedText
-                          : vibeGridThemeTokens.indicator.idleText,
+                          ? theme.indicator.pinnedText
+                          : theme.indicator.idleText,
                         visibility: showIndicators ? "visible" : "hidden",
                       }}
                     >
@@ -385,15 +387,15 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                           justifyContent: "center",
                           padding: "0 8px",
                           background: isFiltered
-                            ? vibeGridThemeTokens.indicator.filteredBackground
+                            ? theme.indicator.filteredBackground
                             : "transparent",
                           color: isFiltered
-                            ? vibeGridThemeTokens.indicator.filteredText
-                            : vibeGridThemeTokens.indicator.idleText,
+                            ? theme.indicator.filteredText
+                            : theme.indicator.idleText,
                           fontSize: 10,
                           fontWeight: 800,
                           border: isFiltered
-                            ? `1px solid ${vibeGridThemeTokens.indicator.filteredBorder}`
+                            ? `1px solid ${theme.indicator.filteredBorder}`
                             : "1px solid transparent",
                         }}
                       >
@@ -423,12 +425,12 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                           height: 30,
                           borderRadius: 999,
                           border: isMenuOpen
-                            ? vibeGridThemeTokens.menu.triggerOpenBorder
-                            : vibeGridThemeTokens.menu.triggerIdleBorder,
+                            ? theme.menu.triggerOpenBorder
+                            : theme.menu.triggerIdleBorder,
                           background: isMenuOpen
-                            ? vibeGridThemeTokens.menu.triggerOpenBackground
-                            : vibeGridThemeTokens.menu.triggerIdleBackground,
-                          color: vibeGridThemeTokens.menu.textColor,
+                            ? theme.menu.triggerOpenBackground
+                            : theme.menu.triggerIdleBackground,
+                          color: theme.menu.textColor,
                           fontSize: 12,
                           fontWeight: 800,
                           cursor: "pointer",
@@ -464,8 +466,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                             borderRadius: 999,
                             background:
                               pinned && sorted
-                                ? vibeGridThemeTokens.header.resizeHandlePinnedSorted
-                                : vibeGridThemeTokens.header.resizeHandleIdle,
+                                ? theme.header.resizeHandlePinnedSorted
+                                : theme.header.resizeHandleIdle,
                           }}
                         />
                       </div>
@@ -476,6 +478,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                       columnKey={columnKey}
                       items={menuItems}
                       onAction={handleMenuAction}
+                      theme={theme}
                     />
                   ) : null}
                 </div>
@@ -490,6 +493,7 @@ export function VibeGridTableHeader<Row extends RowRecord>({
           table={table}
           filters={filters}
           onFiltersChange={onFiltersChange}
+          theme={theme}
         />
       ) : null}
     </thead>

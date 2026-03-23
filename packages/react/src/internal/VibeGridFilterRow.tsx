@@ -6,7 +6,7 @@ import type {
   GridFilterEditorSpec,
 } from "@vibe-grid/core";
 import type { Table } from "@tanstack/react-table";
-import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import type { VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import type { InternalColumnMeta, RowRecord } from "./vibe-grid-types";
 import { getStickyCellStyle } from "./vibe-grid-utils";
 
@@ -14,6 +14,7 @@ type VibeGridFilterRowProps<Row extends RowRecord> = {
   table: Table<Row>;
   filters?: GridFilter[];
   onFiltersChange?: (filters: GridFilter[]) => void;
+  theme: VibeGridThemeTokens;
 };
 
 function buildFilterSyncSignature<Row extends RowRecord>(
@@ -146,6 +147,7 @@ export function VibeGridFilterRow<Row extends RowRecord>({
   table,
   filters = [],
   onFiltersChange,
+  theme,
 }: VibeGridFilterRowProps<Row>) {
   const visibleColumns = table.getVisibleLeafColumns();
   const syncSignature = buildFilterSyncSignature(visibleColumns, filters);
@@ -169,9 +171,9 @@ export function VibeGridFilterRow<Row extends RowRecord>({
         const columnKey = meta?.columnKey;
         const pinned = column.getIsPinned();
         const background = pinned
-          ? vibeGridThemeTokens.header.pinnedBackground
-          : vibeGridThemeTokens.filter.rowBackground;
-        const stickyStyle = getStickyCellStyle(column, background, true);
+          ? theme.header.pinnedBackground
+          : theme.filter.rowBackground;
+        const stickyStyle = getStickyCellStyle(column, background, true, false, theme);
         const draftValue = columnKey ? drafts[columnKey] ?? "" : "";
         const isInvalidNumber =
           filterEditor?.type === "number" &&
@@ -218,7 +220,7 @@ export function VibeGridFilterRow<Row extends RowRecord>({
             data-testid={columnKey ? `filter-cell-${columnKey}` : undefined}
             style={{
               ...stickyStyle,
-              borderBottom: `1px solid ${vibeGridThemeTokens.header.borderColor}`,
+              borderBottom: `1px solid ${theme.header.borderColor}`,
               padding: "12px 14px 14px",
               width: column.getSize(),
               minWidth: column.getSize(),
@@ -260,10 +262,10 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                       width: "100%",
                       minHeight: 38,
                       borderRadius: 999,
-                      border: `1px solid ${vibeGridThemeTokens.filter.inputBorder}`,
+                      border: `1px solid ${theme.filter.inputBorder}`,
                       padding: "0 14px",
-                      background: vibeGridThemeTokens.filter.inputBackground,
-                      color: vibeGridThemeTokens.filter.inputText,
+                      background: theme.filter.inputBackground,
+                      color: theme.filter.inputText,
                       font: "inherit",
                       fontSize: 13,
                       fontWeight: 600,
@@ -298,11 +300,11 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                       minHeight: 38,
                       borderRadius: 999,
                       border: isInvalidNumber
-                        ? `1px solid ${vibeGridThemeTokens.filter.invalidBorder}`
-                        : `1px solid ${vibeGridThemeTokens.filter.inputBorder}`,
+                        ? `1px solid ${theme.filter.invalidBorder}`
+                        : `1px solid ${theme.filter.inputBorder}`,
                       padding: "0 14px",
-                      background: vibeGridThemeTokens.filter.inputBackground,
-                      color: vibeGridThemeTokens.filter.inputText,
+                      background: theme.filter.inputBackground,
+                      color: theme.filter.inputText,
                       font: "inherit",
                       fontSize: 13,
                       fontWeight: 600,
@@ -321,9 +323,9 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                         flex: 1,
                         minHeight: 32,
                         borderRadius: 999,
-                        border: `1px solid ${vibeGridThemeTokens.filter.inputBorder}`,
-                        background: vibeGridThemeTokens.filter.applyBackground,
-                        color: vibeGridThemeTokens.filter.applyText,
+                        border: `1px solid ${theme.filter.inputBorder}`,
+                        background: theme.filter.applyBackground,
+                        color: theme.filter.applyText,
                         fontSize: 12,
                         fontWeight: 700,
                         cursor: isInvalidNumber ? "not-allowed" : "pointer",
@@ -341,9 +343,9 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                       minWidth: filterEditor.type === "select" ? "100%" : 56,
                       minHeight: 32,
                       borderRadius: 999,
-                      border: `1px solid ${vibeGridThemeTokens.filter.clearBorder}`,
-                      background: vibeGridThemeTokens.filter.clearBackground,
-                      color: vibeGridThemeTokens.filter.clearText,
+                      border: `1px solid ${theme.filter.clearBorder}`,
+                      background: theme.filter.clearBackground,
+                      color: theme.filter.clearText,
                       fontSize: 12,
                       fontWeight: 700,
                       cursor: "pointer",

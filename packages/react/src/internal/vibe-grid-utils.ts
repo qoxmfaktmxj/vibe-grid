@@ -1,5 +1,5 @@
 import type { Column, Updater } from "@tanstack/react-table";
-import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import type { VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import type { RowRecord } from "./vibe-grid-types";
 
 export type NormalizedCellRange =
@@ -67,23 +67,23 @@ export function getCellRangeState(input: {
   };
 }
 
-export function buildRangeShadow(rangeState: GridRangeCellState) {
+export function buildRangeShadow(rangeState: GridRangeCellState, theme: VibeGridThemeTokens) {
   if (!rangeState.inRange) {
     return undefined;
   }
 
   return [
     rangeState.isTop
-      ? `inset 0 2px 0 0 ${vibeGridThemeTokens.sticky.rangeOutline}`
+      ? `inset 0 2px 0 0 ${theme.sticky.rangeOutline}`
       : undefined,
     rangeState.isRight
-      ? `inset -2px 0 0 0 ${vibeGridThemeTokens.sticky.rangeOutline}`
+      ? `inset -2px 0 0 0 ${theme.sticky.rangeOutline}`
       : undefined,
     rangeState.isBottom
-      ? `inset 0 -2px 0 0 ${vibeGridThemeTokens.sticky.rangeOutline}`
+      ? `inset 0 -2px 0 0 ${theme.sticky.rangeOutline}`
       : undefined,
     rangeState.isLeft
-      ? `inset 2px 0 0 0 ${vibeGridThemeTokens.sticky.rangeOutline}`
+      ? `inset 2px 0 0 0 ${theme.sticky.rangeOutline}`
       : undefined,
   ]
     .filter(Boolean)
@@ -95,10 +95,13 @@ export function getStickyCellStyle<Row extends RowRecord>(
   background: string,
   isHeader: boolean,
   isActiveRow = false,
+  theme?: VibeGridThemeTokens,
 ) {
   const pinned = column.getIsPinned();
   const isLeft = pinned === "left";
   const isRight = pinned === "right";
+  const boundaryColor = theme?.sticky.boundaryColor ?? "rgba(196, 198, 210, 0.22)";
+  const boundaryShadow = theme?.sticky.boundaryShadow ?? "rgba(25, 28, 30, 0.12)";
 
   return {
     position: pinned ? ("sticky" as const) : ("relative" as const),
@@ -107,9 +110,9 @@ export function getStickyCellStyle<Row extends RowRecord>(
     zIndex: isHeader ? (pinned ? 6 : 4) : pinned ? (isActiveRow ? 3 : 2) : 1,
     background,
     boxShadow: isLeft && column.getIsLastColumn("left")
-      ? `2px 0 0 0 ${vibeGridThemeTokens.sticky.boundaryColor}, 10px 0 14px -14px ${vibeGridThemeTokens.sticky.boundaryShadow}`
+      ? `2px 0 0 0 ${boundaryColor}, 10px 0 14px -14px ${boundaryShadow}`
       : isRight && column.getIsFirstColumn("right")
-        ? `-2px 0 0 0 ${vibeGridThemeTokens.sticky.boundaryColor}, -10px 0 14px -14px ${vibeGridThemeTokens.sticky.boundaryShadow}`
+        ? `-2px 0 0 0 ${boundaryColor}, -10px 0 14px -14px ${boundaryShadow}`
         : undefined,
   };
 }

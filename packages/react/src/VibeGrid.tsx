@@ -44,7 +44,7 @@ import {
   type RowState,
   type VibeGridColumn,
 } from "@vibe-grid/core";
-import { vibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import { vibeGridThemeTokens, type VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
 import { createTanStackColumns } from "@vibe-grid/tanstack-adapter";
 import { VibeGridTableBody } from "./internal/VibeGridTableBody";
 import { resolveGridDensityMetrics } from "./grid-density";
@@ -136,6 +136,7 @@ export type VibeGridProps<Row extends RowRecord> = {
     state?: GridTreeState;
     onStateChange?: (state: GridTreeState) => void;
   };
+  theme?: VibeGridThemeTokens;
 };
 
 const rowStateLabel: Record<RowState, string> = {
@@ -143,13 +144,6 @@ const rowStateLabel: Record<RowState, string> = {
   I: "입력",
   U: "수정",
   D: "삭제",
-};
-
-const rowStateColor: Record<RowState, { background: string; color: string }> = {
-  N: vibeGridThemeTokens.rowState.N,
-  I: vibeGridThemeTokens.rowState.I,
-  U: vibeGridThemeTokens.rowState.U,
-  D: vibeGridThemeTokens.rowState.D,
 };
 
 export function VibeGrid<Row extends RowRecord>({
@@ -178,7 +172,14 @@ export function VibeGrid<Row extends RowRecord>({
   height = 420,
   virtualization,
   tree,
+  theme = vibeGridThemeTokens,
 }: VibeGridProps<Row>) {
+  const rowStateColor: Record<RowState, { background: string; color: string }> = {
+    N: theme.rowState.N,
+    I: theme.rowState.I,
+    U: theme.rowState.U,
+    D: theme.rowState.D,
+  };
   const inputId = useId();
   const gridRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -931,11 +932,11 @@ export function VibeGrid<Row extends RowRecord>({
         }
       }}
       style={{
-        border: `1px solid ${vibeGridThemeTokens.surface.borderColor}`,
+        border: `1px solid ${theme.surface.borderColor}`,
         borderRadius: 24,
         overflow: "hidden",
-        background: vibeGridThemeTokens.surface.background,
-        boxShadow: vibeGridThemeTokens.surface.shadow,
+        background: theme.surface.background,
+        boxShadow: theme.surface.shadow,
       }}
     >
       <div
@@ -944,7 +945,7 @@ export function VibeGrid<Row extends RowRecord>({
           overflow: "auto",
           maxHeight: height,
           position: "relative",
-          background: vibeGridThemeTokens.surface.shellBackground,
+          background: theme.surface.shellBackground,
           padding: 8,
         }}
       >
@@ -955,7 +956,7 @@ export function VibeGrid<Row extends RowRecord>({
             borderCollapse: "separate",
             borderSpacing: 0,
             tableLayout: "fixed",
-            background: vibeGridThemeTokens.surface.background,
+            background: theme.surface.background,
             borderRadius: 20,
             overflow: "hidden",
           }}
@@ -965,6 +966,7 @@ export function VibeGrid<Row extends RowRecord>({
             filters={filters}
             onFiltersChange={onFiltersChange}
             enableFilterRow={enableFilterRow}
+            theme={theme}
           />
           <VibeGridTableBody
             table={table}
@@ -1001,6 +1003,7 @@ export function VibeGrid<Row extends RowRecord>({
                   }
                 : undefined
             }
+            theme={theme}
           />
         </table>
       </div>
