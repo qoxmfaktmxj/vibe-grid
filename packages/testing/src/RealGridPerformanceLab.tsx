@@ -892,7 +892,7 @@ function StatCard(props: {
       }}
     >
       <div style={{ fontSize: 11, fontWeight: 500, color: "#737373", letterSpacing: "0.02em" }}>{props.label}</div>
-      <strong style={{ display: "block", marginTop: 2, fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>{props.value}</strong>
+      <strong suppressHydrationWarning style={{ display: "block", marginTop: 2, fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>{props.value}</strong>
     </article>
   );
 }
