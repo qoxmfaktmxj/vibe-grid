@@ -219,9 +219,9 @@ export function PlaygroundWorkbench() {
     createDefaultSelection(initialRows),
   );
   const [editSession, setEditSession] = useState<GridEditSession | null>(null);
-  const [density, setDensity] = useState<GridDensity>("default");
+  const [density, setDensity] = useState<GridDensity>("compact");
   const [editActivation, setEditActivation] =
-    useState<GridEditActivation>("doubleClick");
+    useState<GridEditActivation>("singleClick");
   const [lastSaveBundle, setLastSaveBundle] =
     useState<SaveBundle<PlaygroundRow> | null>(null);
   const [pasteText, setPasteText] = useState("");

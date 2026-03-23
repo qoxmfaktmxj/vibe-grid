@@ -329,7 +329,7 @@ function createSelectionFingerprint(selection: GridSelectionState) {
 
 export function RealGridPerformanceLab() {
   const [rowCount, setRowCount] = useState<number>(10_000);
-  const [density, setDensity] = useState<GridDensity>("default");
+  const [density, setDensity] = useState<GridDensity>("compact");
   const [baseRows, setBaseRows] = useState<ManagedGridRow<GridBenchmarkRow>[]>(() =>
     createScenarioRows(10_000),
   );
@@ -572,25 +572,8 @@ export function RealGridPerformanceLab() {
   }
 
   return (
-    <section className="section-panel" data-testid="real-grid-performance-lab">
-      <div style={{ display: "grid", gap: 14 }}>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-          <span className="hero-tag hero-tag--light">P5 기준선</span>
-          <span className="hero-tag hero-tag--light">실제 VibeGrid 경로</span>
-          <span className="hero-tag hero-tag--light">행 가상 스크롤 활성화</span>
-        </div>
-        <div>
-          <h2 className="section-panel__title">실제 VibeGrid 성능 랩</h2>
-          <p className="section-panel__copy">
-            이 패널은 실제 `VibeGrid` 렌더 경로에서 고정 컬럼, 스티키 헤더, 필터 행, 범위
-            선택, 가상 스크롤이 함께 켜진 상태를 측정합니다. 단순한 리스트 벤치마크가
-            아니라, 기능이 결합된 실제 제품 셸이 부하 상황에서도 반응성을 유지하는지
-            확인하는 것이 목적입니다.
-          </p>
-        </div>
-      </div>
-
-      <div className="segmented-row" style={{ marginTop: 18 }}>
+    <section data-testid="real-grid-performance-lab" style={{ display: "grid", gap: 16, padding: "0 48px" }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
         {REAL_GRID_SCENARIOS.map((scenario) => (
           <button
             key={scenario}
@@ -611,9 +594,7 @@ export function RealGridPerformanceLab() {
             {scenario.toLocaleString("ko-KR")}건
           </button>
         ))}
-      </div>
-
-      <div className="segmented-row" style={{ marginTop: 12 }}>
+        <span style={{ width: 1, height: 20, background: "#e5e5e5", margin: "0 4px" }} />
         {GRID_DENSITY_OPTIONS.map((option) => (
           <button
             key={option}
@@ -633,17 +614,7 @@ export function RealGridPerformanceLab() {
                 : "기본"}
           </button>
         ))}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: 10,
-          flexWrap: "wrap",
-          marginTop: 16,
-          alignItems: "center",
-        }}
-      >
+        <span style={{ width: 1, height: 20, background: "#e5e5e5", margin: "0 4px" }} />
         <button
           type="button"
           data-testid="bench-reset-scenario"
@@ -668,12 +639,13 @@ export function RealGridPerformanceLab() {
         >
           저장 번들 생성
         </button>
-        <span className="hero-tag hero-tag--light">필터 행 = 조회 경로</span>
-        <span className="hero-tag hero-tag--light">삭제 체크 = 삭제 경로</span>
-        <span className="hero-tag hero-tag--light">수정 / 붙여넣기 = 수정 경로</span>
+        <span style={{ width: 1, height: 20, background: "#e5e5e5", margin: "0 4px" }} />
+        <span className="hero-tag">필터 행 = 조회 경로</span>
+        <span className="hero-tag">삭제 체크 = 삭제 경로</span>
+        <span className="hero-tag">수정 / 붙여넣기 = 수정 경로</span>
       </div>
 
-      <div className="stat-grid" style={{ marginTop: 18 }}>
+      <div style={{ display: "grid", gap: 8, gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", marginTop: 16 }}>
         <StatCard
           dataTestId="real-grid-visible-rows"
           label="가공 후 표시 행 수"
@@ -742,7 +714,7 @@ export function RealGridPerformanceLab() {
         />
       </div>
 
-      <div className="stat-grid" style={{ marginTop: 14 }}>
+      <div style={{ display: "grid", gap: 8, gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", marginTop: 8 }}>
         <StatCard
           dataTestId="real-grid-scenario-ms"
           label="시나리오 전환"
@@ -819,8 +791,8 @@ export function RealGridPerformanceLab() {
       <div
         style={{
           marginTop: 18,
-          borderRadius: 18,
-          border: "1px solid rgba(148, 163, 184, 0.22)",
+          borderRadius: 6,
+          border: "1px solid #e5e5e5",
           background: "rgba(248, 250, 252, 0.9)",
           padding: 18,
           color: "#475569",
@@ -839,8 +811,8 @@ export function RealGridPerformanceLab() {
         data-testid="bench-status-message"
         style={{
           marginTop: 18,
-          borderRadius: 18,
-          border: "1px solid rgba(148, 163, 184, 0.22)",
+          borderRadius: 6,
+          border: "1px solid #e5e5e5",
           background: "rgba(255, 255, 255, 0.9)",
           padding: 18,
           color: "#334155",
@@ -853,8 +825,8 @@ export function RealGridPerformanceLab() {
       <div
         style={{
           marginTop: 18,
-          borderRadius: 18,
-          border: "1px solid rgba(148, 163, 184, 0.22)",
+          borderRadius: 6,
+          border: "1px solid #e5e5e5",
           background: "rgba(255, 255, 255, 0.9)",
           padding: 18,
           color: "#334155",
@@ -872,8 +844,8 @@ export function RealGridPerformanceLab() {
       <div
         style={{
           marginTop: 18,
-          borderRadius: 18,
-          border: "1px solid rgba(148, 163, 184, 0.22)",
+          borderRadius: 6,
+          border: "1px solid #e5e5e5",
           background: "rgba(255, 255, 255, 0.94)",
           padding: 18,
           color: "#334155",
@@ -886,7 +858,7 @@ export function RealGridPerformanceLab() {
           style={{
             marginTop: 10,
             marginBottom: 0,
-            borderRadius: 16,
+            borderRadius: 6,
             background: "#0f172a",
             color: "#dbeafe",
             padding: 16,
@@ -910,9 +882,17 @@ function StatCard(props: {
   dataTestId?: string;
 }) {
   return (
-    <article className="stat-card" data-testid={props.dataTestId}>
-      <div className="stat-card__label">{props.label}</div>
-      <strong className="stat-card__value">{props.value}</strong>
+    <article
+      data-testid={props.dataTestId}
+      style={{
+        border: "1px solid #e5e5e5",
+        borderRadius: 6,
+        padding: "8px 12px",
+        background: "#fff",
+      }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 500, color: "#737373", letterSpacing: "0.02em" }}>{props.label}</div>
+      <strong style={{ display: "block", marginTop: 2, fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>{props.value}</strong>
     </article>
   );
 }
