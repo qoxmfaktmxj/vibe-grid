@@ -1,37 +1,37 @@
 # VibeGrid
 
-VibeGrid is a standalone internal grid product workspace for replacing IBSheet-style business grids across EHR-related applications.
+VibeGrid는 EHR 관련 애플리케이션에서 IBSheet 스타일 비즈니스 그리드를 대체하기 위한 독립형 내부 그리드 제품 워크스페이스입니다.
 
-## What this repo is for
+## 이 저장소의 목적
 
-- Build a reusable business-grid product, not a page-level table widget
-- Keep `TanStack Table` as an internal engine detail
-- Expose a stable app-facing API for `row-first` HR workflows
-- Validate IBSheet replacement behavior before broad migration into `EHR_6` and `vibe-hr`
+- 페이지 레벨 테이블 위젯이 아닌, 재사용 가능한 비즈니스 그리드 제품 구축
+- `TanStack Table`은 내부 엔진 구현 상세로만 유지
+- `row-first` HR 워크플로우를 위한 안정적인 앱 대면 API 제공
+- `EHR_6` 및 `vibe-hr`로의 본격 마이그레이션 전에 IBSheet 대체 동작 검증
 
-## Workspace layout
+## 워크스페이스 구성
 
-- `apps/playground`: single-port manual test hub for grid, compatibility, and UX flows
-- `apps/bench`: focused performance surface for large datasets
-- `packages/core`: public contracts, row state, validation, save bundle, selection model
-- `packages/react`: app-facing React surface
-- `packages/tanstack-adapter`: TanStack Table bridge
-- `packages/virtualization`: sticky/frozen/virtualization orchestration
-- `packages/excel`: xlsx import/export/template pipeline
-- `packages/clipboard`: copy/paste parsing and rectangular apply
-- `packages/testing`: reusable bench and fixture helpers
+- `apps/playground`: 그리드, 호환성, UX 흐름을 위한 단일 포트 수동 테스트 허브
+- `apps/bench`: 대규모 데이터셋 대상 성능 측정 화면
+- `packages/core`: 공개 계약, 행 상태, 유효성 검증, 저장 번들, 선택 모델
+- `packages/react`: 앱 대면 React 화면
+- `packages/tanstack-adapter`: TanStack Table 브릿지
+- `packages/virtualization`: sticky/frozen/가상화 오케스트레이션
+- `packages/excel`: xlsx 가져오기/내보내기/템플릿 파이프라인
+- `packages/clipboard`: 복사/붙여넣기 파싱 및 직사각형 적용
+- `packages/testing`: 재사용 가능한 벤치 및 픽스처 헬퍼
 
-## Start Here
+## 시작하기
 
-Before changing code, read these files first:
+코드를 변경하기 전에 다음 파일을 먼저 읽으세요:
 
 1. `AGENTS.md`
 2. `docs/adr/0001-product-scope.md`
 3. `docs/development/vibe-grid-development-guide.md`
 4. `docs/development/vibe-grid-ai-consumption-guide.md`
-5. the latest relevant slice docs in `docs/roadmap/`
+5. `docs/roadmap/` 내 최신 슬라이스 문서
 
-Current active references:
+현재 활성 참조 문서:
 
 - `docs/design/stitch-design-translation.md`
 - `docs/design/design-performance-guardrails.md`
@@ -46,37 +46,37 @@ Current active references:
 - `docs/roadmap/feature-expansion-backlog.md`
 - `docs/development/style-change-bench-checklist.md`
 
-## Stability Boundary
+## 안정성 경계
 
-Use [docs/release/public-api-stability.md](C:/Users/kms/Desktop/dev/vibe-grid/docs/release/public-api-stability.md) as the current stable/experimental boundary for this repo.
+이 저장소의 현재 안정/실험적 경계는 [docs/release/public-api-stability.md](docs/release/public-api-stability.md)를 참고하세요.
 
-In short:
+요약:
 
-- stable for pilot:
-  - `@vibe-grid/core` shared contracts
-  - `@vibe-grid/react` main `VibeGrid` surface
-  - header menu, filter row, range copy/paste, row virtualization
-- still experimental:
-  - benchmark timing interpretation
-  - broader persistence beyond column state
-  - theme token naming/details
-  - non-grid lab shell presentation
+- 파일럿 안정 단계:
+  - `@vibe-grid/core` 공유 계약
+  - `@vibe-grid/react` 메인 `VibeGrid` 화면
+  - 헤더 메뉴, 필터 행, 범위 복사/붙여넣기, 행 가상화
+- 아직 실험적:
+  - 벤치마크 타이밍 해석
+  - 컬럼 상태 이외의 광범위 영속성
+  - 테마 토큰 네이밍/상세
+  - 비 그리드 랩 셸 프레젠테이션
 
-## Local commands
+## 로컬 명령어
 
 ```bash
 npm install
 npm run dev
 ```
 
-Default local hub:
+기본 로컬 허브:
 
 - `http://localhost:3203`
-- `http://localhost:3203/labs/grid`
-- `http://localhost:3203/labs/bench`
-- `http://localhost:3203/labs/compatibility`
+- `http://localhost:3203/labs/grid` — 그리드 랩
+- `http://localhost:3203/labs/bench` — 벤치마크
+- `http://localhost:3203/labs/compatibility` — 호환성 랩
 
-Validation commands:
+검증 명령어:
 
 ```bash
 npm run lint
@@ -85,39 +85,39 @@ npm run ci
 npm run test:e2e:smoke
 ```
 
-For fresh browser validation, prefer:
+새 브라우저 검증 시:
 
 ```powershell
 $env:CI='1'; npm run test:e2e
 ```
 
-UI and interaction changes must include browser validation with Playwright before push.
+UI 및 인터랙션 변경 사항은 푸시 전에 반드시 Playwright 브라우저 검증을 포함해야 합니다.
 
-Styling changes must also be reviewed against:
+스타일링 변경 시 다음 문서도 함께 검토해야 합니다:
 
 - `docs/design/design-performance-guardrails.md`
 - `docs/development/style-change-bench-checklist.md`
 
-Here, Playwright validation means real browser click and event verification, including behavior like:
+여기서 Playwright 검증이란 다음과 같은 실제 브라우저 클릭 및 이벤트 검증을 의미합니다:
 
-- click
-- focus
-- keyboard input
-- paste
-- drag
-- sticky/pinned interaction
+- 클릭
+- 포커스
+- 키보드 입력
+- 붙여넣기
+- 드래그
+- sticky/pinned 인터랙션
 
-## Deployment shape
+## 배포 구성
 
-- Git repository target: `qoxmfaktmxj/vibe-grid`
-- Vercel project root directory: `apps/playground`
-- Custom domain target: `grid.minseok91.cloud`
+- Git 저장소 대상: `qoxmfaktmxj/vibe-grid`
+- Vercel 프로젝트 루트 디렉토리: `apps/playground`
+- 커스텀 도메인 대상: `grid.minseok91.cloud`
 
-Detailed deployment steps live in `docs/deployment/vercel-github-deploy.md`.
+상세 배포 절차는 `docs/deployment/vercel-github-deploy.md`에 있습니다.
 
-## Ground rules
+## 기본 규칙
 
-- Apps should not depend on TanStack types directly.
-- Public contracts belong to `@vibe-grid/core`.
-- Primary UX target is IBSheet-like row-first business workflows.
-- `EHR_6` remains the comparison app until VibeGrid reaches parity.
+- 앱에서 TanStack 타입을 직접 의존해서는 안 됩니다.
+- 공개 계약은 `@vibe-grid/core`에 속합니다.
+- 주요 UX 타겟은 IBSheet 스타일의 row-first 비즈니스 워크플로우입니다.
+- VibeGrid가 패리티에 도달할 때까지 `EHR_6`이 비교 대상 앱으로 유지됩니다.
