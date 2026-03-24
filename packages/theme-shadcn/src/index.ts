@@ -1,8 +1,6 @@
 export const vibeGridSurfaceClassName =
   "rounded-[28px] bg-white shadow-sm";
 
-export type VibeGridThemeTokens = typeof vibeGridThemeTokens;
-
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const cleaned = hex.replace("#", "");
   if (cleaned.length === 3) {
@@ -63,7 +61,7 @@ function darken(hex: string, amount: number): string {
  */
 export function createVibeGridTheme(
   primaryColor: string = "#001641",
-): VibeGridThemeTokens {
+) {
   const primary = primaryColor;
   const primaryDark = darken(primary, 0.2);
   const primaryLight = lighten(primary, 0.85);
@@ -153,6 +151,8 @@ export function createVibeGridTheme(
     },
   };
 }
+
+export type VibeGridThemeTokens = ReturnType<typeof createVibeGridTheme>;
 
 /** 기본 테마 (하위 호환) */
 export const vibeGridThemeTokens = createVibeGridTheme();

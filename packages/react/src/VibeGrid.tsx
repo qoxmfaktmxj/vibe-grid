@@ -203,6 +203,8 @@ export function VibeGrid<Row extends RowRecord>({
   );
   const resolvedTreeState = tree?.state ?? internalTreeState;
   const setResolvedTreeState = tree?.onStateChange ?? setInternalTreeState;
+  const resolvedTreeStateRef = useRef(resolvedTreeState);
+  resolvedTreeStateRef.current = resolvedTreeState;
   const treeShape = useMemo(
     () => (tree ? shapeGridTreeRows(rows, tree.spec, resolvedTreeState) : null),
     [resolvedTreeState, rows, tree],
@@ -998,7 +1000,7 @@ export function VibeGrid<Row extends RowRecord>({
               tree
                 ? (rowKey) => {
                     setResolvedTreeState(
-                      toggleGridTreeRowExpanded(resolvedTreeState, rowKey),
+                      toggleGridTreeRowExpanded(resolvedTreeStateRef.current, rowKey),
                     );
                   }
                 : undefined

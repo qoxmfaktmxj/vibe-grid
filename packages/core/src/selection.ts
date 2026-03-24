@@ -449,6 +449,54 @@ export function pruneSelectionState(
   };
 }
 
+/**
+ * 트리 모드 전용 selection pruning.
+ * 접힌 자식의 selectedRowIds(체크)는 보존하고,
+ * activeRowId / activeCell / range만 visible 행 기준으로 정리한다.
+ * 변경이 없으면 원본 객체를 그대로 반환한다.
+ */
+export function pruneTreeSelectionState(
+  selection: GridSelectionState,
+  visibleRowIds: Iterable<string>,
+): GridSelectionState {
+  const validRowIds = new Set(visibleRowIds);
+
+  const activeRowIdValid =
+    selection.activeRowId != null && validRowIds.has(selection.activeRowId);
+  const activeCellValid =
+    selection.activeCell != null &&
+    validRowIds.has(selection.activeCell.rowKey);
+  const rangeValid =
+    selection.range != null &&
+    validRowIds.has(selection.range.anchor.rowKey) &&
+    validRowIds.has(selection.range.focus.rowKey);
+
+  if (activeRowIdValid && activeCellValid && rangeValid) {
+    return selection;
+  }
+  if (
+    activeRowIdValid &&
+    selection.activeCell == null &&
+    selection.range == null
+  ) {
+    return selection;
+  }
+
+  const activeRowId = activeRowIdValid
+    ? selection.activeRowId
+    : [...validRowIds][0];
+  const activeCell = activeCellValid ? selection.activeCell : undefined;
+  const range = rangeValid ? selection.range : undefined;
+
+  return {
+    activeRowId,
+    selectedRowIds: selection.selectedRowIds,
+    activeCell,
+    range,
+    mode: range ? "range" : "row",
+  };
+}
+
 export function getPrimarySelectedRowId(selection: GridSelectionState) {
   return selection.activeRowId ?? [...selection.selectedRowIds][0];
 }

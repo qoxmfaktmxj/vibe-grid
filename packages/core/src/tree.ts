@@ -7,6 +7,7 @@ export type GridTreeSpec<Row extends Record<string, unknown>> = {
   labelField?: Extract<keyof Row, string>;
   defaultExpandedRowKeys?: string[];
   initiallyExpandAll?: boolean;
+  maxDepth?: number;
 };
 
 export type GridTreeState = {
@@ -125,16 +126,17 @@ export function shapeGridTreeRows<Row extends Record<string, unknown>>(
   const expandedRowKeys = new Set<string>(
     treeSpec.initiallyExpandAll
       ? [...childrenByParentKey.values()].flat()
-      : sanitizedState.expandedRowKeys.length > 0
+      : treeState != null
         ? sanitizedState.expandedRowKeys
         : defaultExpandedRowKeys,
   );
   const visibleRows: ManagedGridRow<Row>[] = [];
   const runtimeRowMeta = new Map<string, GridTreeRuntimeRowMeta>();
   const visitedRowKeys = new Set<string>();
+  const depthLimit = treeSpec.maxDepth ?? 100;
 
   const visit = (rowKey: string, level: number) => {
-    if (visitedRowKeys.has(rowKey)) {
+    if (visitedRowKeys.has(rowKey) || level > depthLimit) {
       return;
     }
 

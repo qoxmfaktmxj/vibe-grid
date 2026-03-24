@@ -416,6 +416,9 @@ export function VibeGridTableBody<Row extends RowRecord>({
                             data-testid={`tree-toggle-${row.id}`}
                             data-tree-expanded={treeRowMeta.isExpanded ? "true" : "false"}
                             aria-label={`${row.id} tree toggle`}
+                            onMouseDown={(event) => {
+                              event.stopPropagation();
+                            }}
                             onClick={(event) => {
                               event.preventDefault();
                               event.stopPropagation();

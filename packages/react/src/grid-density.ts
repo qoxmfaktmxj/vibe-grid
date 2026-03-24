@@ -10,25 +10,25 @@ export type GridDensityMetrics = {
 
 export const GRID_DENSITY_METRICS: Record<GridDensity, GridDensityMetrics> = {
   compact: {
+    rowHeight: 30,
+    cellPaddingBlock: 4,
+    cellPaddingInline: 12,
+    rowStatePaddingBlock: 2,
+    rowStatePaddingInline: 6,
+  },
+  default: {
     rowHeight: 36,
     cellPaddingBlock: 8,
     cellPaddingInline: 14,
     rowStatePaddingBlock: 4,
     rowStatePaddingInline: 8,
   },
-  default: {
+  comfortable: {
     rowHeight: 42,
     cellPaddingBlock: 12,
     cellPaddingInline: 18,
     rowStatePaddingBlock: 6,
     rowStatePaddingInline: 10,
-  },
-  comfortable: {
-    rowHeight: 52,
-    cellPaddingBlock: 16,
-    cellPaddingInline: 20,
-    rowStatePaddingBlock: 8,
-    rowStatePaddingInline: 12,
   },
 };
 

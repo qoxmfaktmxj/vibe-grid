@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { RealGridPerformanceLab } from "./RealGridPerformanceLab";
+import { TreeBenchPerformanceLab } from "./TreeBenchPerformanceLab";
 
 export function BenchWorkbench() {
+  const [tab, setTab] = useState<"flat" | "tree">("flat");
+
   return (
     <section style={{ display: "grid", gap: 24 }}>
       <section className="hero-panel hero-panel--teal" style={{ margin: "0 48px" }}>
@@ -19,7 +23,25 @@ export function BenchWorkbench() {
         </p>
       </section>
 
-      <RealGridPerformanceLab />
+      <div className="segmented-row" style={{ padding: "0 48px" }}>
+        <button
+          className={`segmented-button${tab === "flat" ? " segmented-button--active" : ""}`}
+          data-testid="bench-tab-flat"
+          onClick={() => setTab("flat")}
+        >
+          Flat
+        </button>
+        <button
+          className={`segmented-button${tab === "tree" ? " segmented-button--active" : ""}`}
+          data-testid="bench-tab-tree"
+          onClick={() => setTab("tree")}
+        >
+          Tree
+        </button>
+      </div>
+
+      {tab === "flat" && <RealGridPerformanceLab />}
+      {tab === "tree" && <TreeBenchPerformanceLab />}
     </section>
   );
 }

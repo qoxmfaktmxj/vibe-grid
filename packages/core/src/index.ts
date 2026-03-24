@@ -63,11 +63,12 @@ export {
   getGridCommand,
   getLegacyCommandCode,
 } from "./commands";
-export type { GridBenchmarkRow, GridBenchmarkSnapshot } from "./benchmark";
+export type { GridBenchmarkRow, GridBenchmarkSnapshot, GridBenchmarkTreeRow } from "./benchmark";
 export {
   createBenchmarkRow,
   createBenchmarkRows,
   createBenchmarkSnapshot,
+  createBenchmarkTreeRows,
 } from "./benchmark";
 export {
   applyRowPatch,
@@ -100,6 +101,7 @@ export {
   hasRangeSelection,
   moveActiveCellByArrow,
   pruneSelectionState,
+  pruneTreeSelectionState,
   setActiveCell,
   setManyRowSelectionChecked,
   setRowSelectionChecked,

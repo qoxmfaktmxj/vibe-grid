@@ -608,10 +608,10 @@ export function RealGridPerformanceLab() {
             }
           >
             {option === "compact"
-              ? "조밀"
+              ? "compact"
               : option === "comfortable"
-                ? "여유"
-                : "기본"}
+                ? "comfortable"
+                : "default"}
           </button>
         ))}
         <span style={{ width: 1, height: 20, background: "#e5e5e5", margin: "0 4px" }} />
