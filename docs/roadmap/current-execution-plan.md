@@ -348,15 +348,17 @@ Do not prioritize these until the earlier items move:
 - server excel adapter
 - undo/redo
 
-## Recommended Next Three Work Items
+## Recommended Next Work Items
 
 If work continues immediately, execute in this order:
 
-1. `TGP-2` React tree rendering MVP
-2. `TGP-3` tree interaction rules
-3. `TGP-4` Tree bench tab and browser coverage
+1. `TGP-3` tree interaction rules (행 선택/범위 선택 + 접힌 노드 규칙)
+2. `EVT-1` Event API Phase 1: onBeforeChange / onAfterChange / onBeforeSave (HR 업무 필수)
+3. `EVT-2` Event API Phase 2: onRowClick / onCellClick / onBeforeRowInsert / onAfterRowInsert
+4. `TGP-5~8` Group runtime MVP (Tree 안정화 후)
 
-Use `docs/roadmap/feature-expansion-backlog.md` as the entry point for this next stage.
+Use `docs/roadmap/feature-expansion-backlog.md` as the entry point for feature work.
+Use `docs/roadmap/event-api-plan.md` as the entry point for event API work.
 
 ## Tree Runtime Progress
 
@@ -368,10 +370,21 @@ Status:
 - tree runtime now renders on the shared `VibeGrid` React surface behind the experimental `tree` prop
 - Compatibility Lab includes a real runtime demo with browser-tested expand/collapse behavior
 
+### TGP-4 (partial)
+
+Status:
+
+- completed on `2026-03-24`
+- Tree Bench tab added to BenchWorkbench (Flat/Tree segmented control)
+- TreeBenchPerformanceLab component with 1k/5k/10k node scenarios, expand/collapse timing
+- Tree toggle stale-closure bug fixed (resolvedTreeStateRef + mouseDown stopPropagation)
+- maxDepth 100 safety guard active in shapeGridTreeRows
+- Density adjusted: compact=30px, default=36px, comfortable=42px
+
 Next:
 
-- `TGP-3` tree interaction rules
-- `TGP-4` Tree bench mode and browser coverage
+- `TGP-3` tree interaction rules (selection + range + row-check behavior on collapsed nodes)
+- `EVT-1` Event API Phase 1 (onBeforeChange / onAfterChange / onBeforeSave)
 
 For the detailed hierarchical-view plan, use:
 
