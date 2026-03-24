@@ -27,6 +27,7 @@ import {
   setManyRowSelectionChecked,
   shapeGridTreeRows,
   shouldApplyGridPaste,
+  pruneTreeSelectionState,
   toggleGridTreeRowExpanded,
   updateRangeSelection,
   type GridActiveCell,
@@ -213,6 +214,32 @@ export function VibeGrid<Row extends RowRecord>({
   const treeRowMetaByKey = treeShape?.runtimeRowMeta as
     | ReadonlyMap<string, TreeRuntimeRowLike>
     | undefined;
+
+  // TGP-3: 트리 접힘 시 selection 정리 — 숨겨진 행의 activeCell/range를 제거
+  const visibleRowKeysForPrune = useMemo(
+    () => (tree ? visibleManagedRows.map((r) => r.meta.rowKey) : null),
+    [tree, visibleManagedRows],
+  );
+  const prevVisibleRowKeysRef = useRef(visibleRowKeysForPrune);
+  useEffect(() => {
+    if (
+      !visibleRowKeysForPrune ||
+      prevVisibleRowKeysRef.current === visibleRowKeysForPrune
+    ) {
+      prevVisibleRowKeysRef.current = visibleRowKeysForPrune;
+      return;
+    }
+    prevVisibleRowKeysRef.current = visibleRowKeysForPrune;
+
+    const pruned = pruneTreeSelectionState(
+      resolvedSelectionState,
+      visibleRowKeysForPrune,
+    );
+    if (pruned !== resolvedSelectionState) {
+      onSelectionStateChange?.(pruned);
+    }
+  }, [visibleRowKeysForPrune, resolvedSelectionState, onSelectionStateChange]);
+
   const resolvedColumnState = useMemo(
     () => sanitizeGridColumnState(columns, columnState),
     [columnState, columns],

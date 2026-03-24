@@ -69,10 +69,20 @@ Scope:
 - range selection rules for visible rows
 - row-check / delete-check interaction rules
 
+Status:
+
+- implemented on `2026-03-24`
+- `pruneTreeSelectionState` wired into VibeGrid via `useEffect` on `visibleManagedRows`
+- on tree collapse: `activeRowId`, `activeCell`, `range` are pruned to visible rows
+- `selectedRowIds` (row-check) are intentionally preserved across collapse/expand
+- tree toggle button `onMouseDown` stopPropagation prevents cell drag-range interference
+- `resolvedTreeStateRef` prevents stale-closure toggle bug
+- browser-verified: collapse/expand preserves child state, sequential toggle works correctly
+
 Acceptance:
 
-- collapse / expand does not corrupt selection state
-- hidden descendants are not accidentally targeted
+- collapse / expand does not corrupt selection state ✓
+- hidden descendants are not accidentally targeted ✓
 
 ### TGP-4. Tree bench tab
 

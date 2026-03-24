@@ -381,10 +381,20 @@ Status:
 - maxDepth 100 safety guard active in shapeGridTreeRows
 - Density adjusted: compact=30px, default=36px, comfortable=42px
 
+### TGP-3
+
+Status:
+
+- completed on `2026-03-24`
+- pruneTreeSelectionState wired into VibeGrid useEffect
+- on collapse: activeRowId/activeCell/range pruned to visible rows, selectedRowIds preserved
+- tree toggle stale-closure + mouseDown bleed fixes applied
+- browser-verified on Compatibility Lab, Grid Lab, Bench (Flat + Tree)
+
 Next:
 
-- `TGP-3` tree interaction rules (selection + range + row-check behavior on collapsed nodes)
 - `EVT-1` Event API Phase 1 (onBeforeChange / onAfterChange / onBeforeSave)
+- `TGP-5~8` Group runtime MVP
 
 For the detailed hierarchical-view plan, use:
 
