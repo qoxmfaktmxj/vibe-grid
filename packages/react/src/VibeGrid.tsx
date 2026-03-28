@@ -412,14 +412,16 @@ export function VibeGrid<Row extends RowRecord>({
             <span
               style={{
                 display: "inline-flex",
-                minWidth: 54,
+                minWidth: 40,
                 justifyContent: "center",
                 padding: `${densityMetrics.rowStatePaddingBlock}px ${densityMetrics.rowStatePaddingInline}px`,
-                borderRadius: 999,
+                borderRadius: 4,
                 background: palette.background,
                 color: palette.color,
-                fontSize: 12,
-                fontWeight: 700,
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: "0.02em",
+                lineHeight: 1.2,
               }}
             >
               {rowStateLabel[state]}
@@ -848,6 +850,12 @@ export function VibeGrid<Row extends RowRecord>({
     });
   };
 
+  const hoverCss = `
+.vg-row:hover > td { background: ${theme.body.rowHoverBackground} !important; }
+.vg-header-cell:hover { background: ${theme.header.hoverBackground} !important; }
+.vg-resize-handle:hover > div { background: ${theme.header.resizeHandleHover} !important; }
+`;
+
   return (
     <div
       ref={gridRef}
@@ -933,12 +941,14 @@ export function VibeGrid<Row extends RowRecord>({
       }}
       style={{
         border: `1px solid ${theme.surface.borderColor}`,
-        borderRadius: 24,
+        borderRadius: 12,
         overflow: "hidden",
         background: theme.surface.background,
         boxShadow: theme.surface.shadow,
+        fontFamily: theme.typography.fontFamily,
       }}
     >
+      <style>{hoverCss}</style>
       <div
         ref={scrollRef}
         style={{
@@ -946,7 +956,7 @@ export function VibeGrid<Row extends RowRecord>({
           maxHeight: height,
           position: "relative",
           background: theme.surface.shellBackground,
-          padding: 8,
+          padding: 0,
         }}
       >
         <table
@@ -957,7 +967,7 @@ export function VibeGrid<Row extends RowRecord>({
             borderSpacing: 0,
             tableLayout: "fixed",
             background: theme.surface.background,
-            borderRadius: 20,
+            borderRadius: 0,
             overflow: "hidden",
           }}
         >

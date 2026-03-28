@@ -22,23 +22,23 @@ type VibeGridTableHeaderProps<Row extends RowRecord> = {
 
 function getSortIndicator(sorted: false | "asc" | "desc") {
   if (sorted === "asc") {
-    return "^";
+    return "▲";
   }
 
   if (sorted === "desc") {
-    return "v";
+    return "▼";
   }
 
-  return "-";
+  return "";
 }
 
 function getPinIndicator(pinState: false | "left" | "right") {
   if (pinState === "left") {
-    return "L";
+    return "◀";
   }
 
   if (pinState === "right") {
-    return "R";
+    return "▶";
   }
 
   return null;
@@ -255,16 +255,20 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  minHeight: 56,
+                  minHeight: 22,
                   width: "100%",
                 }}
               >
                 {headerLabel}
               </div>
             );
+            const headerTextColor = (sorted || isFiltered)
+              ? theme.header.activeTextColor
+              : theme.header.textColor;
             return (
               <th
                 key={header.id}
+                className="vg-header-cell"
                 data-testid={columnKey ? `header-cell-${columnKey}` : undefined}
                 data-column-key={columnKey}
                 data-column-pinned={pinned || "none"}
@@ -286,11 +290,11 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                   zIndex: isMenuOpen ? 40 : stickyStyle.zIndex,
                   overflow: "visible",
                   borderBottom: `1px solid ${theme.header.borderColor}`,
-                  color: theme.header.textColor,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  letterSpacing: "0.06em",
-                  padding: "0 18px",
+                  color: headerTextColor,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.01em",
+                  padding: "10px 16px",
                   textAlign: "left",
                   whiteSpace: "nowrap",
                   width: header.getSize(),
@@ -306,8 +310,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    gap: 10,
-                    minHeight: 56,
+                    gap: 8,
+                    minHeight: 22,
                   }}
                 >
                   {header.isPlaceholder ? null : canSort ? (
@@ -323,11 +327,10 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                         background: "transparent",
                         padding: 0,
                         font: "inherit",
-                        fontWeight: 800,
-                        color: theme.header.textColor,
+                        fontWeight: 600,
+                        color: headerTextColor,
                         cursor: "pointer",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
+                        letterSpacing: "0.01em",
                       }}
                     >
                       {headerLabel}
@@ -344,62 +347,57 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                       flexShrink: 0,
                     }}
                   >
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        minWidth: 16,
-                        textAlign: "center",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: sorted
-                          ? theme.indicator.sortedText
-                          : theme.indicator.idleText,
-                        visibility: showIndicators ? "visible" : "hidden",
-                      }}
-                    >
-                      {showIndicators ? getSortIndicator(sorted) : " "}
-                    </span>
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        minWidth: 16,
-                        textAlign: "center",
-                        fontSize: 10,
-                        fontWeight: 800,
-                        color: pinIndicator
-                          ? theme.indicator.pinnedText
-                          : theme.indicator.idleText,
-                        visibility: showIndicators ? "visible" : "hidden",
-                      }}
-                    >
-                      {showIndicators ? (pinIndicator ?? " ") : " "}
-                    </span>
-                    {canShowMenu ? (
+                    {showIndicators && sorted ? (
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          minWidth: 14,
+                          textAlign: "center",
+                          fontSize: 9,
+                          fontWeight: 600,
+                          color: theme.indicator.sortedText,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {getSortIndicator(sorted)}
+                      </span>
+                    ) : null}
+                    {showIndicators && pinIndicator ? (
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          minWidth: 14,
+                          textAlign: "center",
+                          fontSize: 9,
+                          fontWeight: 600,
+                          color: theme.indicator.pinnedText,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {pinIndicator}
+                      </span>
+                    ) : null}
+                    {canShowMenu && isFiltered ? (
                       <span
                         data-testid={`header-filter-indicator-${columnKey}`}
                         aria-hidden="true"
                         style={{
-                          minWidth: 18,
-                          height: 20,
+                          minWidth: 16,
+                          height: 18,
                           borderRadius: 999,
                           display: "inline-flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          padding: "0 8px",
-                          background: isFiltered
-                            ? theme.indicator.filteredBackground
-                            : "transparent",
-                          color: isFiltered
-                            ? theme.indicator.filteredText
-                            : theme.indicator.idleText,
+                          padding: "0 6px",
+                          background: theme.indicator.filteredBackground,
+                          color: theme.indicator.filteredText,
                           fontSize: 10,
-                          fontWeight: 800,
-                          border: isFiltered
-                            ? `1px solid ${theme.indicator.filteredBorder}`
-                            : "1px solid transparent",
+                          fontWeight: 600,
+                          border: `1px solid ${theme.indicator.filteredBorder}`,
+                          lineHeight: 1,
                         }}
                       >
-                        {isFiltered ? filterCount : " "}
+                        {filterCount}
                       </span>
                     ) : null}
                     {canShowMenu ? (
@@ -421,8 +419,8 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                           );
                         }}
                         style={{
-                          width: 30,
-                          height: 30,
+                          width: 24,
+                          height: 24,
                           borderRadius: 999,
                           border: isMenuOpen
                             ? theme.menu.triggerOpenBorder
@@ -431,38 +429,40 @@ export function VibeGridTableHeader<Row extends RowRecord>({
                             ? theme.menu.triggerOpenBackground
                             : theme.menu.triggerIdleBackground,
                           color: theme.menu.textColor,
-                          fontSize: 12,
-                          fontWeight: 800,
+                          fontSize: 11,
+                          fontWeight: 600,
                           cursor: "pointer",
+                          lineHeight: 1,
                         }}
                       >
-                        ...
+                        ⋯
                       </button>
                     ) : (
-                      <span style={{ width: 28, height: 28, display: "inline-block" }} />
+                      <span style={{ width: 24, height: 24, display: "inline-block" }} />
                     )}
                     {headerColumn.getCanResize() ? (
                       <div
                         data-testid={
                           columnKey ? `header-resize-handle-${columnKey}` : undefined
                         }
+                        className="vg-resize-handle"
                         onDoubleClick={() => headerColumn.resetSize()}
                         onMouseDown={header.getResizeHandler()}
                         onTouchStart={header.getResizeHandler()}
                         style={{
-                          width: 10,
-                          height: 34,
+                          width: 8,
+                          height: 28,
                           cursor: "col-resize",
                           display: "grid",
                           placeItems: "center",
-                          marginRight: -14,
+                          marginRight: -12,
                           userSelect: "none",
                         }}
                       >
                         <div
                           style={{
                             width: 2,
-                            height: 18,
+                            height: 16,
                             borderRadius: 999,
                             background:
                               pinned && sorted

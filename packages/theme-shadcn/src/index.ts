@@ -1,7 +1,11 @@
 export const vibeGridSurfaceClassName =
-  "rounded-[28px] bg-white shadow-sm";
+  "rounded-[12px] bg-white shadow-sm";
 
 export type VibeGridThemeTokens = typeof vibeGridThemeTokens;
+
+export type VibeGridThemeOptions = {
+  fontFamily?: string;
+};
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const cleaned = hex.replace("#", "");
@@ -46,6 +50,9 @@ function darken(hex: string, amount: number): string {
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
+const DEFAULT_FONT_FAMILY =
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Malgun Gothic", sans-serif';
+
 /**
  * primary color에서 그리드 테마 토큰을 자동 생성합니다.
  * 호스트 앱의 primary color를 넘기면 선택/활성/범위 색상이 자동으로 유도됩니다.
@@ -58,11 +65,16 @@ function darken(hex: string, amount: number): string {
  * // 프로젝트 primary color 적용
  * const theme = createVibeGridTheme("#0f766e"); // teal
  * const theme = createVibeGridTheme("#7c3aed"); // violet
- * const theme = createVibeGridTheme("#dc2626"); // red
+ *
+ * // 커스텀 폰트 적용 (소비 앱에서 @font-face 로드 필요)
+ * const theme = createVibeGridTheme("#001641", {
+ *   fontFamily: '"Pretendard", "Noto Sans KR", system-ui, sans-serif',
+ * });
  * ```
  */
 export function createVibeGridTheme(
   primaryColor: string = "#001641",
+  options?: VibeGridThemeOptions,
 ): VibeGridThemeTokens {
   const primary = primaryColor;
   const primaryDark = darken(primary, 0.2);
@@ -70,6 +82,9 @@ export function createVibeGridTheme(
   const primaryLighter = lighten(primary, 0.92);
 
   return {
+    typography: {
+      fontFamily: options?.fontFamily ?? DEFAULT_FONT_FAMILY,
+    },
     surface: {
       borderColor: "rgba(196, 198, 210, 0.18)",
       background: "#ffffff",
@@ -78,13 +93,17 @@ export function createVibeGridTheme(
     },
     header: {
       idleBackground: "#e6e8ea",
+      hoverBackground: "#dde0e3",
       sortedBackground: primaryLighter,
       filteredBackground: primaryLighter,
       pinnedBackground: lighten(primary, 0.9),
       menuOpenBackground: primaryLight,
-      borderColor: "rgba(196, 198, 210, 0.18)",
-      textColor: "#444650",
+      borderColor: "rgba(0, 0, 0, 0.12)",
+      textColor: "#374151",
+      hoverTextColor: "#1f2937",
+      activeTextColor: primary,
       resizeHandleIdle: "rgba(81, 95, 116, 0.28)",
+      resizeHandleHover: rgba(primary, 0.6),
       resizeHandlePinnedSorted: rgba(primary, 0.4),
     },
     indicator: {
@@ -104,14 +123,17 @@ export function createVibeGridTheme(
       triggerIdleBackground: "rgba(255,255,255,0.88)",
       triggerOpenBackground: primaryLight,
       textColor: "#515f74",
-      itemHoverBackground: "#f2f4f6",
+      itemHoverBackground: "#f3f4f6",
+      itemDisabledColor: "#9ca3af",
     },
     filter: {
       rowBackground: "#f8fafb",
       cellBackground: "#ffffff",
       inputBackground: "#ffffff",
-      inputBorder: "rgba(196, 198, 210, 0.3)",
+      inputBorder: "#d1d5db",
       inputBorderFocus: primary,
+      inputFocusRing: rgba(primary, 0.2),
+      inputHasValueBackground: lighten(primary, 0.96),
       inputText: "#191c1e",
       invalidBorder: "#ba1a1a",
       applyBackground: primaryLight,
@@ -123,12 +145,16 @@ export function createVibeGridTheme(
     body: {
       rowOddBackground: "#ffffff",
       rowEvenBackground: "#f2f4f6",
+      rowHoverBackground: "#f8f9fa",
       selectedRowBackground: rgba(primary, 0.12),
       activeRowBackground: rgba(primary, 0.18),
       rangeBackground: rgba(primary, 0.16),
       activeCellBackground: "rgba(255,255,255,0.9)",
-      cellBorderColor: "rgba(196, 198, 210, 0.12)",
-      cellTextColor: "#191c1e",
+      cellBorderColor: "rgba(0, 0, 0, 0.08)",
+      cellTextColor: "#374151",
+      activeTextColor: "#1f2937",
+      editingTextColor: "#111827",
+      readOnlyTextColor: "#6b7280",
       deletedCellTextColor: "#94a3b8",
       emptyBackground: "#ffffff",
       emptyTextColor: "#515f74",
@@ -143,13 +169,13 @@ export function createVibeGridTheme(
     editor: {
       borderColor: primary,
       background: "#ffffff",
-      borderRadius: 12,
+      borderRadius: 8,
     },
     rowState: {
-      N: { background: "#eceef0", color: "#515f74" },
-      I: { background: "#dff7ec", color: "#005236" },
-      U: { background: "#fff1e7", color: "#b35a00" },
-      D: { background: "#ffebe8", color: "#ba1a1a" },
+      N: { background: "#f0fdf4", color: "#166534" },
+      I: { background: "#eff6ff", color: "#1d4ed8" },
+      U: { background: "#fefce8", color: "#854d0e" },
+      D: { background: "#fef2f2", color: "#991b1b" },
     },
   };
 }

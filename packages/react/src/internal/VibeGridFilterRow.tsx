@@ -221,7 +221,7 @@ export function VibeGridFilterRow<Row extends RowRecord>({
             style={{
               ...stickyStyle,
               borderBottom: `1px solid ${theme.header.borderColor}`,
-              padding: "12px 14px 14px",
+              padding: "8px 12px 10px",
               width: column.getSize(),
               minWidth: column.getSize(),
               verticalAlign: "top",
@@ -260,15 +260,15 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                     onKeyDown={onTextKeyDown}
                     style={{
                       width: "100%",
-                      minHeight: 38,
-                      borderRadius: 999,
+                      minHeight: 34,
+                      borderRadius: 6,
                       border: `1px solid ${theme.filter.inputBorder}`,
-                      padding: "0 14px",
+                      padding: "0 10px",
                       background: theme.filter.inputBackground,
                       color: theme.filter.inputText,
                       font: "inherit",
-                      fontSize: 13,
-                      fontWeight: 600,
+                      fontSize: 12,
+                      fontWeight: 400,
                     }}
                   >
                     <option value="">{filterEditor.emptyLabel ?? "All"}</option>
@@ -297,17 +297,22 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                     onKeyDown={onTextKeyDown}
                     style={{
                       width: "100%",
-                      minHeight: 38,
-                      borderRadius: 999,
+                      minHeight: 34,
+                      borderRadius: 6,
                       border: isInvalidNumber
                         ? `1px solid ${theme.filter.invalidBorder}`
-                        : `1px solid ${theme.filter.inputBorder}`,
-                      padding: "0 14px",
-                      background: theme.filter.inputBackground,
+                        : draftValue
+                          ? `1px solid ${theme.filter.inputBorderFocus}`
+                          : `1px solid ${theme.filter.inputBorder}`,
+                      padding: "0 10px",
+                      background: draftValue
+                        ? theme.filter.inputHasValueBackground
+                        : theme.filter.inputBackground,
                       color: theme.filter.inputText,
                       font: "inherit",
-                      fontSize: 13,
-                      fontWeight: 600,
+                      fontSize: 12,
+                      fontWeight: 400,
+                      outline: "none",
                     }}
                   />
                 )}
@@ -321,13 +326,13 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                       disabled={isInvalidNumber}
                       style={{
                         flex: 1,
-                        minHeight: 32,
-                        borderRadius: 999,
-                        border: `1px solid ${theme.filter.inputBorder}`,
+                        minHeight: 28,
+                        borderRadius: 6,
+                        border: "1px solid transparent",
                         background: theme.filter.applyBackground,
                         color: theme.filter.applyText,
-                        fontSize: 12,
-                        fontWeight: 700,
+                        fontSize: 11,
+                        fontWeight: 500,
                         cursor: isInvalidNumber ? "not-allowed" : "pointer",
                         opacity: isInvalidNumber ? 0.5 : 1,
                       }}
@@ -340,14 +345,14 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                     data-testid={`filter-clear-${columnKey}`}
                     onClick={clearFilter}
                     style={{
-                      minWidth: filterEditor.type === "select" ? "100%" : 56,
-                      minHeight: 32,
-                      borderRadius: 999,
+                      minWidth: filterEditor.type === "select" ? "100%" : 48,
+                      minHeight: 28,
+                      borderRadius: 6,
                       border: `1px solid ${theme.filter.clearBorder}`,
                       background: theme.filter.clearBackground,
                       color: theme.filter.clearText,
-                      fontSize: 12,
-                      fontWeight: 700,
+                      fontSize: 11,
+                      fontWeight: 500,
                       cursor: "pointer",
                     }}
                   >

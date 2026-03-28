@@ -167,6 +167,7 @@ export function VibeGridTableBody<Row extends RowRecord>({
         return (
           <tr
             key={row.id}
+            className="vg-row"
             style={{
               background: rowBackground,
               cursor: "default",
@@ -370,9 +371,13 @@ export function VibeGridTableBody<Row extends RowRecord>({
                     color:
                       meta?.state === "D"
                         ? theme.body.deletedCellTextColor
-                        : theme.body.cellTextColor,
+                        : editing
+                          ? theme.body.editingTextColor
+                          : isActiveCell
+                            ? theme.body.activeTextColor
+                            : theme.body.cellTextColor,
                     fontSize: 13,
-                    fontWeight: isActive ? 700 : 600,
+                    fontWeight: isActiveCell ? 500 : 400,
                     verticalAlign: "middle",
                     boxShadow: [
                       buildRangeShadow(rangeState, theme),
