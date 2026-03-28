@@ -16,14 +16,14 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   use: {
-    baseURL: "http://127.0.0.1:3400",
+    baseURL: "http://127.0.0.1:5051",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
   webServer: {
-    command: "npm run start -w @vibe-grid/playground -- --port 3400",
-    url: "http://127.0.0.1:3400",
+    command: "npm run start -w @vibe-grid/playground -- --port 5051",
+    url: "http://127.0.0.1:5051",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
