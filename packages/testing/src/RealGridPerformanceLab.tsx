@@ -329,7 +329,7 @@ function createSelectionFingerprint(selection: GridSelectionState) {
 
 export function RealGridPerformanceLab() {
   const [rowCount, setRowCount] = useState<number>(10_000);
-  const [density, setDensity] = useState<GridDensity>("compact");
+  const [density, setDensity] = useState<GridDensity>("default");
   const [baseRows, setBaseRows] = useState<ManagedGridRow<GridBenchmarkRow>[]>(() =>
     createScenarioRows(10_000),
   );
