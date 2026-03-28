@@ -174,12 +174,12 @@ export function VibeGrid<Row extends RowRecord>({
   tree,
   theme = vibeGridThemeTokens,
 }: VibeGridProps<Row>) {
-  const rowStateColor: Record<RowState, { background: string; color: string }> = {
+  const rowStateColor = useMemo<Record<RowState, { background: string; color: string }>>(() => ({
     N: theme.rowState.N,
     I: theme.rowState.I,
     U: theme.rowState.U,
     D: theme.rowState.D,
-  };
+  }), [theme.rowState.N, theme.rowState.I, theme.rowState.U, theme.rowState.D]);
   const inputId = useId();
   const gridRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -449,6 +449,7 @@ export function VibeGrid<Row extends RowRecord>({
     onDeleteCheckToggle,
     onSelectionStateChange,
     resolvedSelectionState,
+    rowStateColor,
     visibleManagedRows,
   ]);
 

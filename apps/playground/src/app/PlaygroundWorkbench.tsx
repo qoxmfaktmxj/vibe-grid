@@ -1790,12 +1790,12 @@ const heroDescriptionStyle = {
   color: "#475569",
 } as const;
 
-const heroChipStyle = (_background: string) =>
+const heroChipStyle = (background: string) =>
   ({
     padding: "4px 10px",
     borderRadius: 9999,
     border: "1px solid rgba(14, 165, 233, 0.2)",
-    background: "transparent",
+    background,
     fontSize: 12,
     fontWeight: 500,
     color: "#0369a1",
