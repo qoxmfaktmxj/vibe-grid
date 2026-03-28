@@ -348,13 +348,43 @@ Do not prioritize these until the earlier items move:
 - server excel adapter
 - undo/redo
 
+## Employee Batch Orchestration Pilot
+
+Status:
+
+- in progress on `2026-03-28`
+- shared bulk orchestration contracts now exist in `@vibe-grid/core`
+- a headless orchestration hook now exists in `@vibe-grid/react`
+- `apps/playground` now includes an Employee Batch lab for:
+  - 15,000-row employee list validation
+  - exact 10,000-row selection snapshots
+  - sync / async host-action execution
+  - delete / update / insert plan preview
+
+Why now:
+
+- the next real pilot bar is not generic grid parity
+- the team needs to prove that an HR-style employee list can preserve exact selected targets and launch bulk server work without old IBSheet-era batching workarounds
+
+Current constraints:
+
+- this pilot is still validation-surface-first, not production app integration
+- the first lane is exact selection action execution
+- mutation save execution remains schema-locked and previewable, but not yet host-backed
+
+Next:
+
+1. host-backed action runner sample on the employee batch route
+2. mutation save execution lane wiring with `delete -> update -> insert` ordering
+3. transport policy for very large exact-ID payloads and async result handling
+
 ## Recommended Next Three Work Items
 
 If work continues immediately, execute in this order:
 
-1. `TGP-2` React tree rendering MVP
-2. `TGP-3` tree interaction rules
-3. `TGP-4` Tree bench tab and browser coverage
+1. `EBO-1` host-backed exact-selection action runner sample
+2. `EBO-2` mutation execution lane wiring on top of the existing plan preview
+3. `EBO-3` payload transport and async result policy for large employee-list actions
 
 Use `docs/roadmap/feature-expansion-backlog.md` as the entry point for this next stage.
 

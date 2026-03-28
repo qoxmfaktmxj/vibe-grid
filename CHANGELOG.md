@@ -10,6 +10,9 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Real-grid performance verification with actual `VibeGrid` render-path coverage.
 - Stable vs experimental boundary documentation.
 - Hub smoke regression coverage.
+- Experimental bulk orchestration contracts in `@vibe-grid/core` for exact-selection snapshots, mutation execution plans, and sync/async execution result validation.
+- Experimental headless `useGridBulkOrchestration` hook in `@vibe-grid/react`.
+- Employee Batch lab for validating a 15,000-row employee list, exact 10,000-row selection snapshots, sync/async host action execution, and delete/update/insert plan preview.
 - Scoped persistence adapter and initial product infrastructure.
 - Row-aware cell editability as a shared grid contract.
 - Dedicated delete-check control column with shared browser-tested delete-toggle behavior.
@@ -27,6 +30,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 ### Changed
 
 - Added an AI-facing consumption guide for reusing `VibeGrid` packages from external workspaces such as `EHR_6`.
+- Hub navigation now exposes the Employee Batch validation surface, and root `ci` now runs the lightweight core/react unit test pass before Playwright.
 
 - Bench 화면 문구와 벤치 더미 데이터를 한국어 기준으로 정리했고, Compatibility Lab은 IBSheet8 매뉴얼 기준 매트릭스로 최신화했다.
 - Compatibility Lab now reflects the current HeaderCheck, public-event, and Group/Tree/Pivot experimental state.

@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "./.omx/tmp/test-dist",
+    "rootDir": ".",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "incremental": false,
+    "isolatedModules": false,
+    "paths": {
+      "@vibe-grid/core": ["packages/core/src/index.ts"],
+      "@vibe-grid/react": ["packages/react/src/index.ts"]
+    }
+  },
+  "include": [
+    "packages/core/src/**/*.test.ts",
+    "packages/react/src/**/*.test.ts"
+  ]
+}

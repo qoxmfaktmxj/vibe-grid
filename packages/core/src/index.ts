@@ -43,6 +43,27 @@ export type {
   SupportedLocale,
   VibeGridColumn,
 } from "./contracts";
+export type {
+  GridBulkOrchestrationRequest,
+  GridExecutionMode,
+  GridExecutionResult,
+  GridMutationExecutionPlan,
+  GridMutationPhase,
+  GridMutationSaveRequest,
+  GridSelectionActionRequest,
+  GridSelectionSnapshot,
+  GridTargetId,
+  GridTargetIdResolver,
+} from "./bulk-orchestration";
+export {
+  buildGridMutationExecutionPlan,
+  createGridBulkOrchestrationRequest,
+  createGridSelectionSnapshot,
+  DEFAULT_GRID_MUTATION_ORDER,
+  isGridMutationExecutionPlanEmpty,
+  resolveGridMutationOrdering,
+  validateGridExecutionResult,
+} from "./bulk-orchestration";
 export {
   emitGridAfterPaste,
   emitGridAfterRowCopy,

@@ -7,6 +7,7 @@ import type { Route } from "next";
 const NAV_ITEMS = [
   { href: "/" as Route, label: "허브" },
   { href: "/labs/grid" as Route, label: "Grid Lab" },
+  { href: "/labs/employee-batch" as Route, label: "Employee Batch" },
   { href: "/labs/bench" as Route, label: "Bench" },
   { href: "/labs/compatibility" as Route, label: "Compatibility" },
 ] as const;

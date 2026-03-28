@@ -79,6 +79,22 @@ These areas are still subject to product-level iteration and should not be treat
 
 ### Experimental Product Extensions
 
+- experimental bulk orchestration contracts in `@vibe-grid/core`
+  - `GridExecutionMode`
+  - `GridExecutionResult`
+  - `GridMutationPhase`
+  - `GridSelectionSnapshot`
+  - `GridSelectionActionRequest`
+  - `GridMutationExecutionPlan`
+  - `GridMutationSaveRequest`
+  - `GridBulkOrchestrationRequest`
+  - `DEFAULT_GRID_MUTATION_ORDER`
+  - `createGridSelectionSnapshot`
+  - `buildGridMutationExecutionPlan`
+  - `createGridBulkOrchestrationRequest`
+  - `validateGridExecutionResult`
+- experimental headless orchestration hook in `@vibe-grid/react`
+  - `useGridBulkOrchestration`
 - tree runtime contracts in `@vibe-grid/core`
   - `GridTreeSpec`
   - `GridTreeState`
@@ -102,6 +118,12 @@ These areas are still subject to product-level iteration and should not be treat
   - `buildGridGroupPreview`
   - `flattenGridTree`
   - `buildGridPivotPreview`
+
+### Experimental Validation Surfaces
+
+- `/labs/employee-batch`
+  - employee-list batch orchestration pilot surface
+  - exact-selection payload preview and sync/async execution validation
 
 ## Release Discipline
 
