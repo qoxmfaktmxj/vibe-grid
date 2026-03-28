@@ -1,8 +1,6 @@
 export const vibeGridSurfaceClassName =
   "rounded-[12px] bg-white shadow-sm";
 
-export type VibeGridThemeTokens = typeof vibeGridThemeTokens;
-
 export type VibeGridThemeOptions = {
   fontFamily?: string;
 };
@@ -75,7 +73,7 @@ const DEFAULT_FONT_FAMILY =
 export function createVibeGridTheme(
   primaryColor: string = "#001641",
   options?: VibeGridThemeOptions,
-): VibeGridThemeTokens {
+) {
   const primary = primaryColor;
   const primaryDark = darken(primary, 0.2);
   const primaryLight = lighten(primary, 0.85);
@@ -182,3 +180,5 @@ export function createVibeGridTheme(
 
 /** 기본 테마 (하위 호환) */
 export const vibeGridThemeTokens = createVibeGridTheme();
+
+export type VibeGridThemeTokens = typeof vibeGridThemeTokens;
