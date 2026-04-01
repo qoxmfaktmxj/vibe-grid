@@ -27,7 +27,15 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Experimental tree runtime contracts in `@vibe-grid/core`, including expanded-row state helpers.
 - Experimental tree runtime rendering on the shared `VibeGrid` React surface, with Compatibility Lab browser coverage.
 
+### Fixed
+
+- `VibeGridDateEditor`의 `formatIsoDate`가 `toISOString()`(UTC 기준) 대신 `getFullYear/getMonth/getDate`(로컬 타임존 기준)를 사용하도록 수정 — KST(UTC+9) 환경에서 자정 근처 날짜가 하루 밀리는 버그 해결.
+
 ### Changed
+
+- Filter row(`VibeGridFilterRow`)의 "Apply", "Clear", "All" 레이블을 `@vibe-grid/i18n` 키(`grid.filter.*`)로 교체 — ko-KR 기준 "적용", "초기화", "전체"로 표시됨.
+- Date editor(`VibeGridDateEditor`)의 버튼/범례 텍스트("Cal", "Prev", "Next", "Clear", "Weekend", "Holiday", "Special")와 요일 레이블을 `@vibe-grid/i18n` 및 `Intl.DateTimeFormat`(defaultLocale 기준)으로 교체.
+- `@vibe-grid/i18n`에 filter(3개) + dateEditor(8개) 관련 메시지 키 추가 (ko-KR / en-US 모두 지원).
 
 - Added an AI-facing consumption guide for reusing `VibeGrid` packages from external workspaces such as `EHR_6`.
 - Hub navigation now exposes the Employee Batch validation surface, and root `ci` now runs the lightweight core/react unit test pass before Playwright.

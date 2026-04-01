@@ -7,6 +7,7 @@ import type {
 } from "@vibe-grid/core";
 import type { Table } from "@tanstack/react-table";
 import type { VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import { defaultLocale, getGridMessage, gridMessageKeys } from "@vibe-grid/i18n";
 import type { InternalColumnMeta, RowRecord } from "./vibe-grid-types";
 import { getStickyCellStyle } from "./vibe-grid-utils";
 
@@ -52,7 +53,7 @@ function resolveFilterEditor<Row extends RowRecord>(
       return {
         type: "select",
         options,
-        emptyLabel: "All",
+        emptyLabel: getGridMessage(gridMessageKeys.filterSelectAll, defaultLocale),
       };
     }
   }
@@ -271,7 +272,7 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                       fontWeight: 400,
                     }}
                   >
-                    <option value="">{filterEditor.emptyLabel ?? "All"}</option>
+                    <option value="">{filterEditor.emptyLabel ?? getGridMessage(gridMessageKeys.filterSelectAll, defaultLocale)}</option>
                     {filterEditor.options.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
@@ -337,7 +338,7 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                         opacity: isInvalidNumber ? 0.5 : 1,
                       }}
                     >
-                      Apply
+                      {getGridMessage(gridMessageKeys.filterApply, defaultLocale)}
                     </button>
                   )}
                   <button
@@ -356,7 +357,7 @@ export function VibeGridFilterRow<Row extends RowRecord>({
                       cursor: "pointer",
                     }}
                   >
-                    Clear
+                    {getGridMessage(gridMessageKeys.filterClear, defaultLocale)}
                   </button>
                 </div>
               </div>

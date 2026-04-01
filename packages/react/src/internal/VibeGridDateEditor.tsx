@@ -14,6 +14,7 @@ import {
   type GridEditorSpec,
 } from "@vibe-grid/core";
 import type { VibeGridThemeTokens } from "@vibe-grid/theme-shadcn";
+import { defaultLocale, getGridMessage, gridMessageKeys } from "@vibe-grid/i18n";
 import type { RowRecord } from "./vibe-grid-types";
 
 type DateEditorSpec<Row extends RowRecord> = Extract<
@@ -45,7 +46,10 @@ type CalendarCell = {
   badge?: GridDateBadge;
 };
 
-const weekdayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const weekdayLabels = Array.from({ length: 7 }, (_, i) => {
+  const date = new Date(2017, 0, 1 + i); // 2017-01-01 is Sunday
+  return new Intl.DateTimeFormat(defaultLocale, { weekday: "short" }).format(date);
+});
 
 function parseIsoDate(value: string | null | undefined) {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -61,7 +65,10 @@ function parseIsoDate(value: string | null | undefined) {
 }
 
 function formatIsoDate(date: Date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function startOfMonth(date: Date) {
@@ -161,7 +168,7 @@ export function VibeGridDateEditor<Row extends RowRecord>({
     () => buildCalendarCells(viewMonth, editor, row),
     [editor, row, viewMonth],
   );
-  const monthLabel = new Intl.DateTimeFormat("ko-KR", {
+  const monthLabel = new Intl.DateTimeFormat(defaultLocale, {
     year: "numeric",
     month: "long",
   }).format(viewMonth);
@@ -258,14 +265,14 @@ export function VibeGridDateEditor<Row extends RowRecord>({
         <button
           type="button"
           data-testid={`date-editor-toggle-${rowId}-${columnKey}`}
-          aria-label="Toggle calendar"
+          aria-label={getGridMessage(gridMessageKeys.dateEditorToggleAriaLabel, defaultLocale)}
           onMouseDown={keepFocusInside}
           onClick={() => {
             setIsOpen((previous) => !previous);
           }}
           style={calendarChromeButtonStyle}
         >
-          Cal
+          {getGridMessage(gridMessageKeys.dateEditorToggle, defaultLocale)}
         </button>
       </div>
 
@@ -300,7 +307,7 @@ export function VibeGridDateEditor<Row extends RowRecord>({
               onClick={() => setViewMonth((previous) => addMonths(previous, -1))}
               style={calendarChromeButtonStyle}
             >
-              Prev
+              {getGridMessage(gridMessageKeys.dateEditorPrev, defaultLocale)}
             </button>
             <strong style={{ color: "#0f172a", fontSize: 14 }}>{monthLabel}</strong>
             <button
@@ -309,7 +316,7 @@ export function VibeGridDateEditor<Row extends RowRecord>({
               onClick={() => setViewMonth((previous) => addMonths(previous, 1))}
               style={calendarChromeButtonStyle}
             >
-              Next
+              {getGridMessage(gridMessageKeys.dateEditorNext, defaultLocale)}
             </button>
           </div>
 
@@ -404,12 +411,12 @@ export function VibeGridDateEditor<Row extends RowRecord>({
               }}
               style={calendarChromeButtonStyle}
             >
-              Clear
+              {getGridMessage(gridMessageKeys.dateEditorClear, defaultLocale)}
             </button>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <LegendChip label="Weekend" badge="weekend" />
-              <LegendChip label="Holiday" badge="holiday" />
-              <LegendChip label="Special" badge="special" />
+              <LegendChip label={getGridMessage(gridMessageKeys.dateEditorWeekend, defaultLocale)} badge="weekend" />
+              <LegendChip label={getGridMessage(gridMessageKeys.dateEditorHoliday, defaultLocale)} badge="holiday" />
+              <LegendChip label={getGridMessage(gridMessageKeys.dateEditorSpecial, defaultLocale)} badge="special" />
             </div>
           </div>
         </div>

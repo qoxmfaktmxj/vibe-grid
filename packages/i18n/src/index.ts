@@ -44,6 +44,17 @@ export const gridMessageKeys = {
   statusImportPreviewSuccess: "grid.status.importPreviewSuccess",
   statusImportPreviewHeaderMismatch: "grid.status.importPreviewHeaderMismatch",
   statusImportApplyBlockedHeader: "grid.status.importApplyBlockedHeader",
+  filterApply: "grid.filter.apply",
+  filterClear: "grid.filter.clear",
+  filterSelectAll: "grid.filter.selectAll",
+  dateEditorToggle: "grid.dateEditor.toggle",
+  dateEditorToggleAriaLabel: "grid.dateEditor.toggleAriaLabel",
+  dateEditorPrev: "grid.dateEditor.prev",
+  dateEditorNext: "grid.dateEditor.next",
+  dateEditorClear: "grid.dateEditor.clear",
+  dateEditorWeekend: "grid.dateEditor.weekend",
+  dateEditorHoliday: "grid.dateEditor.holiday",
+  dateEditorSpecial: "grid.dateEditor.special",
 } as const;
 
 export type GridLocale = "ko-KR" | "en-US";
@@ -120,6 +131,17 @@ const gridMessages: Record<GridLocale, Record<GridMessageKey, string>> = {
       "엑셀 헤더 불일치: 누락 {missingHeaders}, 알 수 없는 헤더 {unknownHeaders}",
     [gridMessageKeys.statusImportApplyBlockedHeader]:
       "헤더가 맞지 않아 업로드를 적용할 수 없습니다.",
+    [gridMessageKeys.filterApply]: "적용",
+    [gridMessageKeys.filterClear]: "초기화",
+    [gridMessageKeys.filterSelectAll]: "전체",
+    [gridMessageKeys.dateEditorToggle]: "달력",
+    [gridMessageKeys.dateEditorToggleAriaLabel]: "달력 열기/닫기",
+    [gridMessageKeys.dateEditorPrev]: "이전",
+    [gridMessageKeys.dateEditorNext]: "다음",
+    [gridMessageKeys.dateEditorClear]: "지우기",
+    [gridMessageKeys.dateEditorWeekend]: "주말",
+    [gridMessageKeys.dateEditorHoliday]: "공휴일",
+    [gridMessageKeys.dateEditorSpecial]: "특별일",
   },
   "en-US": {
     [gridMessageKeys.search]: "Search",
@@ -190,6 +212,17 @@ const gridMessages: Record<GridLocale, Record<GridMessageKey, string>> = {
       "Excel header mismatch: missing {missingHeaders}, unknown {unknownHeaders}",
     [gridMessageKeys.statusImportApplyBlockedHeader]:
       "The upload cannot be applied because the header does not match.",
+    [gridMessageKeys.filterApply]: "Apply",
+    [gridMessageKeys.filterClear]: "Clear",
+    [gridMessageKeys.filterSelectAll]: "All",
+    [gridMessageKeys.dateEditorToggle]: "Cal",
+    [gridMessageKeys.dateEditorToggleAriaLabel]: "Toggle calendar",
+    [gridMessageKeys.dateEditorPrev]: "Prev",
+    [gridMessageKeys.dateEditorNext]: "Next",
+    [gridMessageKeys.dateEditorClear]: "Clear",
+    [gridMessageKeys.dateEditorWeekend]: "Weekend",
+    [gridMessageKeys.dateEditorHoliday]: "Holiday",
+    [gridMessageKeys.dateEditorSpecial]: "Special",
   },
 };
 

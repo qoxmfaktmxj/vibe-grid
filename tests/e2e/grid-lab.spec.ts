@@ -116,6 +116,46 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("query-preview")).toContainText('"value": "N"');
   });
 
+  test("filter row shows ko-KR labels via i18n", async ({ page }) => {
+    await page.goto("/labs/grid");
+
+    await expect(page.getByTestId("grid-filter-row")).toBeVisible();
+
+    const applyButton = page.getByTestId("filter-apply-sampleCode");
+    await expect(applyButton).toBeVisible();
+    await expect(applyButton).toHaveText("적용");
+
+    const clearButton = page.getByTestId("filter-clear-sampleCode");
+    await expect(clearButton).toBeVisible();
+    await expect(clearButton).toHaveText("초기화");
+  });
+
+  test("date editor shows ko-KR labels via i18n", async ({ page }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-001-effectiveDate").dblclick();
+    await expect(
+      page.getByTestId("inline-editor-HR-001-effectiveDate"),
+    ).toBeVisible();
+
+    const toggleButton = page.getByTestId(
+      "date-editor-toggle-HR-001-effectiveDate",
+    );
+    await expect(toggleButton).toHaveText("달력");
+
+    await toggleButton.click();
+    await expect(
+      page.getByTestId("date-editor-popover-HR-001-effectiveDate"),
+    ).toBeVisible();
+
+    const popover = page.getByTestId(
+      "date-editor-popover-HR-001-effectiveDate",
+    );
+    await expect(popover.getByText("이전")).toBeVisible();
+    await expect(popover.getByText("다음")).toBeVisible();
+    await expect(popover.getByText("지우기")).toBeVisible();
+  });
+
   test("keeps filter input focus after Enter applies a text filter", async ({
     page,
   }) => {
@@ -456,6 +496,39 @@ test.describe("Grid Lab", () => {
     await expect(page.getByTestId("date-editor-day-2026-03-07")).toBeDisabled();
     await expect(page.getByTestId("date-editor-day-2026-03-16")).toBeDisabled();
     await page.getByTestId("date-editor-day-2026-03-10").click();
+
+    await expect(
+      page.getByTestId("grid-cell-HR-001-effectiveDate"),
+    ).toContainText("2026-03-10");
+
+    await page.getByTestId("grid-cell-HR-001-sampleCode").click();
+    await expect(page.getByTestId("side-editor-effectiveDate")).toHaveValue(
+      "2026-03-10",
+    );
+  });
+
+  test("date editor formats dates using local timezone (UTC regression)", async ({
+    page,
+  }) => {
+    await page.goto("/labs/grid");
+
+    await page.getByTestId("grid-cell-HR-001-effectiveDate").dblclick();
+    await expect(
+      page.getByTestId("inline-editor-HR-001-effectiveDate"),
+    ).toBeVisible();
+
+    await page.getByTestId("date-editor-toggle-HR-001-effectiveDate").click();
+    await expect(
+      page.getByTestId("date-editor-popover-HR-001-effectiveDate"),
+    ).toBeVisible();
+
+    const dayCell = page.getByTestId("date-editor-day-2026-03-10");
+    await expect(dayCell).toBeVisible();
+    await dayCell.click();
+
+    await expect(
+      page.getByTestId("inline-editor-HR-001-effectiveDate"),
+    ).toHaveValue("2026-03-10");
 
     await expect(
       page.getByTestId("grid-cell-HR-001-effectiveDate"),
