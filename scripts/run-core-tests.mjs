@@ -12,35 +12,45 @@ execSync("npx tsc -p tsconfig.test.json", {
   stdio: "inherit",
 });
 
-const coreShimDir = join(
-  outputDir,
-  "node_modules",
-  "@vibe-grid",
-  "core",
-);
+function createWorkspaceShim(packageName) {
+  const shimDir = join(
+    outputDir,
+    "node_modules",
+    "@vibe-grid",
+    packageName,
+  );
 
-mkdirSync(coreShimDir, { recursive: true });
-writeFileSync(
-  join(coreShimDir, "package.json"),
-  JSON.stringify(
-    {
-      name: "@vibe-grid/core",
-      type: "commonjs",
-      main: "./index.js",
-    },
-    null,
-    2,
-  ),
-);
-writeFileSync(
-  join(coreShimDir, "index.js"),
-  'module.exports = require("../../../packages/core/src/index.js");\n',
-);
+  mkdirSync(shimDir, { recursive: true });
+  writeFileSync(
+    join(shimDir, "package.json"),
+    JSON.stringify(
+      {
+        name: `@vibe-grid/${packageName}`,
+        type: "commonjs",
+        main: "./index.js",
+      },
+      null,
+      2,
+    ),
+  );
+  writeFileSync(
+    join(shimDir, "index.js"),
+    `module.exports = require("../../../packages/${packageName}/src/index.js");\n`,
+  );
+}
 
-execSync(
-  "node --test .omx/tmp/test-dist/packages/core/src/bulk-orchestration.test.js .omx/tmp/test-dist/packages/react/src/useGridBulkOrchestration.test.js",
-  {
-    cwd: workspaceRoot,
-    stdio: "inherit",
-  },
-);
+createWorkspaceShim("core");
+createWorkspaceShim("i18n");
+
+const testFiles = [
+  ".omx/tmp/test-dist/packages/clipboard/src/index.test.js",
+  ".omx/tmp/test-dist/packages/core/src/bulk-orchestration.test.js",
+  ".omx/tmp/test-dist/packages/excel/src/index.test.js",
+  ".omx/tmp/test-dist/packages/persistence/src/index.test.js",
+  ".omx/tmp/test-dist/packages/react/src/useGridBulkOrchestration.test.js",
+];
+
+execSync(`node --test ${testFiles.join(" ")}`, {
+  cwd: workspaceRoot,
+  stdio: "inherit",
+});

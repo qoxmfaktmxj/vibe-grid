@@ -6,6 +6,7 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 
 ### Added
 
+- Core test coverage for `@vibe-grid/excel`, `@vibe-grid/persistence`, and `@vibe-grid/clipboard` helper edge cases.
 - Shared density option on `VibeGrid` with `compact`, `default`, and `comfortable` modes, plus density comparison controls in Grid Lab and Bench.
 - Real-grid performance verification with actual `VibeGrid` render-path coverage.
 - Stable vs experimental boundary documentation.
