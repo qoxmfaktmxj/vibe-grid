@@ -379,6 +379,8 @@ export function VibeGridTableBody<Row extends RowRecord>({
                     fontSize: 13,
                     fontWeight: isActiveCell ? 500 : 400,
                     verticalAlign: "middle",
+                    zIndex: editing ? 50 : undefined,
+                    overflow: editing ? "visible" : undefined,
                     boxShadow: [
                       buildRangeShadow(rangeState, theme),
                       isActiveCell && !editing

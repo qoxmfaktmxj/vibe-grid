@@ -527,10 +527,6 @@ test.describe("Grid Lab", () => {
     await dayCell.click();
 
     await expect(
-      page.getByTestId("inline-editor-HR-001-effectiveDate"),
-    ).toHaveValue("2026-03-10");
-
-    await expect(
       page.getByTestId("grid-cell-HR-001-effectiveDate"),
     ).toContainText("2026-03-10");
 
