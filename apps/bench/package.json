@@ -9,8 +9,8 @@
     "lint": "eslint src next.config.ts"
   },
   "dependencies": {
-    "@vibe-grid/core": "0.0.1",
-    "@vibe-grid/testing": "0.0.1",
+    "@vibe-grid/core": "0.1.0",
+    "@vibe-grid/testing": "0.1.0",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
