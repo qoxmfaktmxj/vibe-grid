@@ -28,6 +28,12 @@ All meaningful changes to the shared VibeGrid product should be recorded here.
 - Experimental tree runtime contracts in `@vibe-grid/core`, including expanded-row state helpers.
 - Experimental tree runtime rendering on the shared `VibeGrid` React surface, with Compatibility Lab browser coverage.
 
+### Infrastructure
+
+- vibe-grid 모노레포의 9개 패키지를 npm public registry에 publish 가능하도록 빌드/메타/워크플로우 정비
+- `tsc` 단독 빌드, dual-resolution `exports`, tag-driven `release.yml` (provenance)
+- 자세한 설계: `docs/superpowers/specs/2026-04-27-vibe-grid-npm-publish-design.md`
+
 ### Fixed
 
 - `VibeGridDateEditor`의 `formatIsoDate`가 `toISOString()`(UTC 기준) 대신 `getFullYear/getMonth/getDate`(로컬 타임존 기준)를 사용하도록 수정 — KST(UTC+9) 환경에서 자정 근처 날짜가 하루 밀리는 버그 해결.
