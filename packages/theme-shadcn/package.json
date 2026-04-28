@@ -1,9 +1,34 @@
 {
   "name": "@vibe-grid/theme-shadcn",
   "version": "0.0.1",
+  "description": "shadcn/ui-based design tokens and theme factory for VibeGrid",
   "type": "module",
-  "private": true,
+  "license": "MIT",
+  "homepage": "https://github.com/qoxmfaktmxj/vibe-grid#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qoxmfaktmxj/vibe-grid.git",
+    "directory": "packages/theme-shadcn"
+  },
+  "bugs": "https://github.com/qoxmfaktmxj/vibe-grid/issues",
+  "keywords": ["vibe-grid", "theme", "shadcn", "tokens"],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
