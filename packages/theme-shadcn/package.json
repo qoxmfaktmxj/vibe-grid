@@ -1,6 +1,6 @@
 {
   "name": "@vibe-grid/theme-shadcn",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "shadcn/ui-based design tokens and theme factory for VibeGrid",
   "type": "module",
   "license": "MIT",

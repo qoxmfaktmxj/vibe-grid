@@ -1,6 +1,6 @@
 {
   "name": "@vibe-grid/virtualization",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "[INTERNAL] Sticky/frozen/row virtualization orchestration for @vibe-grid/react. Direct consumption is unsupported.",
   "type": "module",
   "license": "MIT",

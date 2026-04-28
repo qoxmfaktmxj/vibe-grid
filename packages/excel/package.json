@@ -1,6 +1,6 @@
 {
   "name": "@vibe-grid/excel",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "xlsx import/export and template pipeline for VibeGrid",
   "type": "module",
   "license": "MIT",
@@ -28,7 +28,7 @@
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
-    "@vibe-grid/core": "0.0.1",
+    "@vibe-grid/core": "0.1.0",
     "exceljs": "^4.4.0"
   },
   "publishConfig": {

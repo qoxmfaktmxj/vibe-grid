@@ -1,6 +1,6 @@
 {
   "name": "@vibe-grid/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Pure-function core contracts, row state, validation, and selection model for VibeGrid",
   "type": "module",
   "license": "MIT",

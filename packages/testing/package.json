@@ -1,6 +1,6 @@
 {
   "name": "@vibe-grid/testing",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "private": true,
   "exports": {
@@ -10,9 +10,9 @@
     "react": "^19.0.0"
   },
   "dependencies": {
-    "@vibe-grid/clipboard": "0.0.1",
-    "@vibe-grid/core": "0.0.1",
-    "@vibe-grid/react": "0.0.1",
-    "@vibe-grid/virtualization": "0.0.1"
+    "@vibe-grid/clipboard": "0.1.0",
+    "@vibe-grid/core": "0.1.0",
+    "@vibe-grid/react": "0.1.0",
+    "@vibe-grid/virtualization": "0.1.0"
   }
 }

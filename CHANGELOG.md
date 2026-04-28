@@ -2,6 +2,8 @@
 
 All meaningful changes to the shared VibeGrid product should be recorded here.
 
+## [0.1.0] - 2026-04-28
+
 ## Unreleased
 
 ### Added

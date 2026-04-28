@@ -1,6 +1,6 @@
 {
   "name": "@vibe-grid/tanstack-adapter",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "[INTERNAL] TanStack Table bridge for @vibe-grid/react. Direct consumption is unsupported.",
   "type": "module",
   "license": "MIT",
@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
-    "@vibe-grid/core": "0.0.1"
+    "@vibe-grid/core": "0.1.0"
   },
   "publishConfig": {
     "access": "public",
