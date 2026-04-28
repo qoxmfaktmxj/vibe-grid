@@ -68,7 +68,18 @@ jobs:
         if: github.event_name == 'push' && inputs.dry_run != true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish -ws --access public --provenance
+        run: |
+          npm publish \
+            -w @vibe-grid/core \
+            -w @vibe-grid/i18n \
+            -w @vibe-grid/theme-shadcn \
+            -w @vibe-grid/clipboard \
+            -w @vibe-grid/excel \
+            -w @vibe-grid/persistence \
+            -w @vibe-grid/virtualization \
+            -w @vibe-grid/tanstack-adapter \
+            -w @vibe-grid/react \
+            --access public --provenance
 
       - name: Upload Playwright Artifacts
         if: always()

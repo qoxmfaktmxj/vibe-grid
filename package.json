@@ -32,8 +32,8 @@
     "lint:playground": "npm run lint -w @vibe-grid/playground",
     "lint:bench": "npm run lint -w @vibe-grid/bench",
     "lint": "npm run lint:packages && npm run lint:playground && npm run lint:bench",
-    "clean:packages": "npm run clean -ws --if-present",
-    "build:packages": "npm run build -ws --if-present",
+    "clean:packages": "npm run clean -w @vibe-grid/core -w @vibe-grid/i18n -w @vibe-grid/theme-shadcn -w @vibe-grid/clipboard -w @vibe-grid/excel -w @vibe-grid/persistence -w @vibe-grid/virtualization -w @vibe-grid/tanstack-adapter -w @vibe-grid/react --if-present",
+    "build:packages": "npm run build -w @vibe-grid/core -w @vibe-grid/i18n -w @vibe-grid/theme-shadcn -w @vibe-grid/clipboard -w @vibe-grid/excel -w @vibe-grid/persistence -w @vibe-grid/virtualization -w @vibe-grid/tanstack-adapter -w @vibe-grid/react --if-present",
     "prepublishOnly": "npm run lint && npm run build:packages && npm run test:core",
     "ci": "npm run lint && npm run build && npm run test:core && npm run test:e2e"
   },
