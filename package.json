@@ -2,6 +2,14 @@
   "name": "vibe-grid",
   "version": "0.0.1",
   "private": true,
+  "license": "MIT",
+  "author": "minseok kim",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qoxmfaktmxj/vibe-grid.git"
+  },
+  "homepage": "https://github.com/qoxmfaktmxj/vibe-grid#readme",
+  "bugs": "https://github.com/qoxmfaktmxj/vibe-grid/issues",
   "packageManager": "npm@11.8.0",
   "workspaces": [
     "apps/playground",
