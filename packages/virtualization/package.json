@@ -1,13 +1,40 @@
 {
   "name": "@vibe-grid/virtualization",
   "version": "0.0.1",
+  "description": "[INTERNAL] Sticky/frozen/row virtualization orchestration for @vibe-grid/react. Direct consumption is unsupported.",
   "type": "module",
-  "private": true,
+  "license": "MIT",
+  "homepage": "https://github.com/qoxmfaktmxj/vibe-grid#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qoxmfaktmxj/vibe-grid.git",
+    "directory": "packages/virtualization"
+  },
+  "bugs": "https://github.com/qoxmfaktmxj/vibe-grid/issues",
+  "keywords": ["vibe-grid", "internal"],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
   },
   "dependencies": {
-    "@tanstack/react-virtual": "^3.13.12",
-    "react": "^19.2.0"
+    "@tanstack/react-virtual": "^3.13.12"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

@@ -1,13 +1,44 @@
 {
   "name": "@vibe-grid/tanstack-adapter",
   "version": "0.0.1",
+  "description": "[INTERNAL] TanStack Table bridge for @vibe-grid/react. Direct consumption is unsupported.",
   "type": "module",
-  "private": true,
+  "license": "MIT",
+  "homepage": "https://github.com/qoxmfaktmxj/vibe-grid#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qoxmfaktmxj/vibe-grid.git",
+    "directory": "packages/tanstack-adapter"
+  },
+  "bugs": "https://github.com/qoxmfaktmxj/vibe-grid/issues",
+  "keywords": [
+    "vibe-grid",
+    "internal"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
     "@vibe-grid/core": "0.0.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
