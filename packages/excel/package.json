@@ -1,13 +1,38 @@
 {
   "name": "@vibe-grid/excel",
   "version": "0.0.1",
+  "description": "xlsx import/export and template pipeline for VibeGrid",
   "type": "module",
-  "private": true,
+  "license": "MIT",
+  "homepage": "https://github.com/qoxmfaktmxj/vibe-grid#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qoxmfaktmxj/vibe-grid.git",
+    "directory": "packages/excel"
+  },
+  "bugs": "https://github.com/qoxmfaktmxj/vibe-grid/issues",
+  "keywords": ["vibe-grid", "excel", "xlsx"],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
     "@vibe-grid/core": "0.0.1",
     "exceljs": "^4.4.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
