@@ -25,3 +25,7 @@ pnpm-debug.log*
 # Claude Code worktrees (local only)
 .claude/worktrees/
 .claude/plans/
+
+# Package build artifacts
+packages/*/dist
+packages/*/*.tsbuildinfo

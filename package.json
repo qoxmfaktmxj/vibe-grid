@@ -32,6 +32,9 @@
     "lint:playground": "npm run lint -w @vibe-grid/playground",
     "lint:bench": "npm run lint -w @vibe-grid/bench",
     "lint": "npm run lint:packages && npm run lint:playground && npm run lint:bench",
+    "clean:packages": "npm run clean -ws --if-present",
+    "build:packages": "npm run build -ws --if-present",
+    "prepublishOnly": "npm run lint && npm run build:packages && npm run test:core",
     "ci": "npm run lint && npm run build && npm run test:core && npm run test:e2e"
   },
   "devDependencies": {
